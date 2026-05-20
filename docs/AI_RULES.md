@@ -1,3 +1,0 @@
-# AI Rules
-
-Pending content.

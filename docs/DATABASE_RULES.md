@@ -1,3 +1,0 @@
-# Database Rules
-
-Pending content.

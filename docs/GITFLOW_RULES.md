@@ -1,3 +1,0 @@
-# GitFlow Rules
-
-Pending content.

@@ -1,3 +1,0 @@
-# Backend Rules
-
-Pending content.
