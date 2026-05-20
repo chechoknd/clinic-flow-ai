@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: clinic-flow-ai-postgres
+    environment:
+      POSTGRES_DB: clinicflow_db
+      POSTGRES_USER: clinicflow
+      POSTGRES_PASSWORD: clinicflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - clinic_flow_ai_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  clinic_flow_ai_postgres_data:
