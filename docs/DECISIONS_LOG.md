@@ -1,6 +1,6 @@
 # Decisions Log
 
-## 2026-05-21 — Use monorepo
+## 2026-05-20 — Use monorepo
 
 ### Context
 
@@ -14,7 +14,7 @@ Use a single monorepo for the Angular frontend, Go backend, database assets, inf
 
 The monorepo keeps contracts, migrations, and application changes visible in one place. It also requires clear directory boundaries so frontend, backend, database, and documentation work do not become mixed.
 
-## 2026-05-21 — Use Angular for frontend
+## 2026-05-20 — Use Angular for frontend
 
 ### Context
 
@@ -28,7 +28,7 @@ Use Angular with standalone components, Reactive Forms, Signals, Angular Router,
 
 Angular provides a structured frontend foundation for dashboard, clinic settings, service catalog, leads, AI assistant, content, and follow-up features. The frontend must remain simple and avoid unnecessary complexity such as NgRx unless explicitly needed later.
 
-## 2026-05-21 — Use Go for backend
+## 2026-05-20 — Use Go for backend
 
 ### Context
 
@@ -42,7 +42,7 @@ Use Go for the backend with Clean Architecture principles and module boundaries 
 
 Go supports a lightweight, performant API with explicit error handling and clear package boundaries. The team must keep handlers, services, repositories, models, DTOs, and routes separated to avoid mixing HTTP, business logic, SQL, and AI provider logic.
 
-## 2026-05-21 — Use PostgreSQL for database
+## 2026-05-20 — Use PostgreSQL for database
 
 ### Context
 
@@ -56,7 +56,7 @@ Use PostgreSQL with UUID primary keys, SQL migrations, seeds, foreign keys, inde
 
 PostgreSQL gives a strong relational base for the MVP. Every clinic-owned entity must include tenant scoping where applicable. `pgvector` may be prepared for future phases, but it is not required for MVP logic.
 
-## 2026-05-21 — Use Docker Compose for local development
+## 2026-05-20 — Use Docker Compose for local development
 
 ### Context
 
@@ -70,7 +70,7 @@ Use Docker Compose for local development orchestration.
 
 Docker Compose simplifies consistent setup across machines. Secrets must still be managed through local environment variables and must not be committed.
 
-## 2026-05-21 — Use direct context injection instead of RAG for MVP
+## 2026-05-20 — Use direct context injection instead of RAG for MVP
 
 ### Context
 
@@ -84,7 +84,7 @@ Use direct structured context injection in backend-owned prompts for the MVP. Do
 
 This reduces cost, latency, and implementation complexity. Prompt context must remain concise and controlled. RAG can be revisited after MVP validation if clinics need richer knowledge bases.
 
-## 2026-05-21 — Exclude WhatsApp Cloud API integration from MVP
+## 2026-05-20 — Exclude WhatsApp Cloud API integration from MVP
 
 ### Context
 
@@ -98,7 +98,7 @@ Exclude native WhatsApp Business Cloud API integration and autonomous WhatsApp b
 
 The MVP focuses on human-operated assistance: generate, copy, paste, and manually follow up through existing WhatsApp workflows. Automation can be evaluated after pilot validation.
 
-## 2026-05-21 — Exclude medical records and diagnosis from MVP
+## 2026-05-20 — Exclude medical records and diagnosis from MVP
 
 ### Context
 
@@ -112,7 +112,7 @@ Exclude medical records, clinical histories, diagnoses, prescriptions, medical i
 
 The product remains focused on sales, follow-up, marketing, and appointment-oriented communication. AI safety rules must prevent medical advice and direct patients toward professional evaluation when needed.
 
-## 2026-05-21 — Use AGENTS.md plus docs/AGENT_RULES/ for agent governance
+## 2026-05-20 — Use AGENTS.md plus docs/AGENT_RULES/ for agent governance
 
 ### Context
 

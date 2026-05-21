@@ -209,7 +209,7 @@ Response:
   "clinic_type": "odontologia",
   "city": "Bogota",
   "communication_tone": "profesional",
-  "updated_at": "2026-05-21T15:30:00Z"
+  "updated_at": "2026-05-20T15:30:00Z"
 }
 ```
 
@@ -265,7 +265,7 @@ Response:
 {
   "id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
   "name": "Blanqueamiento dental",
-  "created_at": "2026-05-21T15:30:00Z"
+  "created_at": "2026-05-20T15:30:00Z"
 }
 ```
 
@@ -292,7 +292,7 @@ Response:
 ```json
 {
   "id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
-  "updated_at": "2026-05-21T15:30:00Z"
+  "updated_at": "2026-05-20T15:30:00Z"
 }
 ```
 
@@ -335,7 +335,7 @@ Response:
       "status": "Nuevo",
       "source": "whatsapp",
       "next_action_at": "2026-05-22T14:00:00Z",
-      "created_at": "2026-05-21T15:30:00Z"
+      "created_at": "2026-05-20T15:30:00Z"
     }
   ],
   "pagination": {
@@ -371,7 +371,7 @@ Response:
 {
   "id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
   "status": "Nuevo",
-  "created_at": "2026-05-21T15:30:00Z"
+  "created_at": "2026-05-20T15:30:00Z"
 }
 ```
 
@@ -396,7 +396,7 @@ Response:
     {
       "id": "0d9319a3-9b65-4ca6-9f4d-b38f5e4bce78",
       "body": "Solicito informacion de precio desde.",
-      "created_at": "2026-05-21T15:30:00Z"
+      "created_at": "2026-05-20T15:30:00Z"
     }
   ],
   "next_action_at": "2026-05-22T14:00:00Z"
@@ -435,7 +435,7 @@ Response:
 {
   "id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
   "status": "Interesado",
-  "updated_at": "2026-05-21T15:30:00Z"
+  "updated_at": "2026-05-20T15:30:00Z"
 }
 ```
 
