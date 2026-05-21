@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 0 — Documentation and repository foundation
+Phase 1 — Technical Base (Local Infrastructure)
 
 ## Completed Items
 
@@ -10,14 +10,15 @@ Phase 0 — Documentation and repository foundation
 - `AGENTS.md` defines project identity, scope, stack, safety rules, and agent governance.
 - `docs/AGENT_RULES/` contains specialized rules for agent behavior, documentation, frontend, backend, database, AI safety, security, testing, and Git workflow.
 - Core documentation files exist.
-- Core documentation files have been populated from the product specification and agent governance rules.
-- Product specification PDF is available at `docs/reference/ClinicFlow_AI_Project_Specification.pdf`.
 - MVP scope and exclusions are defined.
+- Local PostgreSQL infrastructure configured via Docker Compose.
+- Database documentation and structure initialized in `database/`.
 
 ## In-Progress Items
 
-- Phase 0 documentation review and commit validation.
-- Repository foundation verification before Phase 1 technical setup.
+- Phase 1 technical base setup.
+- Initializing Go REST API foundation.
+- Initializing Angular application shell.
 
 ## Pending Items
 
