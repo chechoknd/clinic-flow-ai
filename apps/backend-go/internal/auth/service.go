@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,25 +16,26 @@ var (
 )
 
 type Service struct {
-	repository Repository
-	jwtSecret  []byte
-	tokenTTL   time.Duration
-	now        func() time.Time
+	repository   Repository
+	tokenManager *TokenManager
+	tokenTTL     time.Duration
+	now          func() time.Time
 }
 
 func NewService(repository Repository, jwtSecret string, tokenTTL time.Duration) (*Service, error) {
-	if strings.TrimSpace(jwtSecret) == "" {
-		return nil, ErrMissingJWTSecret
+	tokenManager, err := NewTokenManager(jwtSecret)
+	if err != nil {
+		return nil, err
 	}
 	if tokenTTL <= 0 {
 		tokenTTL = time.Duration(defaultTokenTTLSeconds) * time.Second
 	}
 
 	return &Service{
-		repository: repository,
-		jwtSecret:  []byte(jwtSecret),
-		tokenTTL:   tokenTTL,
-		now:        time.Now,
+		repository:   repository,
+		tokenManager: tokenManager,
+		tokenTTL:     tokenTTL,
+		now:          time.Now,
 	}, nil
 }
 
@@ -60,17 +60,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResponse, e
 		return LoginResponse{}, ErrInvalidCredentials
 	}
 
-	issuedAt := s.now().UTC()
-	expiresAt := issuedAt.Add(s.tokenTTL)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":       user.ID,
-		"clinic_id": user.ClinicID,
-		"role":      user.Role,
-		"iat":       issuedAt.Unix(),
-		"exp":       expiresAt.Unix(),
-	})
-
-	accessToken, err := token.SignedString(s.jwtSecret)
+	accessToken, err := s.tokenManager.Sign(user, s.now(), s.tokenTTL)
 	if err != nil {
 		return LoginResponse{}, err
 	}

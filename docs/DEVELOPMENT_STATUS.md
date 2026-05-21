@@ -19,6 +19,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - `/readyz` now validates PostgreSQL connectivity with a database ping.
 - Initial core schema migration added for clinics, users, and clinic services.
 - Base JWT login endpoint implemented for `POST /api/auth/login`.
+- JWT authentication middleware and role authorization helper prepared for protected routes.
 
 ## In-Progress Items
 
@@ -32,7 +33,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Initialize or verify Angular frontend base.
 - Define `.env.example` placeholders.
 - Create PostgreSQL seeds after initial schema exists.
-- Implement auth middleware and protected endpoint authorization.
+- Apply JWT middleware to protected endpoints as business modules are implemented.
 - Implement clinic profile and service catalog modules.
 - Implement commercial lead CRM.
 - Implement backend-owned AI provider abstraction and safety validation.
@@ -60,12 +61,13 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Add auth middleware for JWT validation and protected endpoint authorization.
+Apply JWT middleware to the first protected clinic/service endpoints when those modules are implemented.
 
 ## Change Log
 
 ### 2026-05-20
 
+- Added reusable JWT authentication middleware and role authorization helper.
 - Implemented base JWT login endpoint backed by the `users` table.
 - Added initial PostgreSQL schema migration for `clinics`, `users`, and `clinic_services`.
 - Connected backend readiness validation to PostgreSQL using `DATABASE_URL`.

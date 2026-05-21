@@ -82,4 +82,4 @@ If `DATABASE_URL` is missing or PostgreSQL is unreachable, `/readyz` returns HTT
 
 ## Current Scope
 
-This skeleton implements only the base `POST /api/auth/login` endpoint. It does not implement auth middleware, clinics, services, leads, AI provider logic, or business modules yet.
+This skeleton implements the base `POST /api/auth/login` endpoint plus reusable JWT authentication and role-authorization middleware. It does not implement clinics, services, leads, AI provider logic, or business modules yet.
