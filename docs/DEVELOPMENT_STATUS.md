@@ -26,6 +26,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Protected `PUT /api/clinics/current` endpoint implemented for clinic administrators.
 - Service Catalog module (CRUD) implemented with strict tenant isolation.
 - Commercial Lead CRM (Leads Module) implemented with pagination and notes.
+- AI Module implemented with provider abstraction, context injection, and safety validation.
 
 ## In-Progress Items
 
@@ -40,7 +41,6 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Define `.env.example` placeholders.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
-- Implement backend-owned AI provider abstraction and safety validation.
 - Implement manual follow-up workflows.
 - Implement dashboard summary.
 - Add backend and frontend tests when code exists.

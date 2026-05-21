@@ -6,6 +6,8 @@ import (
 	"errors"
 	"math"
 	"strings"
+
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 )
 
 var ErrMissingClinicID = errors.New("clinic id is required")
@@ -116,16 +118,34 @@ func (s *Service) Create(ctx context.Context, clinicID string, req CreateLeadReq
 	if req.FullName == "" {
 		return LeadResponse{}, errors.New("full name is required")
 	}
-	req.Phone = strings.TrimSpace(req.Phone)
+
+	req.Phone = shared.NormalizePhone(req.Phone)
 	if req.Phone == "" {
 		return LeadResponse{}, errors.New("phone is required")
+	}
+	if !shared.IsValidPhone(req.Phone) {
+		return LeadResponse{}, errors.New("invalid phone format (expected E.164, e.g., +573001234567)")
 	}
 
 	if req.Status == "" {
 		req.Status = "Nuevo"
 	}
+
+	req.Source = strings.TrimSpace(req.Source)
 	if req.Source == "" {
 		req.Source = "whatsapp"
+	}
+
+	allowedSources := map[string]bool{
+		"whatsapp":  true,
+		"instagram": true,
+		"facebook":  true,
+		"web":       true,
+		"llamada":   true,
+		"otro":      true,
+	}
+	if !allowedSources[req.Source] {
+		return LeadResponse{}, errors.New("invalid lead source")
 	}
 
 	model := Lead{
@@ -156,8 +176,22 @@ func (s *Service) Update(ctx context.Context, clinicID, leadID string, req Updat
 		return ErrMissingClinicID
 	}
 
+	req.Status = strings.TrimSpace(req.Status)
 	if req.Status == "" {
 		return errors.New("status is required")
+	}
+
+	allowedStatuses := map[string]bool{
+		"Nuevo":        true,
+		"Contactado":   true,
+		"Interesado":   true,
+		"Agendado":     true,
+		"No Respondio": true,
+		"Perdido":      true,
+		"Convertido":   true,
+	}
+	if !allowedStatuses[req.Status] {
+		return errors.New("invalid status")
 	}
 
 	var nextActionAt *sql.NullTime

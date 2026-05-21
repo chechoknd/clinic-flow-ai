@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 )
 
 var ErrMissingClinicID = errors.New("clinic id is required")
@@ -46,9 +48,31 @@ func (s *Service) Update(ctx context.Context, clinicID string, req UpdateClinicR
 	if req.City == "" {
 		return ClinicResponse{}, errors.New("city is required")
 	}
-	req.WhatsApp = strings.TrimSpace(req.WhatsApp)
+	req.WhatsApp = shared.NormalizePhone(req.WhatsApp)
 	if req.WhatsApp == "" {
 		return ClinicResponse{}, errors.New("whatsapp is required")
+	}
+	if !shared.IsValidPhone(req.WhatsApp) {
+		return ClinicResponse{}, errors.New("invalid whatsapp format (expected E.164, e.g., +573001234567)")
+	}
+
+	if req.Phone != nil {
+		normalized := shared.NormalizePhone(*req.Phone)
+		if normalized != "" && !shared.IsValidPhone(normalized) {
+			return ClinicResponse{}, errors.New("invalid phone format (expected E.164)")
+		}
+		req.Phone = &normalized
+	}
+
+	allowedTones := map[string]bool{
+		"amable":      true,
+		"profesional": true,
+		"cercano":     true,
+		"juvenil":     true,
+		"elegante":    true,
+	}
+	if !allowedTones[req.CommunicationTone] {
+		return ClinicResponse{}, errors.New("invalid communication tone")
 	}
 
 	clinic := Clinic{

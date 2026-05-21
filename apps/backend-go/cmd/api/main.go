@@ -14,6 +14,8 @@ import (
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/services"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/leads"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/ai"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/config"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/health"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/pkg/database"
@@ -21,6 +23,10 @@ import (
 
 func main() {
 	cfg := config.Load()
+
+	if err := cfg.Validate(); err != nil {
+		log.Fatalf("invalid configuration: %v", err)
+	}
 
 	db, err := database.Open(cfg.DatabaseURL)
 	if err != nil {
@@ -56,14 +62,31 @@ func main() {
 				leadRepository := leads.NewPostgresRepository(db)
 				leadService := leads.NewService(leadRepository)
 				leads.RegisterRoutes(mux, leads.NewHandler(leadService), tokenManager)
+
+				aiProvider, err := ai.NewProvider(cfg)
+				if err != nil {
+					log.Printf("ai module disabled: %v", err)
+				} else {
+					aiService := ai.NewService(aiProvider, clinicService, serviceService, leadService)
+					ai.RegisterRoutes(mux, ai.NewHandler(aiService), tokenManager)
+				}
 			}
 		}
 	}
 
 	server := &http.Server{
-		Addr:              cfg.HTTPAddr,
-		Handler:           mux,
+		Addr: cfg.HTTPAddr,
+		Handler: shared.SecurityHeadersMiddleware(
+			shared.CORSMiddleware(cfg.AllowedOrigins)(
+				shared.NewRateLimiter(60, time.Minute).Limit(
+					shared.MaxBytesMiddleware(1024*1024)(mux),
+				),
+			),
+		),
 		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	errCh := make(chan error, 1)
