@@ -10,30 +10,34 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/config"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/health"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/pkg/database"
 )
 
-const defaultAddr = ":8080"
-
 func main() {
-	addr := os.Getenv("HTTP_ADDR")
-	if addr == "" {
-		addr = defaultAddr
+	cfg := config.Load()
+
+	db, err := database.Open(cfg.DatabaseURL)
+	if err != nil {
+		log.Printf("database readiness disabled: %v", err)
+	} else {
+		defer db.Close()
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", health.Healthz)
-	mux.HandleFunc("GET /readyz", health.Readyz)
+	mux.HandleFunc("GET /readyz", health.Readyz(db))
 
 	server := &http.Server{
-		Addr:              addr,
+		Addr:              cfg.HTTPAddr,
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	errCh := make(chan error, 1)
 	go func() {
-		log.Printf("clinicflow api listening on %s", addr)
+		log.Printf("clinicflow api listening on %s", cfg.HTTPAddr)
 		errCh <- server.ListenAndServe()
 	}()
 

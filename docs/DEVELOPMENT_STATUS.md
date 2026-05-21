@@ -15,10 +15,13 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Database documentation and structure initialized in `database/`.
 - Backend Go module initialized in `apps/backend-go`.
 - Backend API skeleton created with `GET /healthz` and `GET /readyz`.
+- Backend database connection support added through `DATABASE_URL`.
+- `/readyz` now validates PostgreSQL connectivity with a database ping.
 
 ## In-Progress Items
 
 - Phase 1 technical base setup.
+- Backend DB connection/readiness validation completed.
 - Initializing Angular application shell.
 
 ## Pending Items
@@ -26,7 +29,8 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Confirm final repository structure against the architecture docs.
 - Initialize or verify Angular frontend base.
 - Define `.env.example` placeholders.
-- Create PostgreSQL migrations and seeds.
+- Create initial database schema migrations for auth, clinics, and users.
+- Create PostgreSQL seeds after initial schema exists.
 - Implement authentication and role model.
 - Implement clinic profile and service catalog modules.
 - Implement commercial lead CRM.
@@ -55,12 +59,14 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Continue Phase 1 by adding the Angular application shell or the next backend foundation slice, keeping authentication and business modules out until their dedicated tasks.
+Create initial database schema migrations for auth, clinics, and users.
 
 ## Change Log
 
 ### 2026-05-20
 
+- Connected backend readiness validation to PostgreSQL using `DATABASE_URL`.
+- Prepared migration and seed README files for the upcoming auth, clinics, and users schema.
 - Added backend Go API skeleton with health and readiness endpoints.
 - Documented PostgreSQL local infrastructure as configured and backend skeleton as created.
 - Populated initial project plan, architecture, API contracts, development status, and decisions log from the project specification and agent governance rules.

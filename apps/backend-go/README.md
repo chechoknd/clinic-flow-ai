@@ -5,13 +5,33 @@ Minimal Go API skeleton for ClinicFlow AI.
 ## Requirements
 
 - Go 1.22 or newer.
+- PostgreSQL available locally through the repository Docker Compose setup.
+
+## Configuration
+
+- `HTTP_ADDR`: optional listen address. Defaults to `:8080`.
+- `DATABASE_URL`: required for readiness checks and database connectivity.
+
+Local development example:
+
+```bash
+DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable"
+```
+
+The local credentials above match `docker-compose.yml` and are for local development only. Do not commit production secrets or create `.env` files.
 
 ## Commands
 
-Run the API locally:
+Run the API locally with the default HTTP address:
 
 ```bash
-go run ./cmd/api
+DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" go run ./cmd/api
+```
+
+Run the API locally on a custom port:
+
+```bash
+DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" HTTP_ADDR=":18080" go run ./cmd/api
 ```
 
 Run tests:
@@ -23,16 +43,41 @@ go test ./...
 Format code:
 
 ```bash
-gofmt -w ./cmd ./internal
+gofmt -w ./...
 ```
 
 ## Health Endpoints
 
-- `GET /healthz` returns process health.
-- `GET /readyz` returns readiness for the current skeleton.
+`GET /healthz` checks only that the API process is responding:
 
-The server listens on `:8080` by default. Set `HTTP_ADDR` to override it, for example `HTTP_ADDR=:8081`.
+```bash
+curl -sS http://127.0.0.1:18080/healthz
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+`GET /readyz` checks PostgreSQL connectivity with `PingContext`:
+
+```bash
+curl -sS http://127.0.0.1:18080/readyz
+```
+
+Expected response when PostgreSQL is reachable:
+
+```json
+{"status":"ready"}
+```
+
+If `DATABASE_URL` is missing or PostgreSQL is unreachable, `/readyz` returns HTTP `503` with:
+
+```json
+{"status":"not_ready"}
+```
 
 ## Current Scope
 
-This skeleton does not implement authentication, clinics, services, leads, AI, database access, or business logic yet.
+This skeleton does not implement authentication, clinics, services, leads, AI provider logic, database schema tables, or business logic yet.
