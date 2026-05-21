@@ -40,6 +40,42 @@ func (h *Handler) Current(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication is required.")
+		return
+	}
+
+	var req UpdateClinicRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "The request body is invalid.")
+		return
+	}
+
+	res, err := h.service.Update(r.Context(), claims.ClinicID, req)
+	if errors.Is(err, ErrMissingClinicID) {
+		writeError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication is required.")
+		return
+	}
+	if errors.Is(err, ErrClinicNotFound) {
+		writeError(w, http.StatusNotFound, "NOT_FOUND", "Clinic was not found.")
+		return
+	}
+	if err != nil {
+		// Basic validation error mapping (could be improved with specific error types)
+		if err.Error() == "clinic name is required" || err.Error() == "city is required" || err.Error() == "whatsapp is required" {
+			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error())
+			return
+		}
+
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, res)
+}
+
 func writeJSON(w http.ResponseWriter, statusCode int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)

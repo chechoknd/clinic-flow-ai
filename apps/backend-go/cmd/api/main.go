@@ -12,6 +12,8 @@ import (
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/auth"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/services"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/leads"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/config"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/health"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/pkg/database"
@@ -46,6 +48,14 @@ func main() {
 				clinicRepository := clinics.NewPostgresRepository(db)
 				clinicService := clinics.NewService(clinicRepository)
 				clinics.RegisterRoutes(mux, clinics.NewHandler(clinicService), tokenManager)
+
+				serviceRepository := services.NewPostgresRepository(db)
+				serviceService := services.NewService(serviceRepository)
+				services.RegisterRoutes(mux, services.NewHandler(serviceService), tokenManager)
+
+				leadRepository := leads.NewPostgresRepository(db)
+				leadService := leads.NewService(leadRepository)
+				leads.RegisterRoutes(mux, leads.NewHandler(leadService), tokenManager)
 			}
 		}
 	}

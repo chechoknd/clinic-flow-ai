@@ -23,6 +23,9 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Minimal Go migration runner added for ordered SQL migrations.
 - Local demo seed added for one clinic admin login and sample dental services.
 - Protected `GET /api/clinics/current` endpoint implemented using JWT claims.
+- Protected `PUT /api/clinics/current` endpoint implemented for clinic administrators.
+- Service Catalog module (CRUD) implemented with strict tenant isolation.
+- Commercial Lead CRM (Leads Module) implemented with pagination and notes.
 
 ## In-Progress Items
 
@@ -37,9 +40,6 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Define `.env.example` placeholders.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
-- Implement clinic profile update endpoint.
-- Implement service catalog module.
-- Implement commercial lead CRM.
 - Implement backend-owned AI provider abstraction and safety validation.
 - Implement manual follow-up workflows.
 - Implement dashboard summary.

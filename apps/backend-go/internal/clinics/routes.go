@@ -8,4 +8,5 @@ import (
 
 func RegisterRoutes(mux *http.ServeMux, handler *Handler, tokenManager *auth.TokenManager) {
 	mux.Handle("GET /api/clinics/current", tokenManager.Authenticate(http.HandlerFunc(handler.Current)))
+	mux.Handle("PUT /api/clinics/current", tokenManager.Authenticate(auth.RequireRoles(auth.RoleClinicAdmin)(http.HandlerFunc(handler.Update))))
 }

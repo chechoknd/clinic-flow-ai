@@ -10,6 +10,7 @@ var ErrClinicNotFound = errors.New("clinic not found")
 
 type Repository interface {
 	FindByID(ctx context.Context, clinicID string) (Clinic, error)
+	Update(ctx context.Context, clinic Clinic) error
 }
 
 type PostgresRepository struct {
@@ -59,4 +60,47 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID string) (Cli
 	}
 
 	return clinic, nil
+}
+
+func (r *PostgresRepository) Update(ctx context.Context, clinic Clinic) error {
+	const query = `
+		UPDATE clinics
+		SET
+			name = $2,
+			city = $3,
+			phone = $4,
+			whatsapp = $5,
+			address = $6,
+			opening_hours = $7,
+			general_faq = $8,
+			communication_tone = $9
+		WHERE id = $1
+	`
+
+	res, err := r.db.ExecContext(
+		ctx,
+		query,
+		clinic.ID,
+		clinic.Name,
+		clinic.City,
+		clinic.Phone,
+		clinic.WhatsApp,
+		clinic.Address,
+		clinic.OpeningHours,
+		clinic.GeneralFAQ,
+		clinic.CommunicationTone,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrClinicNotFound
+	}
+
+	return nil
 }
