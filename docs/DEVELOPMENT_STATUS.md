@@ -11,21 +11,20 @@ Phase 1 — Technical Base (Local Infrastructure)
 - `docs/AGENT_RULES/` contains specialized rules for agent behavior, documentation, frontend, backend, database, AI safety, security, testing, and Git workflow.
 - Core documentation files exist.
 - MVP scope and exclusions are defined.
-- Local PostgreSQL infrastructure configured via Docker Compose.
+- PostgreSQL local infrastructure is configured through Docker Compose.
 - Database documentation and structure initialized in `database/`.
+- Backend Go module initialized in `apps/backend-go`.
+- Backend API skeleton created with `GET /healthz` and `GET /readyz`.
 
 ## In-Progress Items
 
 - Phase 1 technical base setup.
-- Initializing Go REST API foundation.
 - Initializing Angular application shell.
 
 ## Pending Items
 
 - Confirm final repository structure against the architecture docs.
 - Initialize or verify Angular frontend base.
-- Initialize or verify Go backend base.
-- Define Docker Compose local services.
 - Define `.env.example` placeholders.
 - Create PostgreSQL migrations and seeds.
 - Implement authentication and role model.
@@ -47,7 +46,8 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Technical Debt
 
-- No implemented backend or frontend functionality is documented as complete yet.
+- Backend skeleton exists, but no business modules are implemented yet.
+- No implemented frontend functionality is documented as complete yet.
 - API contracts are initial planning contracts and must be updated during implementation.
 - Database schema is not yet represented by migrations in this status document.
 - AI safety validators are planned but not implemented.
@@ -55,10 +55,12 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Complete Phase 0 by reviewing and committing the core documentation, then proceed to Phase 1: technical base for Docker Compose, PostgreSQL, Go REST API foundation, JWT authentication, and Angular application shell.
+Continue Phase 1 by adding the Angular application shell or the next backend foundation slice, keeping authentication and business modules out until their dedicated tasks.
 
 ## Change Log
 
 ### 2026-05-20
 
+- Added backend Go API skeleton with health and readiness endpoints.
+- Documented PostgreSQL local infrastructure as configured and backend skeleton as created.
 - Populated initial project plan, architecture, API contracts, development status, and decisions log from the project specification and agent governance rules.
