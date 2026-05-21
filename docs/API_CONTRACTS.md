@@ -26,7 +26,7 @@ Authorization: Bearer <jwt>
 
 ## Authentication Strategy
 
-`POST /api/auth/login` authenticates an operator and returns a JWT. Protected endpoints require `Authorization: Bearer <jwt>`.
+`POST /api/auth/login` authenticates an active operator with email and password, then returns a JWT. Protected endpoints require `Authorization: Bearer <jwt>`.
 
 JWT claims should support:
 

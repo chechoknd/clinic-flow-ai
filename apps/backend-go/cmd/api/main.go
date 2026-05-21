@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/auth"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/config"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/health"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/pkg/database"
@@ -28,6 +29,16 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", health.Healthz)
 	mux.HandleFunc("GET /readyz", health.Readyz(db))
+
+	if db != nil {
+		authRepository := auth.NewPostgresRepository(db)
+		authService, err := auth.NewService(authRepository, cfg.JWTSecret, cfg.JWTExpiresIn)
+		if err != nil {
+			log.Printf("auth routes disabled: %v", err)
+		} else {
+			auth.RegisterRoutes(mux, auth.NewHandler(authService))
+		}
+	}
 
 	server := &http.Server{
 		Addr:              cfg.HTTPAddr,

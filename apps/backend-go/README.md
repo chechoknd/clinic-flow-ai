@@ -10,7 +10,9 @@ Minimal Go API skeleton for ClinicFlow AI.
 ## Configuration
 
 - `HTTP_ADDR`: optional listen address. Defaults to `:8080`.
-- `DATABASE_URL`: required for readiness checks and database connectivity.
+- `DATABASE_URL`: required for readiness checks, database connectivity, and auth repository access.
+- `JWT_SECRET`: required to enable `POST /api/auth/login`. Use a strong secret outside version control.
+- `JWT_EXPIRES_IN_SECONDS`: optional JWT lifetime in seconds. Defaults to `3600`.
 
 Local development example:
 
@@ -25,13 +27,13 @@ The local credentials above match `docker-compose.yml` and are for local develop
 Run the API locally with the default HTTP address:
 
 ```bash
-DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" go run ./cmd/api
+DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" JWT_SECRET="local-dev-secret" go run ./cmd/api
 ```
 
 Run the API locally on a custom port:
 
 ```bash
-DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" HTTP_ADDR=":18080" go run ./cmd/api
+DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" JWT_SECRET="local-dev-secret" HTTP_ADDR=":18080" go run ./cmd/api
 ```
 
 Run tests:
@@ -80,4 +82,4 @@ If `DATABASE_URL` is missing or PostgreSQL is unreachable, `/readyz` returns HTT
 
 ## Current Scope
 
-This skeleton does not implement authentication, clinics, services, leads, AI provider logic, database schema tables, or business logic yet.
+This skeleton implements only the base `POST /api/auth/login` endpoint. It does not implement auth middleware, clinics, services, leads, AI provider logic, or business modules yet.
