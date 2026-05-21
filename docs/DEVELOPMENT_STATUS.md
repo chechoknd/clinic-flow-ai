@@ -21,6 +21,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Base JWT login endpoint implemented for `POST /api/auth/login`.
 - JWT authentication middleware and role authorization helper prepared for protected routes.
 - Minimal Go migration runner added for ordered SQL migrations.
+- Local demo seed added for one clinic admin login and sample dental services.
 
 ## In-Progress Items
 
@@ -33,7 +34,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Confirm final repository structure against the architecture docs.
 - Initialize or verify Angular frontend base.
 - Define `.env.example` placeholders.
-- Create PostgreSQL seeds after initial schema exists.
+- Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
 - Implement clinic profile and service catalog modules.
 - Implement commercial lead CRM.
@@ -62,12 +63,13 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Add local/demo seed data for the initial clinic and user login flow, then validate login against a migrated database.
+Apply JWT middleware to the first protected clinic/service endpoints when those modules are implemented.
 
 ## Change Log
 
 ### 2026-05-20
 
+- Added local demo seed data for clinic admin login and dental services.
 - Added minimal Go migration runner for SQL files and `schema_migrations` tracking.
 - Added reusable JWT authentication middleware and role authorization helper.
 - Implemented base JWT login endpoint backed by the `users` table.
