@@ -20,6 +20,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Initial core schema migration added for clinics, users, and clinic services.
 - Base JWT login endpoint implemented for `POST /api/auth/login`.
 - JWT authentication middleware and role authorization helper prepared for protected routes.
+- Minimal Go migration runner added for ordered SQL migrations.
 
 ## In-Progress Items
 
@@ -55,18 +56,19 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Backend skeleton exists, but no business modules are implemented yet.
 - No implemented frontend functionality is documented as complete yet.
 - API contracts are initial planning contracts and must be updated during implementation.
-- Migration execution tooling is still pending.
+- Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validators are planned but not implemented.
 - Test suite status is pending until application code exists.
 
 ## Next Recommended Step
 
-Apply JWT middleware to the first protected clinic/service endpoints when those modules are implemented.
+Add local/demo seed data for the initial clinic and user login flow, then validate login against a migrated database.
 
 ## Change Log
 
 ### 2026-05-20
 
+- Added minimal Go migration runner for SQL files and `schema_migrations` tracking.
 - Added reusable JWT authentication middleware and role authorization helper.
 - Implemented base JWT login endpoint backed by the `users` table.
 - Added initial PostgreSQL schema migration for `clinics`, `users`, and `clinic_services`.

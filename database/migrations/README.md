@@ -4,7 +4,7 @@ This directory contains SQL migration files for ClinicFlow AI.
 
 ## Current Status
 
-Initial core schema migration exists for `clinics`, `users`, and `clinic_services`. Migration execution tooling is still pending.
+Initial core schema migration exists for `clinics`, `users`, and `clinic_services`. Migration execution tooling is available through `apps/backend-go/cmd/migrate`.
 
 ## Structure
 
@@ -22,4 +22,4 @@ Migrations should be named following the pattern: `YYYYMMDDHHMMSS_description.sq
 
 ## Tooling
 
-Migration execution tool to be defined during Phase 1. A Go-based migration tool is recommended.
+Run migrations from `apps/backend-go` with `go run ./cmd/migrate`. The tool applies `.sql` files in filename order and records applied versions in `schema_migrations`.

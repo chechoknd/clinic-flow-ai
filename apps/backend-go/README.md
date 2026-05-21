@@ -36,6 +36,19 @@ Run the API locally on a custom port:
 DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" JWT_SECRET="local-dev-secret" HTTP_ADDR=":18080" go run ./cmd/api
 ```
 
+
+Run database migrations from `apps/backend-go`:
+
+```bash
+DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" go run ./cmd/migrate
+```
+
+Use a custom migrations directory when needed:
+
+```bash
+DATABASE_URL="postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" go run ./cmd/migrate -dir ../../database/migrations
+```
+
 Run tests:
 
 ```bash
