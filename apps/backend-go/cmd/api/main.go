@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/auth"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/config"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/health"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/pkg/database"
@@ -37,6 +38,15 @@ func main() {
 			log.Printf("auth routes disabled: %v", err)
 		} else {
 			auth.RegisterRoutes(mux, auth.NewHandler(authService))
+
+			tokenManager, err := auth.NewTokenManager(cfg.JWTSecret)
+			if err != nil {
+				log.Printf("protected routes disabled: %v", err)
+			} else {
+				clinicRepository := clinics.NewPostgresRepository(db)
+				clinicService := clinics.NewService(clinicRepository)
+				clinics.RegisterRoutes(mux, clinics.NewHandler(clinicService), tokenManager)
+			}
 		}
 	}
 

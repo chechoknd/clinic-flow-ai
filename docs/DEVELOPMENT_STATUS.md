@@ -22,6 +22,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - JWT authentication middleware and role authorization helper prepared for protected routes.
 - Minimal Go migration runner added for ordered SQL migrations.
 - Local demo seed added for one clinic admin login and sample dental services.
+- Protected `GET /api/clinics/current` endpoint implemented using JWT claims.
 
 ## In-Progress Items
 
@@ -36,7 +37,8 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Define `.env.example` placeholders.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
-- Implement clinic profile and service catalog modules.
+- Implement clinic profile update endpoint.
+- Implement service catalog module.
 - Implement commercial lead CRM.
 - Implement backend-owned AI provider abstraction and safety validation.
 - Implement manual follow-up workflows.
@@ -63,12 +65,13 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Apply JWT middleware to the first protected clinic/service endpoints when those modules are implemented.
+Implement `PUT /api/clinics/current` for clinic profile updates with `clinic_admin` authorization.
 
 ## Change Log
 
 ### 2026-05-20
 
+- Implemented protected `GET /api/clinics/current` using JWT `clinic_id` claims.
 - Added local demo seed data for clinic admin login and dental services.
 - Added minimal Go migration runner for SQL files and `schema_migrations` tracking.
 - Added reusable JWT authentication middleware and role authorization helper.

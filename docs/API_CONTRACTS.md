@@ -151,7 +151,7 @@ Response:
 
 ### GET /api/clinics/current
 
-Returns the authenticated user's clinic configuration.
+Protected endpoint. Returns the authenticated user's clinic configuration using `clinic_id` from the JWT claims.
 
 Response:
 
