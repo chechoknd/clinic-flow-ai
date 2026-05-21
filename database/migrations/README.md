@@ -4,7 +4,7 @@ This directory contains SQL migration files for ClinicFlow AI.
 
 ## Current Status
 
-Migration tooling and the initial schema are not implemented yet. The next expected step is to add initial migrations for authentication, clinics, and users.
+Initial core schema migration exists for `clinics`, `users`, and `clinic_services`. Migration execution tooling is still pending.
 
 ## Structure
 
@@ -18,6 +18,7 @@ Migrations should be named following the pattern: `YYYYMMDDHHMMSS_description.sq
 - Use UUID for primary keys.
 - Add timestamps where useful.
 - Add indexes for frequently filtered columns.
+- Do not store clinical records, diagnoses, prescriptions, or medical history.
 
 ## Tooling
 

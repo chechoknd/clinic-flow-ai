@@ -17,6 +17,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Backend API skeleton created with `GET /healthz` and `GET /readyz`.
 - Backend database connection support added through `DATABASE_URL`.
 - `/readyz` now validates PostgreSQL connectivity with a database ping.
+- Initial core schema migration added for clinics, users, and clinic services.
 
 ## In-Progress Items
 
@@ -29,7 +30,6 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Confirm final repository structure against the architecture docs.
 - Initialize or verify Angular frontend base.
 - Define `.env.example` placeholders.
-- Create initial database schema migrations for auth, clinics, and users.
 - Create PostgreSQL seeds after initial schema exists.
 - Implement authentication and role model.
 - Implement clinic profile and service catalog modules.
@@ -53,18 +53,19 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Backend skeleton exists, but no business modules are implemented yet.
 - No implemented frontend functionality is documented as complete yet.
 - API contracts are initial planning contracts and must be updated during implementation.
-- Database schema is not yet represented by migrations in this status document.
+- Migration execution tooling is still pending.
 - AI safety validators are planned but not implemented.
 - Test suite status is pending until application code exists.
 
 ## Next Recommended Step
 
-Create initial database schema migrations for auth, clinics, and users.
+Add migration execution tooling and then implement backend auth persistence against the core schema.
 
 ## Change Log
 
 ### 2026-05-20
 
+- Added initial PostgreSQL schema migration for `clinics`, `users`, and `clinic_services`.
 - Connected backend readiness validation to PostgreSQL using `DATABASE_URL`.
 - Prepared migration and seed README files for the upcoming auth, clinics, and users schema.
 - Added backend Go API skeleton with health and readiness endpoints.
