@@ -27,6 +27,9 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Service Catalog module (CRUD) implemented with strict tenant isolation.
 - Commercial Lead CRM (Leads Module) implemented with pagination and notes.
 - AI Module implemented with provider abstraction, context injection, and safety validation.
+- Manual follow-up workflows implemented using lead `next_action_at`, including pending list, complete, reschedule, and AI follow-up message generation.
+- Dashboard summary endpoint implemented with lead totals, status counts, top services, follow-up counts, and conversion rate.
+- Local backend quick start documented in root and backend README files.
 
 ## In-Progress Items
 
@@ -38,12 +41,9 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 - Confirm final repository structure against the architecture docs.
 - Initialize or verify Angular frontend base.
-- Define `.env.example` placeholders.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
-- Implement manual follow-up workflows.
-- Implement dashboard summary.
-- Add backend and frontend tests when code exists.
+- Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
 
 ## Known Risks
 
@@ -56,18 +56,22 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Technical Debt
 
-- Backend skeleton exists, but no business modules are implemented yet.
+- Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
 - No implemented frontend functionality is documented as complete yet.
 - API contracts are initial planning contracts and must be updated during implementation.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
-- AI safety validators are planned but not implemented.
-- Test suite status is pending until application code exists.
+- AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
+- Backend unit tests exist for implemented modules; e2e coverage should be expanded.
 
 ## Next Recommended Step
 
-Implement `PUT /api/clinics/current` for clinic profile updates with `clinic_admin` authorization.
+Initialize or verify the Angular frontend base application.
 
 ## Change Log
+
+### 2026-05-21
+
+- Documented local backend quick start commands for PostgreSQL, migrations, seeds, API execution, and health checks.
 
 ### 2026-05-20
 

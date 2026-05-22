@@ -8,9 +8,9 @@ type ReplySuggestionRequest struct {
 }
 
 type ReplySuggestionResponse struct {
-	GenerationID string            `json:"generation_id"`
-	Variants     ReplyVariants      `json:"variants"`
-	SafetyStatus string            `json:"safety_status"`
+	GenerationID string        `json:"generation_id"`
+	Variants     ReplyVariants `json:"variants"`
+	SafetyStatus string        `json:"safety_status"`
 }
 
 type ReplyVariants struct {
@@ -33,6 +33,20 @@ type ObjectionHandlerResponse struct {
 	SuggestedMessage    string `json:"suggested_message"`
 	ClosingQuestion     string `json:"closing_question"`
 	SafetyStatus        string `json:"safety_status"`
+}
+
+type FollowUpMessageRequest struct {
+	LeadID          string `json:"lead_id"`
+	ServiceID       string `json:"service_id"`
+	LastContactNote string `json:"last_contact_note,omitempty"`
+}
+
+type FollowUpMessageResponse struct {
+	GenerationID      string `json:"generation_id"`
+	SuggestedMessage  string `json:"suggested_message"`
+	RecommendedTiming string `json:"recommended_timing"`
+	NextStep          string `json:"next_step"`
+	SafetyStatus      string `json:"safety_status"`
 }
 
 type ErrorResponse struct {

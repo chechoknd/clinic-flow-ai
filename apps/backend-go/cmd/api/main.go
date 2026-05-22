@@ -10,14 +10,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/ai"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/auth"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
-	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/services"
-	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/leads"
-	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/ai"
-	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/config"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/dashboard"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/health"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/leads"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/services"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/pkg/database"
 )
 
@@ -63,6 +64,10 @@ func main() {
 				leadService := leads.NewService(leadRepository)
 				leads.RegisterRoutes(mux, leads.NewHandler(leadService), tokenManager)
 
+				dashboardRepository := dashboard.NewPostgresRepository(db)
+				dashboardService := dashboard.NewService(dashboardRepository)
+				dashboard.RegisterRoutes(mux, dashboard.NewHandler(dashboardService), tokenManager)
+
 				aiProvider, err := ai.NewProvider(cfg)
 				if err != nil {
 					log.Printf("ai module disabled: %v", err)
@@ -79,7 +84,7 @@ func main() {
 		Handler: shared.SecurityHeadersMiddleware(
 			shared.CORSMiddleware(cfg.AllowedOrigins)(
 				shared.NewRateLimiter(60, time.Minute).Limit(
-					shared.MaxBytesMiddleware(1024*1024)(mux),
+					shared.MaxBytesMiddleware(1024 * 1024)(mux),
 				),
 			),
 		),

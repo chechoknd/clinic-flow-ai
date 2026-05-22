@@ -7,12 +7,13 @@ import (
 
 func TestBuildSystemPrompt(t *testing.T) {
 	ctx := Context{
-		ClinicName: "Sonrisa Viva",
-		ClinicType: "Odontología",
-		City:       "Bogotá",
+		ClinicName:       "Sonrisa Viva",
+		ClinicType:       "Odontología",
+		City:             "Bogotá",
+		ServicePriceFrom: "250000",
 	}
 	prompt := BuildSystemPrompt(ctx)
-	if !strings.Contains(prompt, "Sonrisa Viva") || !strings.Contains(prompt, "Bogotá") {
+	if !strings.Contains(prompt, "Sonrisa Viva") || !strings.Contains(prompt, "Bogotá") || !strings.Contains(prompt, "250000") {
 		t.Errorf("prompt missing context info: %s", prompt)
 	}
 }

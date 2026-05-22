@@ -9,4 +9,5 @@ import (
 func RegisterRoutes(mux *http.ServeMux, handler *Handler, tokenManager *auth.TokenManager) {
 	mux.Handle("POST /api/ai/reply-suggestion", tokenManager.Authenticate(http.HandlerFunc(handler.ReplySuggestion)))
 	mux.Handle("POST /api/ai/objection-handler", tokenManager.Authenticate(http.HandlerFunc(handler.ObjectionHandler)))
+	mux.Handle("POST /api/ai/follow-up-message", tokenManager.Authenticate(http.HandlerFunc(handler.FollowUpMessage)))
 }

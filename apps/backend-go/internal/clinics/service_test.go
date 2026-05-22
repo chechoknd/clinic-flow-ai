@@ -7,8 +7,8 @@ import (
 )
 
 type fakeRepository struct {
-	clinic Clinic
-	err    error
+	clinic  Clinic
+	err     error
 	updated bool
 }
 

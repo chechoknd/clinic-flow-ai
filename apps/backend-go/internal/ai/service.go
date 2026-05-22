@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
@@ -83,6 +84,32 @@ func (s *Service) ObjectionHandler(ctx context.Context, clinicID string, req Obj
 	return res, nil
 }
 
+func (s *Service) FollowUpMessage(ctx context.Context, clinicID string, req FollowUpMessageRequest) (FollowUpMessageResponse, error) {
+	aiCtx, err := s.getAIContext(ctx, clinicID, req.ServiceID, req.LeadID)
+	if err != nil {
+		return FollowUpMessageResponse{}, err
+	}
+
+	systemPrompt := BuildSystemPrompt(aiCtx)
+	userPrompt := BuildFollowUpMessageUserPrompt(req.LastContactNote)
+
+	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
+	if err != nil {
+		return FollowUpMessageResponse{}, err
+	}
+
+	var res FollowUpMessageResponse
+	if err := json.Unmarshal([]byte(rawRes), &res); err != nil {
+		return FollowUpMessageResponse{}, fmt.Errorf("failed to parse AI response: %w", err)
+	}
+
+	safetyStatus, _ := ValidateSafety(rawRes)
+	res.GenerationID = "gen-" + clinicID
+	res.SafetyStatus = safetyStatus
+
+	return res, nil
+}
+
 func (s *Service) getAIContext(ctx context.Context, clinicID, serviceID, leadID string) (Context, error) {
 	clinicRes, err := s.clinicService.Current(ctx, clinicID)
 	if err != nil {
@@ -110,10 +137,18 @@ func (s *Service) getAIContext(ctx context.Context, clinicID, serviceID, leadID 
 		City:              clinicRes.City,
 		CommunicationTone: clinicRes.CommunicationTone,
 		ServiceName:       serviceRes.Name,
+		ServicePriceFrom:  formatServicePriceFrom(serviceRes.PriceFrom),
 		ServiceBenefits:   string(serviceRes.Benefits),
 		ServiceFAQ:        string(serviceRes.FAQ),
 		CommonObjections:  string(serviceRes.CommonObjections),
 		PatientName:       leadRes.FullName,
 		LeadNotes:         fmt.Sprintf("[%s]", strings.Join(leadNotes, ", ")),
 	}, nil
+}
+
+func formatServicePriceFrom(price *float64) string {
+	if price == nil {
+		return "no informado"
+	}
+	return strconv.FormatFloat(*price, 'f', -1, 64)
 }

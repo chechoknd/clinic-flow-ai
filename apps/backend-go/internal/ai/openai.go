@@ -4,32 +4,46 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 )
 
 type OpenAIProvider struct {
-	apiKey string
-	model  string
-	client *http.Client
+	apiKey       string
+	model        string
+	baseURL      string
+	providerName string
+	client       *http.Client
 }
 
 func NewOpenAIProvider(apiKey, model string) *OpenAIProvider {
+	return newOpenAICompatibleProvider("openai", "https://api.openai.com/v1", apiKey, model)
+}
+
+func NewDeepSeekProvider(apiKey, model string) *OpenAIProvider {
+	if model == "" {
+		model = "deepseek-chat"
+	}
+	return newOpenAICompatibleProvider("deepseek", "https://api.deepseek.com", apiKey, model)
+}
+
+func newOpenAICompatibleProvider(providerName, baseURL, apiKey, model string) *OpenAIProvider {
 	return &OpenAIProvider{
-		apiKey: apiKey,
-		model:  model,
-		client: &http.Client{Timeout: 30 * time.Second},
+		apiKey:       apiKey,
+		model:        model,
+		baseURL:      baseURL,
+		providerName: providerName,
+		client:       &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
 func (p *OpenAIProvider) Name() string {
-	return "openai"
+	return p.providerName
 }
 
 func (p *OpenAIProvider) Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
-	url := "https://api.openai.com/v1/chat/completions"
+	url := p.baseURL + "/chat/completions"
 
 	requestBody := map[string]any{
 		"model": p.model,
@@ -37,7 +51,8 @@ func (p *OpenAIProvider) Generate(ctx context.Context, systemPrompt, userPrompt 
 			{"role": "system", "content": systemPrompt},
 			{"role": "user", "content": userPrompt},
 		},
-		"temperature": 0.7,
+		"temperature":     0.7,
+		"response_format": map[string]string{"type": "json_object"},
 	}
 
 	jsonBody, err := json.Marshal(requestBody)
@@ -66,7 +81,7 @@ func (p *OpenAIProvider) Generate(ctx context.Context, systemPrompt, userPrompt 
 			} `json:"error"`
 		}
 		_ = json.NewDecoder(resp.Body).Decode(&errResp)
-		return "", fmt.Errorf("openai api error (%d): %s", resp.StatusCode, errResp.Error.Message)
+		return "", fmt.Errorf("%s api error (%d): %s", p.providerName, resp.StatusCode, errResp.Error.Message)
 	}
 
 	var res struct {
@@ -82,7 +97,7 @@ func (p *OpenAIProvider) Generate(ctx context.Context, systemPrompt, userPrompt 
 	}
 
 	if len(res.Choices) == 0 {
-		return "", errors.New("no completion choices returned from openai")
+		return "", fmt.Errorf("no completion choices returned from %s", p.providerName)
 	}
 
 	return res.Choices[0].Message.Content, nil

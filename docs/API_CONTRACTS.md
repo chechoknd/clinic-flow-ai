@@ -110,8 +110,12 @@ Paginated responses should use:
 | POST | `/api/leads` | Yes | `clinic_admin`, `assistant` |
 | GET | `/api/leads/:id` | Yes | `clinic_admin`, `assistant` |
 | PUT | `/api/leads/:id` | Yes | `clinic_admin`, `assistant` |
+| GET | `/api/followups` | Yes | `clinic_admin`, `assistant` |
+| POST | `/api/followups/:id/complete` | Yes | `clinic_admin`, `assistant` |
+| POST | `/api/followups/:id/reschedule` | Yes | `clinic_admin`, `assistant` |
 | POST | `/api/ai/reply-suggestion` | Yes | `clinic_admin`, `assistant` |
 | POST | `/api/ai/objection-handler` | Yes | `clinic_admin`, `assistant` |
+| POST | `/api/ai/follow-up-message` | Yes | `clinic_admin`, `assistant` |
 | POST | `/api/content/generate-post` | Yes | `clinic_admin`, `assistant` |
 | GET | `/api/dashboard/summary` | Yes | `clinic_admin`, `assistant` |
 
@@ -523,6 +527,91 @@ Response:
 }
 ```
 
+
+### GET /api/followups
+
+Lists leads with a pending manual follow-up based on `next_action_at`.
+
+Query parameters:
+
+```txt
+due=all|today|overdue|upcoming
+page=1
+page_size=20
+```
+
+Response uses the standard paginated lead response shape.
+
+### POST /api/followups/:id/complete
+
+Marks a manual follow-up as completed, clears `next_action_at`, optionally updates status, and optionally appends a lead note.
+
+Request:
+
+```json
+{
+  "status": "Contactado",
+  "note": "Se envio mensaje de seguimiento por WhatsApp."
+}
+```
+
+Response:
+
+```json
+{
+  "id": "lead-id",
+  "status": "completed"
+}
+```
+
+### POST /api/followups/:id/reschedule
+
+Schedules or reschedules the next manual follow-up for a lead.
+
+Request:
+
+```json
+{
+  "next_action_at": "2026-05-23T15:00:00Z",
+  "note": "Reprogramado para manana."
+}
+```
+
+Response:
+
+```json
+{
+  "id": "lead-id",
+  "status": "rescheduled"
+}
+```
+
+### POST /api/ai/follow-up-message
+
+Generates a safe WhatsApp-ready re-engagement message for a pending lead.
+
+Request:
+
+```json
+{
+  "lead_id": "lead-id",
+  "service_id": "service-id",
+  "last_contact_note": "Pregunto por precio y no respondio despues de la primera respuesta."
+}
+```
+
+Response:
+
+```json
+{
+  "generation_id": "gen-clinic-id",
+  "suggested_message": "Hola Maria, queria saber si te quedo alguna duda sobre el blanqueamiento dental...",
+  "recommended_timing": "Dia siguiente en horario laboral.",
+  "next_step": "Si responde, agendar valoracion. Si no responde, reprogramar seguimiento.",
+  "safety_status": "passed"
+}
+```
+
 ### GET /api/dashboard/summary
 
 Returns basic commercial metrics for the authenticated clinic.
@@ -549,7 +638,9 @@ Response:
     }
   ],
   "pending_followups_today": 9,
-  "ai_generations_month": 243
+  "overdue_followups": 2,
+  "upcoming_followups": 14,
+  "conversion_rate": 0.078
 }
 ```
 
@@ -557,7 +648,6 @@ Response:
 
 - Add explicit superadmin endpoints when platform administration is implemented.
 - Add user management endpoints after the authentication base is stable.
-- Add follow-up-specific endpoints when manual follow-up workflows are implemented.
 - Add AI usage limits and billing metadata when subscription plans are introduced.
 - Keep WhatsApp Business Cloud API integration out of the MVP contract unless scope is explicitly changed.
 - Do not add clinical-history, diagnosis, prescription, or medical-record endpoints.

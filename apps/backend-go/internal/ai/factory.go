@@ -22,6 +22,11 @@ func NewProvider(cfg config.Config) (Provider, error) {
 			return nil, errors.New("GEMINI_API_KEY is required for gemini provider")
 		}
 		return NewGeminiProvider(cfg.GeminiKey, cfg.AIModel), nil
+	case "deepseek":
+		if cfg.DeepSeekKey == "" {
+			return nil, errors.New("DEEPSEEK_API_KEY is required for deepseek provider")
+		}
+		return NewDeepSeekProvider(cfg.DeepSeekKey, cfg.AIModel), nil
 	default:
 		return nil, errors.New("unsupported ai provider: " + cfg.AIProvider)
 	}

@@ -10,6 +10,7 @@ type Context struct {
 	City              string
 	CommunicationTone string
 	ServiceName       string
+	ServicePriceFrom  string
 	ServiceBenefits   string
 	ServiceFAQ        string
 	CommonObjections  string
@@ -31,6 +32,7 @@ REGLAS DE SEGURIDAD (CRÍTICO):
 
 CONTEXTO DEL SERVICIO:
 Servicio: %s
+Precio desde: %s
 Beneficios: %s
 Preguntas Frecuentes: %s
 Objeciones Comunes: %s
@@ -41,7 +43,7 @@ Notas Previas: %s
 
 Tu objetivo es responder de forma persuasiva pero segura, enfocándote en que el paciente asista a una consulta de valoración.`,
 		ctx.ClinicName, ctx.ClinicType, ctx.City, ctx.CommunicationTone,
-		ctx.ServiceName, ctx.ServiceBenefits, ctx.ServiceFAQ, ctx.CommonObjections,
+		ctx.ServiceName, ctx.ServicePriceFrom, ctx.ServiceBenefits, ctx.ServiceFAQ, ctx.CommonObjections,
 		ctx.PatientName, ctx.LeadNotes,
 	)
 }
@@ -77,4 +79,22 @@ Genera una estrategia de manejo de objeción y una respuesta sugerida en formato
 }
 
 Asegúrate de que el JSON sea válido y no incluyas texto fuera del objeto.`, objection)
+}
+
+func BuildFollowUpMessageUserPrompt(lastContactNote string) string {
+	if lastContactNote == "" {
+		lastContactNote = "No hay una nota adicional del último contacto."
+	}
+
+	return fmt.Sprintf(`El prospecto no ha avanzado y necesita seguimiento manual por WhatsApp.
+Última nota de contacto: "%s"
+
+Genera una respuesta de reenganche en formato JSON con la siguiente estructura:
+{
+  "suggested_message": "Mensaje breve, amable y listo para copiar en WhatsApp",
+  "recommended_timing": "Cuándo conviene enviarlo",
+  "next_step": "Siguiente acción comercial recomendada"
+}
+
+El mensaje debe sonar humano, no insistente, y debe invitar a agendar una valoración profesional. No incluyas texto fuera del objeto JSON.`, lastContactNote)
 }

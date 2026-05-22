@@ -35,7 +35,7 @@ func (p *GeminiProvider) Generate(ctx context.Context, systemPrompt, userPrompt 
 	// Gemini uses a different URL structure: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", p.model, p.apiKey)
 
-	// Combine system prompt into the instructions if the API version supports it, 
+	// Combine system prompt into the instructions if the API version supports it,
 	// or just prepend it to the first message for simplicity in MVP.
 	fullPrompt := fmt.Sprintf("System Instructions:\n%s\n\nUser Message:\n%s", systemPrompt, userPrompt)
 
@@ -48,10 +48,10 @@ func (p *GeminiProvider) Generate(ctx context.Context, systemPrompt, userPrompt 
 			},
 		},
 		"generationConfig": map[string]any{
-			"temperature":    0.7,
-			"topK":           40,
-			"topP":           0.95,
-			"maxOutputTokens": 1024,
+			"temperature":      0.7,
+			"topK":             40,
+			"topP":             0.95,
+			"maxOutputTokens":  1024,
 			"responseMimeType": "application/json",
 		},
 	}

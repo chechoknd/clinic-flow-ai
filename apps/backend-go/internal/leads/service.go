@@ -40,18 +40,7 @@ func (s *Service) List(ctx context.Context, clinicID string, filter ListFilter) 
 
 	data := make([]LeadResponse, len(leads))
 	for i, l := range leads {
-		data[i] = LeadResponse{
-			ID:           l.ID,
-			FullName:     l.FullName,
-			Phone:        l.Phone,
-			ServiceID:    l.ServiceID,
-			ServiceName:  l.ServiceName,
-			Status:       l.Status,
-			Source:       l.Source,
-			NextActionAt: l.NextActionAt,
-			CreatedAt:    l.CreatedAt,
-			UpdatedAt:    l.UpdatedAt,
-		}
+		data[i] = leadToResponse(l)
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(filter.PageSize)))
@@ -106,6 +95,85 @@ func (s *Service) Get(ctx context.Context, clinicID, leadID string) (LeadDetailR
 		NextActionAt: lead.NextActionAt,
 		CreatedAt:    lead.CreatedAt,
 	}, nil
+}
+
+func (s *Service) ListFollowUps(ctx context.Context, clinicID string, filter FollowUpFilter) (FollowUpFilterResponse, error) {
+	clinicID = strings.TrimSpace(clinicID)
+	if clinicID == "" {
+		return FollowUpFilterResponse{}, ErrMissingClinicID
+	}
+
+	filter.Due = strings.TrimSpace(filter.Due)
+	if filter.Due == "" {
+		filter.Due = "all"
+	}
+	if filter.Due != "all" && filter.Due != "today" && filter.Due != "overdue" && filter.Due != "upcoming" {
+		return FollowUpFilterResponse{}, errors.New("invalid follow-up due filter")
+	}
+	if filter.Page <= 0 {
+		filter.Page = 1
+	}
+	if filter.PageSize <= 0 {
+		filter.PageSize = 20
+	}
+
+	leads, total, err := s.repository.ListFollowUps(ctx, clinicID, filter)
+	if err != nil {
+		return FollowUpFilterResponse{}, err
+	}
+
+	data := make([]LeadResponse, len(leads))
+	for i, l := range leads {
+		data[i] = leadToResponse(l)
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(filter.PageSize)))
+	return FollowUpFilterResponse{
+		Data: data,
+		Pagination: PaginationResponse{
+			Page:       filter.Page,
+			PageSize:   filter.PageSize,
+			Total:      total,
+			TotalPages: totalPages,
+		},
+	}, nil
+}
+
+func (s *Service) CompleteFollowUp(ctx context.Context, clinicID, leadID string, req CompleteFollowUpRequest) error {
+	clinicID = strings.TrimSpace(clinicID)
+	if clinicID == "" {
+		return ErrMissingClinicID
+	}
+	leadID = strings.TrimSpace(leadID)
+	if leadID == "" {
+		return errors.New("lead id is required")
+	}
+
+	req.Status = strings.TrimSpace(req.Status)
+	if req.Status == "" {
+		req.Status = "Contactado"
+	}
+	if !isAllowedStatus(req.Status) {
+		return errors.New("invalid status")
+	}
+
+	return s.repository.CompleteFollowUp(ctx, clinicID, leadID, req.Status, strings.TrimSpace(req.Note))
+}
+
+func (s *Service) RescheduleFollowUp(ctx context.Context, clinicID, leadID string, req RescheduleFollowUpRequest) error {
+	clinicID = strings.TrimSpace(clinicID)
+	if clinicID == "" {
+		return ErrMissingClinicID
+	}
+	leadID = strings.TrimSpace(leadID)
+	if leadID == "" {
+		return errors.New("lead id is required")
+	}
+	if req.NextActionAt.IsZero() {
+		return errors.New("next_action_at is required")
+	}
+
+	return s.repository.RescheduleFollowUp(ctx, clinicID, leadID, sql.NullTime{Time: req.NextActionAt, Valid: true}, strings.TrimSpace(req.Note))
 }
 
 func (s *Service) Create(ctx context.Context, clinicID string, req CreateLeadRequest) (LeadResponse, error) {
@@ -164,9 +232,15 @@ func (s *Service) Create(ctx context.Context, clinicID string, req CreateLeadReq
 	}
 
 	return LeadResponse{
-		ID:        created.ID,
-		Status:    created.Status,
-		CreatedAt: created.CreatedAt,
+		ID:           created.ID,
+		FullName:     created.FullName,
+		Phone:        created.Phone,
+		ServiceID:    created.ServiceID,
+		Status:       created.Status,
+		Source:       created.Source,
+		NextActionAt: created.NextActionAt,
+		CreatedAt:    created.CreatedAt,
+		UpdatedAt:    created.UpdatedAt,
 	}, nil
 }
 
@@ -181,16 +255,7 @@ func (s *Service) Update(ctx context.Context, clinicID, leadID string, req Updat
 		return errors.New("status is required")
 	}
 
-	allowedStatuses := map[string]bool{
-		"Nuevo":        true,
-		"Contactado":   true,
-		"Interesado":   true,
-		"Agendado":     true,
-		"No Respondio": true,
-		"Perdido":      true,
-		"Convertido":   true,
-	}
-	if !allowedStatuses[req.Status] {
+	if !isAllowedStatus(req.Status) {
 		return errors.New("invalid status")
 	}
 
@@ -200,4 +265,32 @@ func (s *Service) Update(ctx context.Context, clinicID, leadID string, req Updat
 	}
 
 	return s.repository.Update(ctx, clinicID, leadID, req.Status, nextActionAt, req.Note)
+}
+
+func leadToResponse(l Lead) LeadResponse {
+	return LeadResponse{
+		ID:           l.ID,
+		FullName:     l.FullName,
+		Phone:        l.Phone,
+		ServiceID:    l.ServiceID,
+		ServiceName:  l.ServiceName,
+		Status:       l.Status,
+		Source:       l.Source,
+		NextActionAt: l.NextActionAt,
+		CreatedAt:    l.CreatedAt,
+		UpdatedAt:    l.UpdatedAt,
+	}
+}
+
+func isAllowedStatus(status string) bool {
+	allowedStatuses := map[string]bool{
+		"Nuevo":        true,
+		"Contactado":   true,
+		"Interesado":   true,
+		"Agendado":     true,
+		"No Respondio": true,
+		"Perdido":      true,
+		"Convertido":   true,
+	}
+	return allowedStatuses[status]
 }

@@ -18,15 +18,15 @@ type LeadResponse struct {
 }
 
 type LeadDetailResponse struct {
-	ID           string           `json:"id"`
-	FullName     string           `json:"full_name"`
-	Phone        string           `json:"phone"`
-	Service      *LeadServiceDTO  `json:"service,omitempty"`
-	Status       string           `json:"status"`
-	Source       string           `json:"source"`
+	ID           string             `json:"id"`
+	FullName     string             `json:"full_name"`
+	Phone        string             `json:"phone"`
+	Service      *LeadServiceDTO    `json:"service,omitempty"`
+	Status       string             `json:"status"`
+	Source       string             `json:"source"`
 	Notes        []LeadNoteResponse `json:"notes"`
-	NextActionAt *time.Time       `json:"next_action_at,omitempty"`
-	CreatedAt    time.Time        `json:"created_at"`
+	NextActionAt *time.Time         `json:"next_action_at,omitempty"`
+	CreatedAt    time.Time          `json:"created_at"`
 }
 
 type LeadServiceDTO struct {
@@ -54,6 +54,21 @@ type UpdateLeadRequest struct {
 	Status       string     `json:"status"`
 	Note         string     `json:"note,omitempty"`
 	NextActionAt *time.Time `json:"next_action_at,omitempty"`
+}
+
+type FollowUpFilterResponse struct {
+	Data       []LeadResponse     `json:"data"`
+	Pagination PaginationResponse `json:"pagination"`
+}
+
+type CompleteFollowUpRequest struct {
+	Status string `json:"status,omitempty"`
+	Note   string `json:"note,omitempty"`
+}
+
+type RescheduleFollowUpRequest struct {
+	NextActionAt time.Time `json:"next_action_at"`
+	Note         string    `json:"note,omitempty"`
 }
 
 type PaginatedLeadsResponse struct {

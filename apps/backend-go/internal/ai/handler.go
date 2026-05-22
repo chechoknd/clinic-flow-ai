@@ -37,6 +37,28 @@ func (h *Handler) ReplySuggestion(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
+func (h *Handler) FollowUpMessage(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication is required.")
+		return
+	}
+
+	var req FollowUpMessageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "The request body is invalid.")
+		return
+	}
+
+	res, err := h.service.FollowUpMessage(r.Context(), claims.ClinicID, req)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, res)
+}
+
 func (h *Handler) ObjectionHandler(w http.ResponseWriter, r *http.Request) {
 	claims, ok := auth.ClaimsFromContext(r.Context())
 	if !ok {
