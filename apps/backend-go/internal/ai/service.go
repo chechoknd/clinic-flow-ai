@@ -29,6 +29,10 @@ func NewService(provider Provider, cs *clinics.Service, ss *services.Service, ls
 }
 
 func (s *Service) ReplySuggestion(ctx context.Context, clinicID string, req ReplySuggestionRequest) (ReplySuggestionResponse, error) {
+	if err := validateReplySuggestionRequest(req); err != nil {
+		return ReplySuggestionResponse{}, err
+	}
+
 	aiCtx, err := s.getAIContext(ctx, clinicID, req.ServiceID, req.LeadID)
 	if err != nil {
 		return ReplySuggestionResponse{}, err
@@ -39,17 +43,18 @@ func (s *Service) ReplySuggestion(ctx context.Context, clinicID string, req Repl
 
 	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
 	if err != nil {
-		return ReplySuggestionResponse{}, err
+		return ReplySuggestionResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
 	}
 
 	var variants ReplyVariants
 	if err := json.Unmarshal([]byte(rawRes), &variants); err != nil {
-		// Fallback if AI didn't return valid JSON
-		return ReplySuggestionResponse{}, fmt.Errorf("failed to parse AI response: %w", err)
+		return ReplySuggestionResponse{}, ResponseError{Err: err}
 	}
 
-	// Basic safety check on all variants
-	safetyStatus, _ := ValidateSafety(rawRes)
+	safetyStatus, safe := ValidateSafety(rawRes)
+	if !safe {
+		return ReplySuggestionResponse{}, SafetyBlockedError{Status: safetyStatus}
+	}
 
 	return ReplySuggestionResponse{
 		GenerationID: "gen-" + clinicID, // Future: UUID
@@ -59,6 +64,10 @@ func (s *Service) ReplySuggestion(ctx context.Context, clinicID string, req Repl
 }
 
 func (s *Service) ObjectionHandler(ctx context.Context, clinicID string, req ObjectionHandlerRequest) (ObjectionHandlerResponse, error) {
+	if err := validateObjectionHandlerRequest(req); err != nil {
+		return ObjectionHandlerResponse{}, err
+	}
+
 	aiCtx, err := s.getAIContext(ctx, clinicID, req.ServiceID, req.LeadID)
 	if err != nil {
 		return ObjectionHandlerResponse{}, err
@@ -69,15 +78,18 @@ func (s *Service) ObjectionHandler(ctx context.Context, clinicID string, req Obj
 
 	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
 	if err != nil {
-		return ObjectionHandlerResponse{}, err
+		return ObjectionHandlerResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
 	}
 
 	var res ObjectionHandlerResponse
 	if err := json.Unmarshal([]byte(rawRes), &res); err != nil {
-		return ObjectionHandlerResponse{}, fmt.Errorf("failed to parse AI response: %w", err)
+		return ObjectionHandlerResponse{}, ResponseError{Err: err}
 	}
 
-	safetyStatus, _ := ValidateSafety(rawRes)
+	safetyStatus, safe := ValidateSafety(rawRes)
+	if !safe {
+		return ObjectionHandlerResponse{}, SafetyBlockedError{Status: safetyStatus}
+	}
 	res.GenerationID = "gen-" + clinicID
 	res.SafetyStatus = safetyStatus
 
@@ -85,6 +97,10 @@ func (s *Service) ObjectionHandler(ctx context.Context, clinicID string, req Obj
 }
 
 func (s *Service) FollowUpMessage(ctx context.Context, clinicID string, req FollowUpMessageRequest) (FollowUpMessageResponse, error) {
+	if err := validateFollowUpMessageRequest(req); err != nil {
+		return FollowUpMessageResponse{}, err
+	}
+
 	aiCtx, err := s.getAIContext(ctx, clinicID, req.ServiceID, req.LeadID)
 	if err != nil {
 		return FollowUpMessageResponse{}, err
@@ -95,15 +111,18 @@ func (s *Service) FollowUpMessage(ctx context.Context, clinicID string, req Foll
 
 	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
 	if err != nil {
-		return FollowUpMessageResponse{}, err
+		return FollowUpMessageResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
 	}
 
 	var res FollowUpMessageResponse
 	if err := json.Unmarshal([]byte(rawRes), &res); err != nil {
-		return FollowUpMessageResponse{}, fmt.Errorf("failed to parse AI response: %w", err)
+		return FollowUpMessageResponse{}, ResponseError{Err: err}
 	}
 
-	safetyStatus, _ := ValidateSafety(rawRes)
+	safetyStatus, safe := ValidateSafety(rawRes)
+	if !safe {
+		return FollowUpMessageResponse{}, SafetyBlockedError{Status: safetyStatus}
+	}
 	res.GenerationID = "gen-" + clinicID
 	res.SafetyStatus = safetyStatus
 
@@ -151,4 +170,54 @@ func formatServicePriceFrom(price *float64) string {
 		return "no informado"
 	}
 	return strconv.FormatFloat(*price, 'f', -1, 64)
+}
+
+func validateReplySuggestionRequest(req ReplySuggestionRequest) error {
+	if strings.TrimSpace(req.LeadID) == "" {
+		return ValidationError{Field: "lead_id", Message: "lead_id is required"}
+	}
+	if strings.TrimSpace(req.ServiceID) == "" {
+		return ValidationError{Field: "service_id", Message: "service_id is required"}
+	}
+	message := strings.TrimSpace(req.PatientMessage)
+	if message == "" {
+		return ValidationError{Field: "patient_message", Message: "patient_message is required"}
+	}
+	if len(message) > 2000 {
+		return ValidationError{Field: "patient_message", Message: "patient_message is too long"}
+	}
+	if len(strings.TrimSpace(req.DesiredTone)) > 120 {
+		return ValidationError{Field: "desired_tone", Message: "desired_tone is too long"}
+	}
+	return nil
+}
+
+func validateObjectionHandlerRequest(req ObjectionHandlerRequest) error {
+	if strings.TrimSpace(req.LeadID) == "" {
+		return ValidationError{Field: "lead_id", Message: "lead_id is required"}
+	}
+	if strings.TrimSpace(req.ServiceID) == "" {
+		return ValidationError{Field: "service_id", Message: "service_id is required"}
+	}
+	objection := strings.TrimSpace(req.Objection)
+	if objection == "" {
+		return ValidationError{Field: "objection", Message: "objection is required"}
+	}
+	if len(objection) > 1000 {
+		return ValidationError{Field: "objection", Message: "objection is too long"}
+	}
+	return nil
+}
+
+func validateFollowUpMessageRequest(req FollowUpMessageRequest) error {
+	if strings.TrimSpace(req.LeadID) == "" {
+		return ValidationError{Field: "lead_id", Message: "lead_id is required"}
+	}
+	if strings.TrimSpace(req.ServiceID) == "" {
+		return ValidationError{Field: "service_id", Message: "service_id is required"}
+	}
+	if len(strings.TrimSpace(req.LastContactNote)) > 1000 {
+		return ValidationError{Field: "last_contact_note", Message: "last_contact_note is too long"}
+	}
+	return nil
 }

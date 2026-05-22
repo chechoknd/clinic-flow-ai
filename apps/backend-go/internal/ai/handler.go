@@ -2,9 +2,14 @@ package ai
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/auth"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/leads"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/services"
 )
 
 type Handler struct {
@@ -30,7 +35,7 @@ func (h *Handler) ReplySuggestion(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.service.ReplySuggestion(r.Context(), claims.ClinicID, req)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+		handleAIError(w, "reply_suggestion", err)
 		return
 	}
 
@@ -52,7 +57,7 @@ func (h *Handler) FollowUpMessage(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.service.FollowUpMessage(r.Context(), claims.ClinicID, req)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+		handleAIError(w, "follow_up_message", err)
 		return
 	}
 
@@ -74,11 +79,32 @@ func (h *Handler) ObjectionHandler(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.service.ObjectionHandler(r.Context(), claims.ClinicID, req)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+		handleAIError(w, "objection_handler", err)
 		return
 	}
 
 	writeJSON(w, http.StatusOK, res)
+}
+
+func handleAIError(w http.ResponseWriter, operation string, err error) {
+	switch {
+	case errors.Is(err, ErrValidation):
+		writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", err.Error())
+	case errors.Is(err, clinics.ErrClinicNotFound), errors.Is(err, services.ErrServiceNotFound), errors.Is(err, leads.ErrLeadNotFound):
+		writeError(w, http.StatusNotFound, "NOT_FOUND", "The requested AI context was not found.")
+	case errors.Is(err, ErrAISafetyBlocked):
+		log.Printf("ai safety blocked during %s: %v", operation, err)
+		writeError(w, http.StatusUnprocessableEntity, "AI_SAFETY_BLOCKED", "The AI response did not pass safety validation.")
+	case errors.Is(err, ErrAIProvider):
+		log.Printf("ai provider error during %s: %v", operation, err)
+		writeError(w, http.StatusBadGateway, "AI_PROVIDER_ERROR", "The AI provider could not complete the request.")
+	case errors.Is(err, ErrAIResponse):
+		log.Printf("ai response parse error during %s: %v", operation, err)
+		writeError(w, http.StatusBadGateway, "AI_PROVIDER_ERROR", "The AI provider returned an invalid response.")
+	default:
+		log.Printf("ai internal error during %s: %v", operation, err)
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+	}
 }
 
 func writeJSON(w http.ResponseWriter, statusCode int, payload any) {
