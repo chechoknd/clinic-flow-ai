@@ -37,17 +37,19 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Frontend follow-up screen connected to complete, reschedule, and AI follow-up message workflows.
 - Frontend service catalog workflow implemented for create, update, active state, and delete actions.
 - Frontend clinic profile workflow implemented for editing commercial profile and communication tone.
+- Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, leads, follow-ups, dashboard, and AI-assisted endpoints with a deterministic mock AI provider.
 
 ## In-Progress Items
 
 - Phase 1 technical base setup.
 - Backend DB connection/readiness validation completed.
 - Frontend MVP screens connected to primary API workflows and API error states.
+- Local API smoke validated against PostgreSQL, seed data, JWT auth, and mock AI provider.
 
 ## Pending Items
 
 - Confirm final repository structure against the architecture docs.
-- Confirm final frontend flows against backend API contracts.
+- Update API contracts documentation with implemented response shapes and smoke coverage.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
@@ -72,7 +74,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Run an end-to-end frontend smoke against the local Go API covering login, clinic profile update, services, leads, follow-ups, and AI-assisted flows.
+Update `docs/API_CONTRACTS.md` to match the implemented backend/frontend contracts.
 
 ## Change Log
 
@@ -82,7 +84,10 @@ Run an end-to-end frontend smoke against the local Go API covering login, clinic
 - Added follow-up frontend actions for complete, reschedule, and AI follow-up message generation.
 - Added service catalog frontend CRUD workflow.
 - Added clinic profile frontend update workflow.
+- Added deterministic mock AI provider for local smoke testing.
+- Expanded `e2e_test.sh` to validate login, clinic profile update, services, leads, follow-ups, dashboard, and AI-assisted endpoints.
 - Validated frontend with `npm test -- --watch=false`, `npm run lint`, and `npm run build`.
+- Validated backend smoke with `go test ./...`, `go vet ./...`, migrations, demo seed, readiness check, and `./e2e_test.sh`.
 
 ### 2026-05-22
 

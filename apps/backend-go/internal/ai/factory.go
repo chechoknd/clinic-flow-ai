@@ -8,6 +8,8 @@ import (
 
 func NewProvider(cfg config.Config) (Provider, error) {
 	switch cfg.AIProvider {
+	case "mock":
+		return NewMockProvider(), nil
 	case "openai":
 		if cfg.OpenAIKey == "" {
 			return nil, errors.New("OPENAI_API_KEY is required for openai provider")

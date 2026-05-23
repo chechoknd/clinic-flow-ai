@@ -57,3 +57,14 @@ func TestNewProviderDeepSeekRequiresKey(t *testing.T) {
 		t.Fatalf("expected DEEPSEEK_API_KEY error, got %v", err)
 	}
 }
+
+func TestNewProviderMock(t *testing.T) {
+	provider, err := NewProvider(config.Config{AIProvider: "mock"})
+	if err != nil {
+		t.Fatalf("NewProvider returned error: %v", err)
+	}
+
+	if provider.Name() != "mock" {
+		t.Fatalf("expected provider name mock, got %s", provider.Name())
+	}
+}

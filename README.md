@@ -49,6 +49,12 @@ curl -sS http://127.0.0.1:18080/healthz
 curl -sS http://127.0.0.1:18080/readyz
 ```
 
+For a fully local smoke test without external AI calls, run the API with `AI_PROVIDER=mock` and execute:
+
+```bash
+./e2e_test.sh
+```
+
 Demo login:
 
 ```txt
