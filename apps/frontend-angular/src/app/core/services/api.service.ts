@@ -6,13 +6,17 @@ import { environment } from '../../../environments/environment';
 import {
   AiReplyResponse,
   ClinicProfile,
+  CompleteFollowUpPayload,
   CreateLeadPayload,
   DashboardSummary,
   FollowUp,
+  FollowUpMessagePayload,
+  FollowUpMessageResponse,
   Lead,
   PaginatedResponse,
   DashboardSummaryApiResponse,
   ServicesApiResponse,
+  RescheduleFollowUpPayload,
   UpdateLeadPayload,
 } from './api.models';
 
@@ -51,6 +55,18 @@ export class ApiService {
 
   followups() {
     return this.http.get<PaginatedResponse<FollowUp>>(`${this.baseUrl}/api/followups`);
+  }
+
+  completeFollowUp(id: string, payload: CompleteFollowUpPayload) {
+    return this.http.post<{ id: string; status: string }>(`${this.baseUrl}/api/followups/${id}/complete`, payload);
+  }
+
+  rescheduleFollowUp(id: string, payload: RescheduleFollowUpPayload) {
+    return this.http.post<{ id: string; status: string }>(`${this.baseUrl}/api/followups/${id}/reschedule`, payload);
+  }
+
+  followUpMessage(payload: FollowUpMessagePayload) {
+    return this.http.post<FollowUpMessageResponse>(`${this.baseUrl}/api/ai/follow-up-message`, payload);
   }
 
   replySuggestion(payload: { patient_message: string; service_id?: string; lead_id?: string }) {

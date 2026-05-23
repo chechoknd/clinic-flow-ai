@@ -95,7 +95,6 @@ describe('ApiService', () => {
     followupsRequest.flush({ data: [], pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 } });
   });
 
-
   it('posts lead create and update payloads to lead endpoints', () => {
     const createPayload = {
       full_name: 'Lead Demo',
@@ -124,6 +123,44 @@ describe('ApiService', () => {
 
     createRequest.flush({ id: 'lead-1', ...createPayload, created_at: '2026-05-23T12:00:00Z' });
     updateRequest.flush({ id: 'lead-1', status: 'Contactado' });
+  });
+
+  it('posts follow-up actions and AI follow-up message payloads', () => {
+    const completePayload = { status: 'Contactado' as const, note: 'Seguimiento completado.' };
+    const reschedulePayload = {
+      next_action_at: '2026-05-24T14:30:00.000Z',
+      note: 'Volver a contactar manana.',
+    };
+    const messagePayload = {
+      lead_id: 'lead-1',
+      service_id: 'service-1',
+      last_contact_note: 'Pidio informacion de precio.',
+    };
+
+    service.completeFollowUp('lead-1', completePayload).subscribe();
+    service.rescheduleFollowUp('lead-1', reschedulePayload).subscribe();
+    service.followUpMessage(messagePayload).subscribe();
+
+    const completeRequest = http.expectOne(`${baseUrl}/api/followups/lead-1/complete`);
+    const rescheduleRequest = http.expectOne(`${baseUrl}/api/followups/lead-1/reschedule`);
+    const messageRequest = http.expectOne(`${baseUrl}/api/ai/follow-up-message`);
+
+    expect(completeRequest.request.method).toBe('POST');
+    expect(completeRequest.request.body).toEqual(completePayload);
+    expect(rescheduleRequest.request.method).toBe('POST');
+    expect(rescheduleRequest.request.body).toEqual(reschedulePayload);
+    expect(messageRequest.request.method).toBe('POST');
+    expect(messageRequest.request.body).toEqual(messagePayload);
+
+    completeRequest.flush({ id: 'lead-1', status: 'completed' });
+    rescheduleRequest.flush({ id: 'lead-1', status: 'rescheduled' });
+    messageRequest.flush({
+      generation_id: 'gen-1',
+      suggested_message: 'Hola, seguimos atentos a tu consulta.',
+      recommended_timing: 'Hoy',
+      next_step: 'Enviar WhatsApp',
+      safety_status: 'safe',
+    });
   });
 
   it('posts reply and objection payloads to AI endpoints', () => {

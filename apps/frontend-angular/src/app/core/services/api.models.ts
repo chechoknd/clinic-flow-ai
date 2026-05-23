@@ -58,15 +58,30 @@ export interface UpdateLeadPayload {
   next_action_at?: string;
 }
 
-export interface FollowUp {
-  id: string;
-  lead_id: string;
-  lead_name: string;
-  phone: string;
-  service_name?: string;
-  status: LeadStatus;
+export type FollowUp = Lead;
+
+export interface CompleteFollowUpPayload {
+  status?: LeadStatus;
+  note?: string;
+}
+
+export interface RescheduleFollowUpPayload {
   next_action_at: string;
-  notes?: string;
+  note?: string;
+}
+
+export interface FollowUpMessagePayload {
+  lead_id: string;
+  service_id: string;
+  last_contact_note?: string;
+}
+
+export interface FollowUpMessageResponse {
+  generation_id: string;
+  suggested_message: string;
+  recommended_timing: string;
+  next_step: string;
+  safety_status: string;
 }
 
 export interface ClinicProfile {
