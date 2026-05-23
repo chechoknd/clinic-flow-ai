@@ -125,3 +125,17 @@ Use `AGENTS.md` as the central agent constitution and `docs/AGENT_RULES/` for de
 ### Consequences
 
 Agents must read and follow the relevant rule files before making changes. Documentation, source code, database, AI, security, testing, and Git workflow decisions should remain aligned with these governance files.
+
+## 2026-05-22 — Initialize Angular frontend shell
+
+### Context
+
+The backend already exposes core MVP endpoints for authentication, clinic profile, services, leads, follow-ups, dashboard, and AI assistance. The product needs a navigable frontend foundation before detailed workflows can be implemented.
+
+### Decision
+
+Initialize `apps/frontend-angular` as an Angular application with standalone components, lazy-loaded routes, Tailwind CSS, JWT auth shell, protected layout, and first MVP screens connected through API service wrappers.
+
+### Consequences
+
+The frontend can now evolve screen by screen against the Go API. The current shell prioritizes navigation, read flows, AI response generation, and copy-to-clipboard behavior; create/update forms and deeper error handling remain pending.

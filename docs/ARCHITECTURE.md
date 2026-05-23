@@ -36,9 +36,9 @@ clinic-flow-ai/
 
 ## Frontend Architecture
 
-Status: Planned.
+Status: In Progress.
 
-The frontend will use Angular with standalone components, Reactive Forms, Signals, Angular Router, route guards, HTTP interceptors, and Tailwind CSS.
+The frontend uses Angular with standalone components, Reactive Forms, Signals, Angular Router, route guards, HTTP interceptors, and Tailwind CSS.
 
 Expected structure:
 

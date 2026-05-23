@@ -1,0 +1,79 @@
+<main class="grid min-h-screen bg-slate-100 lg:grid-cols-[1fr_520px]">
+  <section class="hidden bg-slate-950 px-12 py-14 text-white lg:flex lg:flex-col lg:justify-between">
+    <div>
+      <div class="grid h-12 w-12 place-items-center rounded-lg bg-teal-500 font-bold">CF</div>
+      <h1 class="mt-10 max-w-xl text-4xl font-semibold leading-tight">
+        Atencion comercial mas rapida para clinicas dentales.
+      </h1>
+      <p class="mt-5 max-w-lg text-base leading-7 text-slate-300">
+        Centraliza leads, seguimientos y respuestas asistidas por AI para WhatsApp sin
+        automatizar conversaciones ni manejar datos clinicos.
+      </p>
+    </div>
+    <div class="grid grid-cols-3 gap-4 text-sm text-slate-300">
+      <div class="rounded-lg border border-white/10 p-4">
+        <strong class="block text-2xl text-white">7</strong>
+        Estados comerciales
+      </div>
+      <div class="rounded-lg border border-white/10 p-4">
+        <strong class="block text-2xl text-white">AI</strong>
+        Respuestas listas
+      </div>
+      <div class="rounded-lg border border-white/10 p-4">
+        <strong class="block text-2xl text-white">CRM</strong>
+        Simple y manual
+      </div>
+    </div>
+  </section>
+
+  <section class="flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 class="text-2xl font-semibold text-slate-950">Ingresar</h2>
+      <p class="mt-2 text-sm text-slate-600">Usa el usuario demo o una cuenta de la clinica.</p>
+
+      <form class="mt-6 grid gap-4" [formGroup]="form" (ngSubmit)="submit()">
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Email
+          <input
+            type="email"
+            formControlName="email"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <span class="text-xs text-red-600">Ingresa un email valido.</span>
+          }
+        </label>
+
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Password
+          <input
+            type="password"
+            formControlName="password"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          />
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <span class="text-xs text-red-600">La clave es obligatoria.</span>
+          }
+        </label>
+
+        @if (error()) {
+          <p class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ error() }}</p>
+        }
+
+        <button
+          type="submit"
+          class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700"
+          [disabled]="form.invalid || loading()"
+        >
+          {{ loading() ? 'Ingresando...' : 'Entrar' }}
+        </button>
+      </form>
+
+      <div class="mt-5 rounded-md bg-slate-50 p-3 text-sm text-slate-600">
+        <p class="font-medium text-slate-800">Demo</p>
+        <p>admin@sonrisaviva.demo</p>
+        <p>clinicflow123</p>
+      </div>
+    </div>
+  </section>
+</main>

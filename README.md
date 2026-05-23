@@ -56,6 +56,24 @@ email: admin@sonrisaviva.demo
 password: clinicflow123
 ```
 
+
+## Local Frontend Quick Start
+
+Prerequisites:
+
+- Node.js 22 or newer.
+- Backend API running on `http://127.0.0.1:18080` for authenticated API flows.
+
+Run the Angular frontend:
+
+```bash
+cd apps/frontend-angular
+npm install
+npm start
+```
+
+Open `http://localhost:4200`.
+
 ## Documentation Map
 
 - `AGENTS.md`: compact master instructions for AI agents.

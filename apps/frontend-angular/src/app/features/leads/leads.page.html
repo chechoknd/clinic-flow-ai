@@ -1,0 +1,58 @@
+<section class="grid gap-6">
+  <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-950">Leads</h1>
+      <p class="mt-1 text-sm text-slate-600">Pipeline comercial para seguimiento manual por WhatsApp.</p>
+    </div>
+    <button type="button" class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
+      Nuevo lead
+    </button>
+  </div>
+
+  <div class="grid gap-3 md:grid-cols-7">
+    @for (status of statuses; track status) {
+      <button
+        type="button"
+        class="rounded-md border px-3 py-2 text-sm font-medium"
+        [class.border-slate-900]="selectedStatus() === status"
+        [class.bg-slate-900]="selectedStatus() === status"
+        [class.text-white]="selectedStatus() === status"
+        [class.border-slate-200]="selectedStatus() !== status"
+        [class.bg-white]="selectedStatus() !== status"
+        [class.text-slate-700]="selectedStatus() !== status"
+        (click)="selectedStatus.set(status)"
+      >
+        {{ status }}
+      </button>
+    }
+  </div>
+
+  <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <div class="hidden grid-cols-[1.2fr_1fr_1fr_1fr_140px] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase text-slate-500 md:grid">
+      <span>Paciente</span>
+      <span>Servicio</span>
+      <span>Estado</span>
+      <span>Proxima accion</span>
+      <span>Accion</span>
+    </div>
+
+    @for (lead of filteredLeads(); track lead.id) {
+      <article class="grid gap-3 border-b border-slate-100 px-4 py-4 last:border-0 md:grid-cols-[1.2fr_1fr_1fr_1fr_140px] md:items-center">
+        <div>
+          <h2 class="font-semibold text-slate-950">{{ lead.full_name }}</h2>
+          <p class="text-sm text-slate-500">{{ lead.phone }}</p>
+        </div>
+        <p class="text-sm text-slate-700">{{ lead.service_name || 'Sin servicio' }}</p>
+        <span class="w-fit rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">{{ lead.status }}</span>
+        <p class="text-sm text-slate-600">{{ lead.next_action_at || 'Sin fecha' }}</p>
+        <a routerLink="/ai-assistant" class="rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50">
+          Responder
+        </a>
+      </article>
+    } @empty {
+      <div class="px-4 py-10 text-center text-sm text-slate-500">
+        No hay leads para este estado o el backend no esta disponible.
+      </div>
+    }
+  </div>
+</section>

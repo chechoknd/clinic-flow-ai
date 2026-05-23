@@ -30,17 +30,20 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Manual follow-up workflows implemented using lead `next_action_at`, including pending list, complete, reschedule, and AI follow-up message generation.
 - Dashboard summary endpoint implemented with lead totals, status counts, top services, follow-up counts, and conversion rate.
 - Local backend quick start documented in root and backend README files.
+- Angular frontend base initialized in `apps/frontend-angular` with standalone routing and Tailwind CSS.
+- Frontend authentication shell implemented with login page, JWT storage, auth guard, guest guard, and HTTP auth interceptor.
+- Initial private frontend layout and lazy-loaded MVP screens added for dashboard, leads, follow-ups, services, clinic profile, and AI assistant.
 
 ## In-Progress Items
 
 - Phase 1 technical base setup.
 - Backend DB connection/readiness validation completed.
-- Initializing Angular application shell.
+- Connecting frontend screens to richer create/update workflows and API error states.
 
 ## Pending Items
 
 - Confirm final repository structure against the architecture docs.
-- Initialize or verify Angular frontend base.
+- Implement create/update forms for leads, services, clinic profile, and follow-up actions.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
@@ -57,7 +60,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 ## Technical Debt
 
 - Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
-- No implemented frontend functionality is documented as complete yet.
+- Frontend screens currently cover first navigation and read/generate workflows; create/update flows are still pending.
 - API contracts are initial planning contracts and must be updated during implementation.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
@@ -65,9 +68,15 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Initialize or verify the Angular frontend base application.
+Implement the first functional frontend workflow end to end: lead creation, status update, notes, and AI reply copy flow against the Go API.
 
 ## Change Log
+
+### 2026-05-22
+
+- Initialized Angular frontend application with Tailwind CSS.
+- Added frontend auth shell, protected layout, lazy routes, and first MVP screens.
+- Validated frontend with `npm run build` and `npm test -- --watch=false`.
 
 ### 2026-05-21
 
