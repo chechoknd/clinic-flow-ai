@@ -41,6 +41,23 @@ export interface Lead {
   created_at?: string;
 }
 
+
+export interface CreateLeadPayload {
+  full_name: string;
+  phone: string;
+  service_id?: string;
+  status: LeadStatus;
+  source: string;
+  notes?: string;
+  next_action_at?: string;
+}
+
+export interface UpdateLeadPayload {
+  status: LeadStatus;
+  note?: string;
+  next_action_at?: string;
+}
+
 export interface FollowUp {
   id: string;
   lead_id: string;

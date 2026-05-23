@@ -6,12 +6,14 @@ import { environment } from '../../../environments/environment';
 import {
   AiReplyResponse,
   ClinicProfile,
+  CreateLeadPayload,
   DashboardSummary,
   FollowUp,
   Lead,
   PaginatedResponse,
   DashboardSummaryApiResponse,
   ServicesApiResponse,
+  UpdateLeadPayload,
 } from './api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -37,6 +39,14 @@ export class ApiService {
 
   leads() {
     return this.http.get<PaginatedResponse<Lead>>(`${this.baseUrl}/api/leads`);
+  }
+
+  createLead(payload: CreateLeadPayload) {
+    return this.http.post<Lead>(`${this.baseUrl}/api/leads`, payload);
+  }
+
+  updateLead(id: string, payload: UpdateLeadPayload) {
+    return this.http.put<{ id: string; status: string }>(`${this.baseUrl}/api/leads/${id}`, payload);
   }
 
   followups() {

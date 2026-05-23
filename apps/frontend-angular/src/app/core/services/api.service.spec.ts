@@ -95,6 +95,37 @@ describe('ApiService', () => {
     followupsRequest.flush({ data: [], pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 } });
   });
 
+
+  it('posts lead create and update payloads to lead endpoints', () => {
+    const createPayload = {
+      full_name: 'Lead Demo',
+      phone: '+573001112222',
+      service_id: 'service-1',
+      status: 'Nuevo' as const,
+      source: 'whatsapp',
+      notes: 'Consulta inicial.',
+    };
+    const updatePayload = {
+      status: 'Contactado' as const,
+      note: 'Se contacto por WhatsApp.',
+      next_action_at: '2026-05-24T14:30:00.000Z',
+    };
+
+    service.createLead(createPayload).subscribe();
+    service.updateLead('lead-1', updatePayload).subscribe();
+
+    const createRequest = http.expectOne(`${baseUrl}/api/leads`);
+    const updateRequest = http.expectOne(`${baseUrl}/api/leads/lead-1`);
+
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual(createPayload);
+    expect(updateRequest.request.method).toBe('PUT');
+    expect(updateRequest.request.body).toEqual(updatePayload);
+
+    createRequest.flush({ id: 'lead-1', ...createPayload, created_at: '2026-05-23T12:00:00Z' });
+    updateRequest.flush({ id: 'lead-1', status: 'Contactado' });
+  });
+
   it('posts reply and objection payloads to AI endpoints', () => {
     const replyPayload = { patient_message: 'Quiero informacion', service_id: 'service-1' };
     const objectionPayload = { objection: 'Esta muy caro', lead_id: 'lead-1' };
