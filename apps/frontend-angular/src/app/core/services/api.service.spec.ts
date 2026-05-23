@@ -24,20 +24,36 @@ describe('ApiService', () => {
     http.verify();
   });
 
-  it('requests the dashboard summary endpoint', () => {
-    service.dashboardSummary().subscribe();
+  it('requests and maps the dashboard summary endpoint', () => {
+    service.dashboardSummary().subscribe((summary) => {
+      expect(summary).toEqual({
+        total_leads: 3,
+        pending_followups_today: 1,
+        overdue_followups: 0,
+        upcoming_followups: 2,
+        conversion_rate: 25,
+        status_counts: { Nuevo: 2, Contactado: 1 },
+        top_services: [{ service_name: 'Blanqueamiento dental', total: 3 }],
+      });
+    });
 
     const request = http.expectOne(`${baseUrl}/api/dashboard/summary`);
 
     expect(request.request.method).toBe('GET');
     request.flush({
-      total_leads: 0,
-      pending_followups_today: 0,
+      leads_total: 3,
+      pending_followups_today: 1,
       overdue_followups: 0,
-      upcoming_followups: 0,
-      conversion_rate: 0,
-      status_counts: {},
-      top_services: [],
+      upcoming_followups: 2,
+      conversion_rate: 25,
+      leads_by_status: { Nuevo: 2, Contactado: 1 },
+      top_services: [
+        {
+          service_id: 'service-1',
+          service_name: 'Blanqueamiento dental',
+          lead_count: 3,
+        },
+      ],
     });
   });
 
@@ -60,7 +76,9 @@ describe('ApiService', () => {
   });
 
   it('requests list endpoints for services, leads, and followups', () => {
-    service.services().subscribe();
+    service.services().subscribe((response) => {
+      expect(response).toEqual({ data: [] });
+    });
     service.leads().subscribe();
     service.followups().subscribe();
 
@@ -72,7 +90,7 @@ describe('ApiService', () => {
     expect(leadsRequest.request.method).toBe('GET');
     expect(followupsRequest.request.method).toBe('GET');
 
-    servicesRequest.flush({ data: [] });
+    servicesRequest.flush([]);
     leadsRequest.flush({ data: [], pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 } });
     followupsRequest.flush({ data: [], pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 } });
   });

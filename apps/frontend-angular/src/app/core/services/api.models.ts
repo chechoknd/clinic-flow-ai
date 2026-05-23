@@ -63,6 +63,18 @@ export interface ClinicProfile {
   communication_tone: string;
 }
 
+export type ServicesApiResponse = ClinicServiceItem[] | { data: ClinicServiceItem[] };
+
+export interface DashboardSummaryApiResponse {
+  leads_total: number;
+  pending_followups_today: number;
+  overdue_followups: number;
+  upcoming_followups: number;
+  conversion_rate: number;
+  leads_by_status: Record<string, number>;
+  top_services: Array<{ service_id: string; service_name: string; lead_count: number }>;
+}
+
 export interface DashboardSummary {
   total_leads: number;
   pending_followups_today: number;
