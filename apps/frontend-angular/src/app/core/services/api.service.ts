@@ -19,6 +19,7 @@ import {
   DashboardSummaryApiResponse,
   ServicesApiResponse,
   RescheduleFollowUpPayload,
+  UpdateClinicPayload,
   UpdateLeadPayload,
   UpdateServicePayload,
 } from './api.models';
@@ -36,6 +37,10 @@ export class ApiService {
 
   clinicCurrent() {
     return this.http.get<ClinicProfile>(`${this.baseUrl}/api/clinics/current`);
+  }
+
+  updateClinicCurrent(payload: UpdateClinicPayload) {
+    return this.http.put<ClinicProfile>(`${this.baseUrl}/api/clinics/current`, payload);
   }
 
   services() {

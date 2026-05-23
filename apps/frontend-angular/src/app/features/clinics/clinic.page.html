@@ -4,32 +4,134 @@
     <p class="mt-1 text-sm text-slate-600">Datos comerciales usados en respuestas asistidas.</p>
   </div>
 
-  <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-    @if (clinic(); as item) {
-      <div class="grid gap-5 md:grid-cols-2">
-        <div>
-          <p class="text-sm text-slate-500">Nombre</p>
-          <p class="font-semibold text-slate-950">{{ item.name }}</p>
+  @if (error()) {
+    <p class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</p>
+  }
+
+  @if (success()) {
+    <p class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
+  }
+
+  <div class="grid gap-6 xl:grid-cols-[1fr_420px]">
+    <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      @if (loading()) {
+        <p class="text-sm text-slate-500">Cargando perfil...</p>
+      } @else if (clinic(); as item) {
+        <div class="grid gap-5 md:grid-cols-2">
+          <div>
+            <p class="text-sm text-slate-500">Nombre</p>
+            <p class="font-semibold text-slate-950">{{ item.name }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-slate-500">Tipo</p>
+            <p class="font-semibold text-slate-950">{{ item.clinic_type }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-slate-500">Ciudad</p>
+            <p class="font-semibold text-slate-950">{{ item.city }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-slate-500">WhatsApp</p>
+            <p class="font-semibold text-slate-950">{{ item.whatsapp }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-slate-500">Telefono</p>
+            <p class="font-semibold text-slate-950">{{ item.phone || 'Sin telefono' }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-slate-500">Tono</p>
+            <p class="font-semibold text-slate-950">{{ item.communication_tone }}</p>
+          </div>
+          <div class="md:col-span-2">
+            <p class="text-sm text-slate-500">Direccion</p>
+            <p class="font-semibold text-slate-950">{{ item.address || 'Sin direccion' }}</p>
+          </div>
         </div>
-        <div>
-          <p class="text-sm text-slate-500">Ciudad</p>
-          <p class="font-semibold text-slate-950">{{ item.city }}</p>
-        </div>
-        <div>
-          <p class="text-sm text-slate-500">WhatsApp</p>
-          <p class="font-semibold text-slate-950">{{ item.whatsapp }}</p>
-        </div>
-        <div>
-          <p class="text-sm text-slate-500">Tono</p>
-          <p class="font-semibold text-slate-950">{{ item.communication_tone }}</p>
-        </div>
-        <div class="md:col-span-2">
-          <p class="text-sm text-slate-500">Direccion</p>
-          <p class="font-semibold text-slate-950">{{ item.address }}</p>
-        </div>
-      </div>
-    } @else {
-      <p class="text-sm text-slate-500">No se pudo cargar la clinica. Verifica el backend y la sesion.</p>
-    }
+      } @else {
+        <p class="text-sm text-slate-500">No se pudo cargar la clinica. Verifica el backend y la sesion.</p>
+      }
+    </div>
+
+    <aside class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-base font-semibold text-slate-950">Editar datos comerciales</h2>
+      <form class="mt-4 grid gap-4" [formGroup]="clinicForm" (ngSubmit)="saveClinic()">
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Nombre
+          <input
+            type="text"
+            formControlName="name"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          />
+          @if (clinicForm.controls.name.touched && clinicForm.controls.name.invalid) {
+            <span class="text-xs text-red-600">Ingresa un nombre de al menos 3 caracteres.</span>
+          }
+        </label>
+
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Ciudad
+          <input
+            type="text"
+            formControlName="city"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          />
+          @if (clinicForm.controls.city.touched && clinicForm.controls.city.invalid) {
+            <span class="text-xs text-red-600">Ingresa la ciudad de la clinica.</span>
+          }
+        </label>
+
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          WhatsApp
+          <input
+            type="tel"
+            formControlName="whatsapp"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          />
+          @if (clinicForm.controls.whatsapp.touched && clinicForm.controls.whatsapp.invalid) {
+            <span class="text-xs text-red-600">Usa formato internacional, por ejemplo +573001234567.</span>
+          }
+        </label>
+
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Telefono
+          <input
+            type="tel"
+            formControlName="phone"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          />
+          @if (clinicForm.controls.phone.touched && clinicForm.controls.phone.invalid) {
+            <span class="text-xs text-red-600">Usa formato internacional o deja el campo vacio.</span>
+          }
+        </label>
+
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Direccion
+          <textarea
+            formControlName="address"
+            rows="3"
+            class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          ></textarea>
+        </label>
+
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Tono de comunicacion
+          <select
+            formControlName="communication_tone"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          >
+            @for (tone of tones; track tone.value) {
+              <option [value]="tone.value">{{ tone.label }}</option>
+            }
+          </select>
+        </label>
+
+        <button
+          type="submit"
+          class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="saving() || loading()"
+        >
+          {{ saving() ? 'Guardando...' : 'Guardar perfil' }}
+        </button>
+      </form>
+    </aside>
   </div>
 </section>

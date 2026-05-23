@@ -99,15 +99,30 @@ export interface FollowUpMessageResponse {
   safety_status: string;
 }
 
+export type CommunicationTone = 'amable' | 'profesional' | 'cercano' | 'juvenil' | 'elegante';
+
 export interface ClinicProfile {
   id: string;
   name: string;
   clinic_type: string;
   city: string;
-  phone: string;
+  phone?: string;
   whatsapp: string;
-  address: string;
-  communication_tone: string;
+  address?: string;
+  opening_hours?: Record<string, unknown>;
+  general_faq?: unknown[];
+  communication_tone: CommunicationTone;
+}
+
+export interface UpdateClinicPayload {
+  name: string;
+  city: string;
+  phone?: string;
+  whatsapp: string;
+  address?: string;
+  opening_hours: Record<string, unknown>;
+  general_faq: unknown[];
+  communication_tone: CommunicationTone;
 }
 
 export type ServicesApiResponse = ClinicServiceItem[] | { data: ClinicServiceItem[] };

@@ -71,8 +71,29 @@ describe('ApiService', () => {
       phone: '+5710000000',
       whatsapp: '+5710000000',
       address: 'Calle 1',
-      communication_tone: 'calido',
+      communication_tone: 'profesional',
     });
+  });
+
+  it('updates the current clinic endpoint', () => {
+    const payload = {
+      name: 'Sonrisa Viva',
+      city: 'Bogota',
+      phone: '+5710000000',
+      whatsapp: '+573001234567',
+      address: 'Calle 1',
+      opening_hours: {},
+      general_faq: [],
+      communication_tone: 'profesional' as const,
+    };
+
+    service.updateClinicCurrent(payload).subscribe();
+
+    const request = http.expectOne(`${baseUrl}/api/clinics/current`);
+
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual(payload);
+    request.flush({ id: 'clinic-1', clinic_type: 'dental', ...payload });
   });
 
   it('requests list endpoints for services, leads, and followups', () => {
