@@ -39,19 +39,16 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Frontend clinic profile workflow implemented for editing commercial profile and communication tone.
 - Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, leads, follow-ups, dashboard, and AI-assisted endpoints with a deterministic mock AI provider.
 - API contracts documentation updated to match the implemented backend/frontend response shapes and smoke coverage.
+- Architecture documentation reconciled with the actual repository structure and Phase 1 completion state.
 
 ## In-Progress Items
 
-- Phase 1 technical base setup.
-- Backend DB connection/readiness validation completed.
-- Frontend MVP screens connected to primary API workflows and API error states.
-- Local API smoke validated against PostgreSQL, seed data, JWT auth, and mock AI provider.
+- Phase 1 local technical base is ready for review.
 
 ## Pending Items
 
-- Confirm final repository structure against the architecture docs and prepare Phase 1 completion notes.
 - Add automated seed runner if seed usage grows beyond local/demo data.
-- Apply JWT middleware to protected endpoints as business modules are implemented.
+- Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
 
 ## Known Risks
@@ -74,7 +71,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Confirm final repository structure against `docs/ARCHITECTURE.md` and prepare Phase 1 completion notes.
+Resolve GitHub remote authentication and push the accumulated commits, then open a PR with Phase 1 summary.
 
 ## Change Log
 
@@ -87,6 +84,7 @@ Confirm final repository structure against `docs/ARCHITECTURE.md` and prepare Ph
 - Added deterministic mock AI provider for local smoke testing.
 - Expanded `e2e_test.sh` to validate login, clinic profile update, services, leads, follow-ups, dashboard, and AI-assisted endpoints.
 - Updated `docs/API_CONTRACTS.md` to describe implemented endpoint contracts and planned-but-not-implemented APIs.
+- Updated `docs/ARCHITECTURE.md` to match the actual repository structure and Phase 1 implementation notes.
 - Validated frontend with `npm test -- --watch=false`, `npm run lint`, and `npm run build`.
 - Validated backend smoke with `go test ./...`, `go vet ./...`, migrations, demo seed, readiness check, and `./e2e_test.sh`.
 

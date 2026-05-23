@@ -2,15 +2,17 @@
 
 ## Architecture Overview
 
-ClinicFlow AI is planned as a monorepo SaaS application with an Angular frontend, Go backend, PostgreSQL database, and Docker Compose local environment.
+ClinicFlow AI is a monorepo SaaS application with an Angular frontend, Go backend, PostgreSQL database, and Docker Compose local environment.
 
-The MVP architecture supports commercial clinic workflows: clinic configuration, service catalog management, lead CRM, AI-assisted WhatsApp replies, objection handling, manual follow-ups, marketing content generation, and basic dashboard metrics.
+The current MVP architecture supports commercial clinic workflows: clinic configuration, service catalog management, lead CRM, AI-assisted WhatsApp replies, objection handling, manual follow-ups, and basic dashboard metrics.
 
 The backend is the authority for authentication, authorization, tenant isolation, prompt safety, provider selection, and API contracts. The frontend is responsible for fast, simple operator workflows, but it must not own security or AI safety rules.
 
 ## Monorepo Structure
 
-Planned repository structure:
+Status: Implemented.
+
+Current top-level structure:
 
 ```txt
 clinic-flow-ai/
@@ -18,6 +20,7 @@ clinic-flow-ai/
 ├── README.md
 ├── .env.example
 ├── docker-compose.yml
+├── e2e_test.sh
 ├── apps/
 │   ├── frontend-angular/
 │   └── backend-go/
@@ -34,13 +37,15 @@ clinic-flow-ai/
     └── DECISIONS_LOG.md
 ```
 
+Generated local directories such as `node_modules/`, `dist/`, `.angular/`, and `.git/` are not architectural source directories.
+
 ## Frontend Architecture
 
-Status: In Progress.
+Status: Implemented for the current MVP screens.
 
 The frontend uses Angular with standalone components, Reactive Forms, Signals, Angular Router, route guards, HTTP interceptors, and Tailwind CSS.
 
-Expected structure:
+Current source structure:
 
 ```txt
 apps/frontend-angular/src/app/
@@ -50,33 +55,31 @@ apps/frontend-angular/src/app/
 │   ├── interceptors/
 │   ├── layout/
 │   └── services/
-├── shared/
-│   ├── components/
-│   ├── pipes/
-│   ├── directives/
-│   └── utils/
 ├── features/
-│   ├── dashboard/
-│   ├── clinics/
-│   ├── services/
-│   ├── leads/
 │   ├── ai-assistant/
-│   ├── content/
-│   └── followups/
+│   ├── auth/
+│   ├── clinics/
+│   ├── dashboard/
+│   ├── followups/
+│   ├── leads/
+│   └── services/
+├── shared/
+│   └── components/
+├── app.config.ts
 ├── app.routes.ts
-└── app.config.ts
+└── app.ts
 ```
 
-Frontend responsibilities:
+Implemented frontend responsibilities:
 
 - Present authenticated application views.
-- Use guards for private routes.
-- Use interceptors to attach JWT authorization headers.
-- Use services for API communication.
-- Use Reactive Forms for clinic, service, lead, and AI input forms.
+- Use guards for private and guest routes.
+- Use an interceptor to attach JWT authorization headers.
+- Use `ApiService` for backend communication.
+- Use Reactive Forms for login, clinic profile, service catalog, lead, follow-up, and AI input workflows.
 - Use Signals for simple local UI state.
 - Keep workflows simple for receptionists and clinic administrators.
-- Support fast copy-to-clipboard actions for WhatsApp-ready messages.
+- Support fast copy-to-clipboard actions for WhatsApp-ready AI responses.
 
 Frontend non-responsibilities:
 
@@ -85,34 +88,40 @@ Frontend non-responsibilities:
 - It must not store API keys or secrets.
 - It must not hardcode backend URLs outside environment configuration.
 
+Notes:
+
+- The planned `content` feature is not implemented yet.
+- `shared/` is intentionally light until repeated UI components justify more structure.
+
 ## Backend Architecture
 
-Status: Planned.
+Status: Implemented for current MVP modules.
 
-The backend will use Go, REST APIs, Clean Architecture, JWT authentication, PostgreSQL persistence, and provider-agnostic AI integrations.
+The backend uses Go, REST APIs, JWT authentication, PostgreSQL persistence, and provider-agnostic AI integrations.
 
-Expected structure:
+Current source structure:
 
 ```txt
 apps/backend-go/
-├── cmd/api/main.go
+├── cmd/
+│   ├── api/
+│   └── migrate/
 ├── internal/
+│   ├── ai/
 │   ├── auth/
 │   ├── clinics/
-│   ├── services/
-│   ├── leads/
-│   ├── ai/
-│   ├── content/
-│   ├── followups/
+│   ├── config/
 │   ├── dashboard/
+│   ├── health/
+│   ├── leads/
+│   ├── migrations/
+│   ├── services/
 │   └── shared/
-├── pkg/
-│   ├── database/
-│   └── logger/
-└── migrations/
+└── pkg/
+    └── database/
 ```
 
-Each backend module should follow:
+Most business modules follow:
 
 ```txt
 handler.go
@@ -122,6 +131,13 @@ model.go
 dto.go
 routes.go
 ```
+
+Current intentional deviations:
+
+- Follow-up endpoints are implemented in `internal/leads` because follow-ups are modeled as leads with `next_action_at`.
+- SQL migration execution support lives in `internal/migrations`; migration files live in `database/migrations`.
+- `internal/content` is not implemented yet.
+- `pkg/logger` is not present; logging currently uses standard Go logging.
 
 Layer responsibilities:
 
@@ -137,28 +153,29 @@ Backend constraints:
 - No AI provider calls from handlers.
 - No stack traces, SQL errors, or provider secrets in API responses.
 - No diagnosis, prescription, or medical advice logic.
-- All protected endpoints validate JWT and enforce clinic-level isolation.
+- All protected endpoints validate JWT and enforce clinic-level isolation in backend queries.
 
 ## Database Architecture
 
-Status: Planned.
+Status: Implemented for current MVP modules.
 
-The database will use PostgreSQL, UUID primary keys, SQL migrations, seeds, foreign keys, indexes, and timestamp fields where useful.
+The database uses PostgreSQL, UUID primary keys, SQL migrations, seeds, foreign keys, indexes, and timestamp fields.
 
-Recommended base tables:
+Implemented tables:
 
 - `clinics`
 - `users`
 - `clinic_services`
 - `leads`
 - `lead_notes`
-- `followups`
-- `ai_generations`
+- `schema_migrations`
+
+Current migration files live in `database/migrations/`. Demo data lives in `database/seeds/`.
 
 Core tenant model:
 
-- Clinic-owned entities must include `clinic_id` where applicable.
-- Backend queries must scope data by authenticated user and clinic.
+- Clinic-owned entities include `clinic_id` where applicable.
+- Backend queries scope data by authenticated user and clinic.
 - Frontend filtering is not sufficient for tenant isolation.
 
 Allowed lead data:
@@ -181,22 +198,31 @@ Forbidden data:
 - Medical records.
 - Detailed symptoms stored as medical history.
 
-`pgvector` may be prepared for future phases, but it is not required for MVP functionality.
+Notes:
+
+- Follow-ups are implemented through `leads.next_action_at`; there is no separate `followups` table.
+- AI generation metadata is not persisted yet; there is no `ai_generations` table.
+- `pgvector` may be prepared for future phases, but it is not required for MVP functionality.
 
 ## AI Integration Strategy
 
-Status: Planned.
+Status: Implemented for reply suggestions, objection handling, and manual follow-up messages.
 
-The backend will expose provider-agnostic AI interfaces and select providers through environment variables. Supported provider targets include OpenAI, Gemini, DeepSeek, or compatible APIs.
+The backend exposes provider-agnostic AI interfaces and selects providers through environment variables. Supported provider targets:
 
-MVP strategy:
+- `openai`
+- `gemini`
+- `deepseek`
+- `mock` for deterministic local smoke testing only
+
+Current MVP strategy:
 
 - Use direct structured context injection.
 - Avoid RAG/vector search as required MVP infrastructure.
 - Keep prompts and safety rules backend-owned.
 - Inject concise clinic, service, lead, and objection context into prompt templates.
-- Validate AI output where possible before returning it.
-- Return safe fallback messages when output appears risky.
+- Validate AI output before returning it.
+- Return structured JSON DTOs to the frontend.
 
 Prompt context may include:
 
@@ -204,30 +230,29 @@ Prompt context may include:
 - Clinic type.
 - City.
 - Communication tone.
-- Operating WhatsApp.
 - Service details.
 - Service benefits.
 - Service FAQ.
 - Common objections.
-- Lead status.
-- Optional commercial notes.
+- Lead notes.
 
 AI output must never diagnose, interpret symptoms, recommend medication, guarantee outcomes, replace professional evaluation, or decide that a patient does not need a clinic visit.
 
 ## Security Architecture
 
-Status: Planned.
+Status: Implemented for current protected endpoints.
 
 Security controls:
 
 - JWT authentication for protected endpoints.
-- Role-aware authorization for `superadmin`, `clinic_admin`, and `assistant`.
+- Role-aware authorization for clinic profile and service catalog writes.
 - Backend-enforced clinic-level data isolation.
 - Secure password hashing.
 - No secrets committed.
 - Environment variables for secrets and provider keys.
 - Sanitized API errors.
-- Restricted logging.
+- Basic security headers and CORS middleware.
+- Request body size limits and simple rate limiting middleware.
 
 Forbidden logging:
 
@@ -240,42 +265,42 @@ Forbidden logging:
 
 ## Multi-Tenancy Strategy
 
-Status: Planned.
+Status: Implemented for current clinic-scoped modules.
 
 ClinicFlow AI uses logical multi-tenancy by clinic.
 
-- Each user belongs to a clinic, except platform-level superadmin users.
+- Each user belongs to a clinic, except future platform-level superadmin users.
 - Each business entity belongs to a clinic where applicable.
-- JWT claims should identify user identity, role, and clinic context.
-- Repository queries must include clinic scoping.
-- Service methods must reject cross-clinic access.
+- JWT claims identify user identity, role, and clinic context.
+- Repository queries include clinic scoping.
+- Service methods reject cross-clinic access through scoped repository operations.
 - API responses must never leak objects from another clinic.
 
 ## Local Development Infrastructure
 
-Status: Planned.
+Status: Implemented.
 
-Local development will use Docker Compose to provide reproducible services, especially PostgreSQL. The repository may include `.env.example` with placeholders only. Real `.env` files and secrets must not be committed.
+Local development uses Docker Compose for PostgreSQL plus locally run Go and Angular processes.
 
-Expected local services:
+Current local services and commands:
 
-- PostgreSQL.
-- Backend API.
-- Angular development server.
-- Optional database tooling if approved later.
+- PostgreSQL: `docker compose up -d postgres`
+- Backend migrations: `go run ./cmd/migrate` from `apps/backend-go`
+- Backend API: `go run ./cmd/api` from `apps/backend-go`
+- Angular dev server: `npm start` from `apps/frontend-angular`
+- Local API smoke: `./e2e_test.sh` with backend `AI_PROVIDER=mock`
 
 ## Environment Configuration
 
-Environment variables should cover:
+Environment variables cover:
 
-- Backend port and environment.
-- Database connection settings.
-- JWT secret and expiration.
-- AI provider name.
-- AI provider API key.
-- AI model name.
-- Provider timeout and token limits.
-- Frontend API base URL.
+- Backend bind address: `HTTP_ADDR`.
+- Database connection: `DATABASE_URL`.
+- JWT secret and expiration: `JWT_SECRET`, `JWT_EXPIRES_IN_SECONDS`.
+- CORS: `ALLOWED_ORIGINS`.
+- AI provider name and model: `AI_PROVIDER`, `AI_MODEL`.
+- AI provider API keys: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`.
+- Frontend API base URL through Angular environment configuration.
 
 Rules:
 
@@ -283,6 +308,23 @@ Rules:
 - Do not commit `.env`, local secrets, provider keys, JWT secrets, or credentials.
 - Keep frontend secrets out of browser-delivered code.
 - Backend controls AI provider credentials and prompt safety.
+
+## Phase 1 Completion Notes
+
+Phase 1 local technical base is functionally complete for the implemented MVP surface:
+
+- PostgreSQL local infrastructure, migrations, and seed data are in place.
+- Backend modules are implemented for auth, clinic profile, services, leads, follow-ups, AI, dashboard, health, and readiness.
+- Frontend authenticated shell and MVP workflows are connected to the API.
+- Local smoke coverage validates the primary API workflows against PostgreSQL using deterministic AI output.
+- API contracts and development status documentation reflect the implemented behavior.
+
+Remaining Phase 1 follow-ups:
+
+- Resolve GitHub remote authentication so commits can be pushed.
+- Decide whether to add an automated seed runner beyond the current SQL seed flow.
+- Keep expanding integration/e2e coverage as new modules are added.
+- Keep content generation documented as planned, not implemented, until the module is built.
 
 ## Out-of-Scope Architecture for MVP
 
