@@ -177,9 +177,15 @@
               }
             </p>
           </div>
-          <a routerLink="/ai-assistant" class="w-fit rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700">
-            Responder
-          </a>
+          @if (selectedLead(); as lead) {
+            <a
+              routerLink="/ai-assistant"
+              [queryParams]="{ lead_id: lead.id, service_id: lead.service_id }"
+              class="w-fit rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700"
+            >
+              Responder
+            </a>
+          }
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">

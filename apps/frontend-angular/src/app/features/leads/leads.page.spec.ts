@@ -128,6 +128,21 @@ describe('LeadsPage', () => {
     expect(fixture.componentInstance.success()).toBe('Lead creado correctamente.');
   });
 
+
+
+  it('builds an AI assistant link with selected lead context', () => {
+    fixture.componentInstance.selectLead(leads[0]);
+    fixture.detectChanges();
+
+    const links = Array.from(
+      fixture.nativeElement.querySelectorAll('a[href*="ai-assistant"]'),
+    ) as HTMLAnchorElement[];
+    const contextualLink = links.find((link) => link.href.includes('lead_id=lead-1'));
+
+    expect(contextualLink?.href).toContain('lead_id=lead-1');
+    expect(contextualLink?.href).toContain('service_id=service-1');
+  });
+
   it('updates the selected lead status, note, and next action', () => {
     fixture.componentInstance.selectLead(leads[0]);
     fixture.componentInstance.updateForm.setValue({

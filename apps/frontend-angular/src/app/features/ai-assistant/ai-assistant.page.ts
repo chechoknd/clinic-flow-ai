@@ -1,5 +1,6 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
 
@@ -12,14 +13,25 @@ import { ApiService } from '../../core/services/api.service';
 export class AiAssistantPage {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly loading = signal(false);
   readonly answer = signal('');
   readonly copied = signal(false);
+  readonly leadId = signal<string | null>(null);
+  readonly serviceId = signal<string | null>(null);
+  readonly hasContext = computed(() => Boolean(this.leadId() || this.serviceId()));
   readonly form = this.fb.nonNullable.group({
     mode: ['reply'],
     message: ['', [Validators.required, Validators.minLength(8)]],
   });
+
+  constructor() {
+    this.route.queryParamMap.subscribe((params) => {
+      this.leadId.set(params.get('lead_id'));
+      this.serviceId.set(params.get('service_id'));
+    });
+  }
 
   generate(): void {
     if (this.form.invalid) {
@@ -30,10 +42,11 @@ export class AiAssistantPage {
     this.loading.set(true);
     this.copied.set(false);
     const value = this.form.getRawValue();
+    const context = this.contextPayload();
     const request =
       value.mode === 'objection'
-        ? this.api.objectionHandler({ objection: value.message })
-        : this.api.replySuggestion({ patient_message: value.message });
+        ? this.api.objectionHandler({ objection: value.message, ...context })
+        : this.api.replySuggestion({ patient_message: value.message, ...context });
 
     request.subscribe({
       next: (response) => {
@@ -58,6 +71,13 @@ export class AiAssistantPage {
     }
 
     void navigator.clipboard.writeText(this.answer()).then(() => this.copied.set(true));
+  }
+
+  private contextPayload(): { lead_id?: string; service_id?: string } {
+    return {
+      lead_id: this.leadId() || undefined,
+      service_id: this.serviceId() || undefined,
+    };
   }
 
   private firstVariant(variants?: Record<string, string>): string | null {

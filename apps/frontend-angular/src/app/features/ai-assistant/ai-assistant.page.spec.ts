@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApiService } from '../../core/services/api.service';
@@ -24,6 +25,12 @@ describe('AiAssistantPage', () => {
       imports: [AiAssistantPage],
       providers: [
         {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParamMap: of(convertToParamMap({ lead_id: 'lead-1', service_id: 'service-1' })),
+          },
+        },
+        {
           provide: ApiService,
           useValue: {
             replySuggestion,
@@ -35,6 +42,14 @@ describe('AiAssistantPage', () => {
 
     fixture = TestBed.createComponent(AiAssistantPage);
     fixture.detectChanges();
+  });
+
+
+
+  it('shows when lead or service context is active', () => {
+    expect(fixture.componentInstance.leadId()).toBe('lead-1');
+    expect(fixture.componentInstance.serviceId()).toBe('service-1');
+    expect(fixture.componentInstance.hasContext()).toBe(true);
   });
 
   it('marks the message as required before generating a response', () => {
@@ -52,6 +67,8 @@ describe('AiAssistantPage', () => {
 
     expect(replySuggestion).toHaveBeenCalledWith({
       patient_message: 'Quiero saber cuanto cuesta el tratamiento.',
+      lead_id: 'lead-1',
+      service_id: 'service-1',
     });
     expect(fixture.componentInstance.answer()).toBe('Respuesta comercial sugerida.');
     expect(fixture.componentInstance.loading()).toBe(false);
@@ -67,6 +84,8 @@ describe('AiAssistantPage', () => {
 
     expect(objectionHandler).toHaveBeenCalledWith({
       objection: 'Me parece muy costoso para hacerlo ahora.',
+      lead_id: 'lead-1',
+      service_id: 'service-1',
     });
     expect(fixture.componentInstance.answer()).toBe('Manejo corto de objecion.');
   });
