@@ -38,6 +38,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Frontend service catalog workflow implemented for create, update, active state, and delete actions.
 - Frontend clinic profile workflow implemented for editing commercial profile and communication tone.
 - Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, leads, follow-ups, dashboard, and AI-assisted endpoints with a deterministic mock AI provider.
+- API contracts documentation updated to match the implemented backend/frontend response shapes and smoke coverage.
 
 ## In-Progress Items
 
@@ -48,8 +49,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Pending Items
 
-- Confirm final repository structure against the architecture docs.
-- Update API contracts documentation with implemented response shapes and smoke coverage.
+- Confirm final repository structure against the architecture docs and prepare Phase 1 completion notes.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to protected endpoints as business modules are implemented.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
@@ -67,14 +67,14 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 - Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
 - Frontend screens currently cover first navigation, lead workflows, AI reply generation, follow-up actions, service catalog CRUD, and clinic profile editing.
-- API contracts are initial planning contracts and must be updated during implementation.
+- API contracts now reflect implemented MVP endpoints, but should continue to be updated when response shapes change.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
 - Backend unit tests exist for implemented modules; e2e coverage should be expanded.
 
 ## Next Recommended Step
 
-Update `docs/API_CONTRACTS.md` to match the implemented backend/frontend contracts.
+Confirm final repository structure against `docs/ARCHITECTURE.md` and prepare Phase 1 completion notes.
 
 ## Change Log
 
@@ -86,6 +86,7 @@ Update `docs/API_CONTRACTS.md` to match the implemented backend/frontend contrac
 - Added clinic profile frontend update workflow.
 - Added deterministic mock AI provider for local smoke testing.
 - Expanded `e2e_test.sh` to validate login, clinic profile update, services, leads, follow-ups, dashboard, and AI-assisted endpoints.
+- Updated `docs/API_CONTRACTS.md` to describe implemented endpoint contracts and planned-but-not-implemented APIs.
 - Validated frontend with `npm test -- --watch=false`, `npm run lint`, and `npm run build`.
 - Validated backend smoke with `go test ./...`, `go vet ./...`, migrations, demo seed, readiness check, and `./e2e_test.sh`.
 

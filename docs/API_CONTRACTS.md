@@ -2,9 +2,9 @@
 
 ## Status
 
-Status: Planned.
+Status: Implemented for the current MVP backend/frontend surface.
 
-This document defines the initial REST API contract for the ClinicFlow AI MVP. It is a planning contract and must be updated when endpoints, payloads, authentication, pagination, or error formats change.
+This document describes the REST API currently implemented in the Go backend and consumed by the Angular frontend. Keep it updated when endpoints, payloads, authentication, pagination, roles, or error response shapes change.
 
 ## API Conventions
 
@@ -12,9 +12,9 @@ This document defines the initial REST API contract for the ClinicFlow AI MVP. I
 - Format: JSON request and response bodies.
 - Authentication: JWT Bearer token for protected endpoints.
 - IDs: UUID strings.
-- Dates and times: ISO 8601 strings.
+- Dates and times: ISO 8601 strings. Backend responses may include timezone offsets.
 - Naming: JSON fields use `snake_case`.
-- Tenant isolation: protected endpoints must scope data to the authenticated clinic unless explicitly platform-level.
+- Tenant isolation: protected endpoints scope data to the authenticated clinic through JWT `clinic_id` claims.
 - Medical safety: endpoints must not accept or return clinical diagnosis, prescription, medical-record, or treatment-decision data.
 
 Example headers:
@@ -28,14 +28,14 @@ Authorization: Bearer <jwt>
 
 `POST /api/auth/login` authenticates an active operator with email and password, then returns a JWT. Protected endpoints require `Authorization: Bearer <jwt>`.
 
-JWT claims should support:
+JWT-backed protected endpoints use these claims:
 
 - User ID.
 - Clinic ID.
 - Role.
 - Expiration.
 
-Roles:
+Roles currently used by the API:
 
 - `superadmin`
 - `clinic_admin`
@@ -45,43 +45,40 @@ Frontend guards improve UX, but backend validation is mandatory on every protect
 
 ## Error Response Format
 
-All API errors should use:
+Implemented API errors use this shape:
 
 ```json
 {
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "The request payload is invalid.",
-    "details": {
-      "field": "email"
-    }
+    "message": "The request payload is invalid."
   }
 }
 ```
 
-`details` is optional. Responses must not expose stack traces, SQL errors, provider secrets, internal file paths, raw panic messages, or unsafe AI internals.
+Error `details` are not currently emitted. Responses must not expose stack traces, SQL errors, provider secrets, internal file paths, raw panic messages, or unsafe AI internals.
 
-Common error codes:
+Common implemented error codes:
 
 - `VALIDATION_ERROR`
+- `INVALID_REQUEST`
 - `UNAUTHORIZED`
 - `FORBIDDEN`
 - `NOT_FOUND`
-- `CONFLICT`
 - `AI_PROVIDER_ERROR`
 - `AI_SAFETY_BLOCKED`
 - `INTERNAL_ERROR`
 
 ## Pagination Convention
 
-List endpoints should support:
+Lead and follow-up list endpoints support:
 
 ```txt
 page=1
 page_size=20
 ```
 
-Paginated responses should use:
+Paginated responses use:
 
 ```json
 {
@@ -99,29 +96,55 @@ Paginated responses should use:
 
 | Method | Endpoint | Auth Required | Roles |
 | --- | --- | --- | --- |
+| GET | `/healthz` | No | Public |
+| GET | `/readyz` | No | Public |
 | POST | `/api/auth/login` | No | Public |
-| GET | `/api/clinics/current` | Yes | `clinic_admin`, `assistant` |
+| GET | `/api/clinics/current` | Yes | any authenticated user |
 | PUT | `/api/clinics/current` | Yes | `clinic_admin` |
-| GET | `/api/services` | Yes | `clinic_admin`, `assistant` |
+| GET | `/api/services` | Yes | any authenticated user |
+| GET | `/api/services/:id` | Yes | any authenticated user |
 | POST | `/api/services` | Yes | `clinic_admin` |
 | PUT | `/api/services/:id` | Yes | `clinic_admin` |
 | DELETE | `/api/services/:id` | Yes | `clinic_admin` |
-| GET | `/api/leads` | Yes | `clinic_admin`, `assistant` |
-| POST | `/api/leads` | Yes | `clinic_admin`, `assistant` |
-| GET | `/api/leads/:id` | Yes | `clinic_admin`, `assistant` |
-| PUT | `/api/leads/:id` | Yes | `clinic_admin`, `assistant` |
-| GET | `/api/followups` | Yes | `clinic_admin`, `assistant` |
-| POST | `/api/followups/:id/complete` | Yes | `clinic_admin`, `assistant` |
-| POST | `/api/followups/:id/reschedule` | Yes | `clinic_admin`, `assistant` |
-| POST | `/api/ai/reply-suggestion` | Yes | `clinic_admin`, `assistant` |
-| POST | `/api/ai/objection-handler` | Yes | `clinic_admin`, `assistant` |
-| POST | `/api/ai/follow-up-message` | Yes | `clinic_admin`, `assistant` |
-| POST | `/api/content/generate-post` | Yes | `clinic_admin`, `assistant` |
-| GET | `/api/dashboard/summary` | Yes | `clinic_admin`, `assistant` |
+| GET | `/api/leads` | Yes | any authenticated user |
+| POST | `/api/leads` | Yes | any authenticated user |
+| GET | `/api/leads/:id` | Yes | any authenticated user |
+| PUT | `/api/leads/:id` | Yes | any authenticated user |
+| GET | `/api/followups` | Yes | any authenticated user |
+| POST | `/api/followups/:id/complete` | Yes | any authenticated user |
+| POST | `/api/followups/:id/reschedule` | Yes | any authenticated user |
+| POST | `/api/ai/reply-suggestion` | Yes | any authenticated user |
+| POST | `/api/ai/objection-handler` | Yes | any authenticated user |
+| POST | `/api/ai/follow-up-message` | Yes | any authenticated user |
+| GET | `/api/dashboard/summary` | Yes | any authenticated user |
 
-`superadmin` permissions for clinic-scoped endpoints should be defined explicitly when platform administration is implemented.
+`POST /api/content/generate-post` is planned in MVP documentation but is not implemented in the current backend.
 
-## Core Endpoints
+## Health Endpoints
+
+### GET /healthz
+
+Returns basic process health.
+
+Response:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+### GET /readyz
+
+Returns database readiness. If the database connection is available and ping succeeds:
+
+```json
+{
+  "status": "ready"
+}
+```
+
+## Authentication Endpoints
 
 ### POST /api/auth/login
 
@@ -131,8 +154,8 @@ Request:
 
 ```json
 {
-  "email": "assistant@clinic.example",
-  "password": "password"
+  "email": "admin@sonrisaviva.demo",
+  "password": "clinicflow123"
 }
 ```
 
@@ -144,25 +167,27 @@ Response:
   "token_type": "Bearer",
   "expires_in": 3600,
   "user": {
-    "id": "9b86b15a-43fe-4d71-90ef-12e8a3b3b5aa",
-    "full_name": "Ana Gomez",
-    "email": "assistant@clinic.example",
-    "role": "assistant",
-    "clinic_id": "5c673404-7b0f-4f39-8df3-839a7fdb63ef"
+    "id": "22222222-2222-4222-8222-222222222222",
+    "full_name": "Admin Demo",
+    "email": "admin@sonrisaviva.demo",
+    "role": "clinic_admin",
+    "clinic_id": "11111111-1111-4111-8111-111111111111"
   }
 }
 ```
 
+## Clinic Endpoints
+
 ### GET /api/clinics/current
 
-Protected endpoint. Returns the authenticated user's clinic configuration using `clinic_id` from the JWT claims.
+Returns the authenticated user's clinic configuration using `clinic_id` from JWT claims.
 
 Response:
 
 ```json
 {
-  "id": "5c673404-7b0f-4f39-8df3-839a7fdb63ef",
-  "name": "Sonrisa Viva",
+  "id": "11111111-1111-4111-8111-111111111111",
+  "name": "Sonrisa Viva Demo",
   "clinic_type": "odontologia",
   "city": "Bogota",
   "phone": "+573001112233",
@@ -172,25 +197,35 @@ Response:
     "monday_friday": "08:00-18:00",
     "saturday": "08:00-13:00"
   },
-  "communication_tone": "amable",
   "general_faq": [
     {
       "question": "Atienden urgencias?",
-      "answer": "Si, se recomienda escribir por WhatsApp para validar disponibilidad."
+      "answer": "Si, podemos validar disponibilidad por WhatsApp."
     }
-  ]
+  ],
+  "communication_tone": "amable"
 }
 ```
 
 ### PUT /api/clinics/current
 
-Updates clinic configuration.
+Updates commercial clinic configuration. `clinic_type` is not updatable through this endpoint.
+
+Allowed `communication_tone` values:
+
+```txt
+amable
+profesional
+cercano
+juvenil
+elegante
+```
 
 Request:
 
 ```json
 {
-  "name": "Sonrisa Viva",
+  "name": "Sonrisa Viva Demo",
   "city": "Bogota",
   "phone": "+573001112233",
   "whatsapp": "+573001112233",
@@ -199,21 +234,36 @@ Request:
     "monday_friday": "08:00-18:00",
     "saturday": "08:00-13:00"
   },
-  "communication_tone": "profesional",
-  "general_faq": []
+  "general_faq": [],
+  "communication_tone": "profesional"
 }
 ```
 
-Response:
+Response uses the same shape as `GET /api/clinics/current`.
+
+## Service Catalog Endpoints
+
+Service catalog endpoints are scoped to the authenticated clinic.
+
+Service response shape:
 
 ```json
 {
-  "id": "5c673404-7b0f-4f39-8df3-839a7fdb63ef",
-  "name": "Sonrisa Viva",
-  "clinic_type": "odontologia",
-  "city": "Bogota",
-  "communication_tone": "profesional",
-  "updated_at": "2026-05-20T15:30:00Z"
+  "id": "33333333-3333-4333-8333-333333333331",
+  "clinic_id": "11111111-1111-4111-8111-111111111111",
+  "name": "Blanqueamiento dental",
+  "description": "Tratamiento estetico para mejorar el tono de la sonrisa con valoracion previa.",
+  "duration_minutes": 60,
+  "price_from": 250000,
+  "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
+  "faq": [
+    {
+      "question": "Debilita los dientes?",
+      "answer": "La valoracion permite confirmar si el paciente es apto."
+    }
+  ],
+  "common_objections": ["Esta muy caro", "Me da miedo"],
+  "is_active": true
 }
 ```
 
@@ -224,21 +274,27 @@ Lists clinic services.
 Response:
 
 ```json
-{
-  "data": [
-    {
-      "id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
-      "name": "Blanqueamiento dental",
-      "description": "Tratamiento estetico para mejorar el tono de la sonrisa.",
-      "duration_minutes": 60,
-      "price_from": 250000,
-      "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
-      "faq": [],
-      "common_objections": ["Esta muy caro", "Me da miedo"]
-    }
-  ]
-}
+[
+  {
+    "id": "33333333-3333-4333-8333-333333333331",
+    "clinic_id": "11111111-1111-4111-8111-111111111111",
+    "name": "Blanqueamiento dental",
+    "description": "Tratamiento estetico para mejorar el tono de la sonrisa con valoracion previa.",
+    "duration_minutes": 60,
+    "price_from": 250000,
+    "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
+    "faq": [],
+    "common_objections": ["Esta muy caro", "Me da miedo"],
+    "is_active": true
+  }
+]
 ```
+
+### GET /api/services/:id
+
+Returns one service scoped to the authenticated clinic.
+
+Response uses the service response shape.
 
 ### POST /api/services
 
@@ -263,15 +319,7 @@ Request:
 }
 ```
 
-Response:
-
-```json
-{
-  "id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
-  "name": "Blanqueamiento dental",
-  "created_at": "2026-05-20T15:30:00Z"
-}
-```
+Response: `201 Created`, service response shape.
 
 ### PUT /api/services/:id
 
@@ -287,29 +335,31 @@ Request:
   "price_from": 280000,
   "benefits": ["Mejora estetica visible"],
   "faq": [],
-  "common_objections": ["Esta muy caro"]
+  "common_objections": ["Esta muy caro"],
+  "is_active": true
 }
 ```
 
-Response:
-
-```json
-{
-  "id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
-  "updated_at": "2026-05-20T15:30:00Z"
-}
-```
+Response: service response shape.
 
 ### DELETE /api/services/:id
 
-Deletes or deactivates a clinic service.
+Deletes a clinic service. Existing leads referencing that service keep tenant isolation and the database sets `service_id` to `null`.
 
-Response:
+Response: `204 No Content` with an empty body.
 
-```json
-{
-  "deleted": true
-}
+## Lead Endpoints
+
+Allowed lead statuses:
+
+```txt
+Nuevo
+Contactado
+Interesado
+Agendado
+No Respondio
+Perdido
+Convertido
 ```
 
 ### GET /api/leads
@@ -322,7 +372,7 @@ Query parameters:
 page=1
 page_size=20
 status=Nuevo
-service_id=c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d
+service_id=33333333-3333-4333-8333-333333333331
 ```
 
 Response:
@@ -334,12 +384,13 @@ Response:
       "id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
       "full_name": "Maria Perez",
       "phone": "+573009998877",
-      "service_id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
+      "service_id": "33333333-3333-4333-8333-333333333331",
       "service_name": "Blanqueamiento dental",
       "status": "Nuevo",
       "source": "whatsapp",
       "next_action_at": "2026-05-22T14:00:00Z",
-      "created_at": "2026-05-20T15:30:00Z"
+      "created_at": "2026-05-20T15:30:00Z",
+      "updated_at": "2026-05-20T15:30:00Z"
     }
   ],
   "pagination": {
@@ -353,7 +404,7 @@ Response:
 
 ### POST /api/leads
 
-Creates a commercial lead.
+Creates a commercial lead and optionally creates the first note.
 
 Request:
 
@@ -361,7 +412,7 @@ Request:
 {
   "full_name": "Maria Perez",
   "phone": "+573009998877",
-  "service_id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
+  "service_id": "33333333-3333-4333-8333-333333333331",
   "status": "Nuevo",
   "source": "whatsapp",
   "notes": "Pregunta por precio desde Instagram.",
@@ -369,15 +420,7 @@ Request:
 }
 ```
 
-Response:
-
-```json
-{
-  "id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
-  "status": "Nuevo",
-  "created_at": "2026-05-20T15:30:00Z"
-}
-```
+Response: `201 Created`, lead list item shape.
 
 ### GET /api/leads/:id
 
@@ -391,7 +434,7 @@ Response:
   "full_name": "Maria Perez",
   "phone": "+573009998877",
   "service": {
-    "id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
+    "id": "33333333-3333-4333-8333-333333333331",
     "name": "Blanqueamiento dental"
   },
   "status": "Interesado",
@@ -399,29 +442,18 @@ Response:
   "notes": [
     {
       "id": "0d9319a3-9b65-4ca6-9f4d-b38f5e4bce78",
-      "body": "Solicito informacion de precio desde.",
+      "body": "Solicito informacion de precio.",
       "created_at": "2026-05-20T15:30:00Z"
     }
   ],
-  "next_action_at": "2026-05-22T14:00:00Z"
+  "next_action_at": "2026-05-22T14:00:00Z",
+  "created_at": "2026-05-20T15:30:00Z"
 }
 ```
 
 ### PUT /api/leads/:id
 
-Updates lead status, notes, or next action date.
-
-Allowed statuses:
-
-```txt
-Nuevo
-Contactado
-Interesado
-Agendado
-No Respondio
-Perdido
-Convertido
-```
+Updates lead status, optionally appends a note, and optionally sets the next action date.
 
 Request:
 
@@ -438,99 +470,17 @@ Response:
 ```json
 {
   "id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
-  "status": "Interesado",
-  "updated_at": "2026-05-20T15:30:00Z"
+  "status": "Interesado"
 }
 ```
 
-### POST /api/ai/reply-suggestion
+## Follow-Up Endpoints
 
-Generates safe WhatsApp-ready reply suggestions. The backend builds the prompt using clinic and service context.
-
-Request:
-
-```json
-{
-  "lead_id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
-  "service_id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
-  "patient_message": "El blanqueamiento debilita los dientes?",
-  "desired_tone": "amable"
-}
-```
-
-Response:
-
-```json
-{
-  "generation_id": "7ed7c244-5734-44ff-95e6-5c8ebc1550bc",
-  "variants": {
-    "short": "Hola Maria, el blanqueamiento debe valorarse de forma personalizada para confirmar que sea adecuado para ti. Podemos agendar una valoracion y explicarte el proceso con calma.",
-    "persuasive": "Hola Maria, entiendo tu duda. En la valoracion revisamos tu caso y te explicamos que opcion es adecuada para cuidar tu sonrisa y lograr un resultado natural. Te gustaria que revisemos disponibilidad esta semana?",
-    "technical": "El blanqueamiento se indica despues de una valoracion profesional para revisar el estado dental y definir si eres candidata. La recomendacion final debe darla el odontologo en consulta.",
-    "closing_question": "Te queda mejor una valoracion en la manana o en la tarde?"
-  },
-  "safety_status": "passed"
-}
-```
-
-### POST /api/ai/objection-handler
-
-Generates a safe commercial response to an objection.
-
-Request:
-
-```json
-{
-  "lead_id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
-  "service_id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
-  "objection": "En otro lado es mas barato"
-}
-```
-
-Response:
-
-```json
-{
-  "generation_id": "9c9b14ad-c73e-4eba-a7d8-25989e2b1a0c",
-  "objection_type": "price_comparison",
-  "recommended_strategy": "Reforzar valor, evaluacion personalizada y confianza profesional sin atacar a otros proveedores.",
-  "suggested_message": "Te entiendo. En estos tratamientos el precio puede variar segun la valoracion, materiales y seguimiento. Lo ideal es que podamos revisarte y explicarte una opcion adecuada para tu caso antes de que tomes una decision.",
-  "closing_question": "Quieres que te ayude a separar una valoracion?",
-  "safety_status": "passed"
-}
-```
-
-### POST /api/content/generate-post
-
-Generates marketing content for clinic channels.
-
-Request:
-
-```json
-{
-  "service_id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
-  "content_type": "instagram_post",
-  "topic": "Beneficios de una valoracion antes del blanqueamiento",
-  "tone": "cercano"
-}
-```
-
-Response:
-
-```json
-{
-  "generation_id": "94b50a52-7730-4024-af6c-b731ea0c53dd",
-  "title": "Antes de blanquear tu sonrisa, revisemos tu caso",
-  "body": "Un blanqueamiento dental debe comenzar con una valoracion. Asi podemos revisar tus necesidades, resolver dudas y orientarte con una opcion adecuada.",
-  "call_to_action": "Escribenos por WhatsApp y agenda tu valoracion.",
-  "safety_status": "passed"
-}
-```
-
+Follow-ups are modeled as leads with a non-null `next_action_at`.
 
 ### GET /api/followups
 
-Lists leads with a pending manual follow-up based on `next_action_at`.
+Lists leads with a pending manual follow-up.
 
 Query parameters:
 
@@ -540,7 +490,7 @@ page=1
 page_size=20
 ```
 
-Response uses the standard paginated lead response shape.
+Response uses the standard paginated lead list shape from `GET /api/leads`.
 
 ### POST /api/followups/:id/complete
 
@@ -559,7 +509,7 @@ Response:
 
 ```json
 {
-  "id": "lead-id",
+  "id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
   "status": "completed"
 }
 ```
@@ -581,21 +531,84 @@ Response:
 
 ```json
 {
-  "id": "lead-id",
+  "id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
   "status": "rescheduled"
 }
 ```
 
-### POST /api/ai/follow-up-message
+## AI Endpoints
 
-Generates a safe WhatsApp-ready re-engagement message for a pending lead.
+AI endpoints are commercial-assistance endpoints. They must not diagnose, prescribe, produce clinical decision support, or operate as autonomous WhatsApp bots. The backend builds prompts from clinic, service, and lead context and validates AI output safety.
+
+The backend supports configured providers `openai`, `gemini`, `deepseek`, plus `mock` for local smoke testing only.
+
+### POST /api/ai/reply-suggestion
+
+Generates safe WhatsApp-ready reply suggestions.
 
 Request:
 
 ```json
 {
-  "lead_id": "lead-id",
-  "service_id": "service-id",
+  "lead_id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
+  "service_id": "33333333-3333-4333-8333-333333333331",
+  "patient_message": "El blanqueamiento debilita los dientes?",
+  "desired_tone": "amable"
+}
+```
+
+Response:
+
+```json
+{
+  "generation_id": "gen-11111111-1111-4111-8111-111111111111",
+  "variants": {
+    "short": "Claro, con gusto te ayudamos con la informacion.",
+    "persuasive": "Podemos orientarte y revisar la mejor opcion segun tu necesidad.",
+    "technical": "Primero realizamos una valoracion para confirmar el plan adecuado.",
+    "closing_question": "Quieres que te ayudemos a coordinar una valoracion?"
+  },
+  "safety_status": "passed"
+}
+```
+
+### POST /api/ai/objection-handler
+
+Generates a safe commercial response to an objection.
+
+Request:
+
+```json
+{
+  "lead_id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
+  "service_id": "33333333-3333-4333-8333-333333333331",
+  "objection": "En otro lado es mas barato"
+}
+```
+
+Response:
+
+```json
+{
+  "generation_id": "gen-11111111-1111-4111-8111-111111111111",
+  "objection_type": "precio",
+  "recommended_strategy": "Validar interes y reforzar valor sin presionar.",
+  "suggested_message": "Entiendo tu inquietud. Podemos revisar opciones y resolver tus dudas antes de tomar una decision.",
+  "closing_question": "Quieres que te compartamos los pasos para una valoracion?",
+  "safety_status": "passed"
+}
+```
+
+### POST /api/ai/follow-up-message
+
+Generates a safe WhatsApp-ready re-engagement message for a lead.
+
+Request:
+
+```json
+{
+  "lead_id": "bce2f64d-3582-4eb3-a5f2-12c8b46b2181",
+  "service_id": "33333333-3333-4333-8333-333333333331",
   "last_contact_note": "Pregunto por precio y no respondio despues de la primera respuesta."
 }
 ```
@@ -604,13 +617,15 @@ Response:
 
 ```json
 {
-  "generation_id": "gen-clinic-id",
-  "suggested_message": "Hola Maria, queria saber si te quedo alguna duda sobre el blanqueamiento dental...",
-  "recommended_timing": "Dia siguiente en horario laboral.",
-  "next_step": "Si responde, agendar valoracion. Si no responde, reprogramar seguimiento.",
+  "generation_id": "gen-11111111-1111-4111-8111-111111111111",
+  "suggested_message": "Hola, queriamos saber si pudiste revisar la informacion. Estamos atentos para ayudarte con el siguiente paso.",
+  "recommended_timing": "Hoy en horario laboral",
+  "next_step": "Enviar mensaje manual por WhatsApp",
   "safety_status": "passed"
 }
 ```
+
+## Dashboard Endpoints
 
 ### GET /api/dashboard/summary
 
@@ -632,7 +647,7 @@ Response:
   },
   "top_services": [
     {
-      "service_id": "c35bb8e5-73de-4f93-aa9a-42c7aa2cf67d",
+      "service_id": "33333333-3333-4333-8333-333333333331",
       "service_name": "Blanqueamiento dental",
       "lead_count": 35
     }
@@ -644,10 +659,30 @@ Response:
 }
 ```
 
+## Local Smoke Coverage
+
+`./e2e_test.sh` currently validates these flows against the local Go API and PostgreSQL demo data:
+
+- Login.
+- Clinic profile read/update and cleanup restore.
+- Service create/update/list/delete cleanup.
+- Lead create/update/detail.
+- Follow-up list/reschedule/complete.
+- AI reply, objection, and follow-up message generation with `AI_PROVIDER=mock`.
+- Dashboard summary.
+
+## Planned But Not Implemented
+
+- `POST /api/content/generate-post`.
+- User management endpoints.
+- Superadmin platform administration endpoints.
+- Lead deletion endpoint.
+- AI usage tracking and billing metadata.
+- Native WhatsApp Business Cloud API integration, which remains excluded from MVP.
+
 ## Notes for Future Changes
 
 - Add explicit superadmin endpoints when platform administration is implemented.
-- Add user management endpoints after the authentication base is stable.
-- Add AI usage limits and billing metadata when subscription plans are introduced.
+- Keep AI provider selection provider-agnostic and environment-based.
 - Keep WhatsApp Business Cloud API integration out of the MVP contract unless scope is explicitly changed.
 - Do not add clinical-history, diagnosis, prescription, or medical-record endpoints.
