@@ -6,8 +6,10 @@ import { environment } from '../../../environments/environment';
 import {
   AiReplyResponse,
   ClinicProfile,
+  ClinicServiceItem,
   CompleteFollowUpPayload,
   CreateLeadPayload,
+  CreateServicePayload,
   DashboardSummary,
   FollowUp,
   FollowUpMessagePayload,
@@ -18,6 +20,7 @@ import {
   ServicesApiResponse,
   RescheduleFollowUpPayload,
   UpdateLeadPayload,
+  UpdateServicePayload,
 } from './api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -39,6 +42,18 @@ export class ApiService {
     return this.http
       .get<ServicesApiResponse>(`${this.baseUrl}/api/services`)
       .pipe(map((response) => ({ data: Array.isArray(response) ? response : response.data })));
+  }
+
+  createService(payload: CreateServicePayload) {
+    return this.http.post<ClinicServiceItem>(`${this.baseUrl}/api/services`, payload);
+  }
+
+  updateService(id: string, payload: UpdateServicePayload) {
+    return this.http.put<ClinicServiceItem>(`${this.baseUrl}/api/services/${id}`, payload);
+  }
+
+  deleteService(id: string) {
+    return this.http.delete<void>(`${this.baseUrl}/api/services/${id}`);
   }
 
   leads() {

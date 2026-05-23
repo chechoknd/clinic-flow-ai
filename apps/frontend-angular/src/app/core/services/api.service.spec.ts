@@ -95,6 +95,41 @@ describe('ApiService', () => {
     followupsRequest.flush({ data: [], pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 } });
   });
 
+  it('posts service catalog create, update, and delete payloads', () => {
+    const createPayload = {
+      name: 'Ortodoncia',
+      description: 'Alineacion dental',
+      duration_minutes: 45,
+      price_from: 120000,
+      benefits: ['Mejora estetica'],
+      faq: [],
+      common_objections: ['Precio'],
+    };
+    const updatePayload = { ...createPayload, is_active: true };
+
+    service.createService(createPayload).subscribe();
+    service.updateService('service-1', updatePayload).subscribe();
+    service.deleteService('service-1').subscribe();
+
+    const createRequest = http.expectOne(`${baseUrl}/api/services`);
+    const updateRequest = http.expectOne(
+      (request) => request.url === `${baseUrl}/api/services/service-1` && request.method === 'PUT',
+    );
+    const deleteRequest = http.expectOne(
+      (request) => request.url === `${baseUrl}/api/services/service-1` && request.method === 'DELETE',
+    );
+
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual(createPayload);
+    expect(updateRequest.request.method).toBe('PUT');
+    expect(updateRequest.request.body).toEqual(updatePayload);
+    expect(deleteRequest.request.method).toBe('DELETE');
+
+    createRequest.flush({ id: 'service-1', ...createPayload, is_active: true });
+    updateRequest.flush({ id: 'service-1', ...updatePayload });
+    deleteRequest.flush(null);
+  });
+
   it('posts lead create and update payloads to lead endpoints', () => {
     const createPayload = {
       full_name: 'Lead Demo',

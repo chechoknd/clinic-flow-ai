@@ -10,13 +10,29 @@ export interface PaginatedResponse<T> {
 
 export interface ClinicServiceItem {
   id: string;
+  clinic_id?: string;
   name: string;
-  description: string;
-  duration_minutes: number;
-  price_from: number;
+  description?: string;
+  duration_minutes?: number;
+  price_from?: number;
   benefits: string[];
   faq: unknown[];
   common_objections: string[];
+  is_active?: boolean;
+}
+
+export interface CreateServicePayload {
+  name: string;
+  description?: string;
+  duration_minutes?: number;
+  price_from?: number;
+  benefits: string[];
+  faq: unknown[];
+  common_objections: string[];
+}
+
+export interface UpdateServicePayload extends CreateServicePayload {
+  is_active: boolean;
 }
 
 export type LeadStatus =
@@ -40,7 +56,6 @@ export interface Lead {
   next_action_at?: string;
   created_at?: string;
 }
-
 
 export interface CreateLeadPayload {
   full_name: string;

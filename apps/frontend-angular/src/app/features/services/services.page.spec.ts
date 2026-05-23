@@ -1,0 +1,130 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+
+import { ClinicServiceItem } from '../../core/services/api.models';
+import { ApiService } from '../../core/services/api.service';
+import { ServicesPage } from './services.page';
+
+const services: ClinicServiceItem[] = [
+  {
+    id: 'service-1',
+    name: 'Blanqueamiento dental',
+    description: 'Tratamiento estetico',
+    duration_minutes: 60,
+    price_from: 250000,
+    benefits: ['Sonrisa mas clara'],
+    faq: [],
+    common_objections: ['Precio'],
+    is_active: true,
+  },
+];
+
+describe('ServicesPage', () => {
+  let fixture: ComponentFixture<ServicesPage>;
+  let api: {
+    services: ReturnType<typeof vi.fn>;
+    createService: ReturnType<typeof vi.fn>;
+    updateService: ReturnType<typeof vi.fn>;
+    deleteService: ReturnType<typeof vi.fn>;
+  };
+
+  beforeEach(async () => {
+    api = {
+      services: vi.fn(() => of({ data: services })),
+      createService: vi.fn((payload) => of({ id: 'service-2', ...payload, is_active: true })),
+      updateService: vi.fn((id, payload) => of({ id, ...payload })),
+      deleteService: vi.fn(() => of(undefined)),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [ServicesPage],
+      providers: [
+        {
+          provide: ApiService,
+          useValue: api,
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ServicesPage);
+    fixture.detectChanges();
+  });
+
+  it('loads services from the API service', () => {
+    expect(fixture.componentInstance.services()).toEqual(services);
+  });
+
+  it('selects a service and hydrates the form', () => {
+    fixture.componentInstance.selectService(services[0]);
+
+    expect(fixture.componentInstance.selectedService()).toEqual(services[0]);
+    expect(fixture.componentInstance.serviceForm.controls.name.value).toBe('Blanqueamiento dental');
+    expect(fixture.componentInstance.serviceForm.controls.benefits.value).toBe('Sonrisa mas clara');
+  });
+
+  it('creates a service with normalized array fields', () => {
+    fixture.componentInstance.startCreate();
+    fixture.componentInstance.serviceForm.setValue({
+      name: 'Ortodoncia',
+      description: 'Alineacion dental',
+      duration_minutes: 45,
+      price_from: 120000,
+      benefits: 'Mejora mordida\nMejora estetica',
+      common_objections: 'Precio',
+      is_active: true,
+    });
+
+    fixture.componentInstance.saveService();
+
+    expect(api.createService).toHaveBeenCalledWith({
+      name: 'Ortodoncia',
+      description: 'Alineacion dental',
+      duration_minutes: 45,
+      price_from: 120000,
+      benefits: ['Mejora mordida', 'Mejora estetica'],
+      faq: [],
+      common_objections: ['Precio'],
+    });
+    expect(fixture.componentInstance.services()[0].id).toBe('service-2');
+    expect(fixture.componentInstance.success()).toBe('Servicio creado correctamente.');
+  });
+
+  it('updates the selected service', () => {
+    fixture.componentInstance.selectService(services[0]);
+    fixture.componentInstance.serviceForm.setValue({
+      name: 'Blanqueamiento premium',
+      description: 'Tratamiento estetico guiado',
+      duration_minutes: 75,
+      price_from: 280000,
+      benefits: 'Resultado visible',
+      common_objections: 'Sensibilidad',
+      is_active: false,
+    });
+
+    fixture.componentInstance.saveService();
+
+    expect(api.updateService).toHaveBeenCalledWith('service-1', {
+      name: 'Blanqueamiento premium',
+      description: 'Tratamiento estetico guiado',
+      duration_minutes: 75,
+      price_from: 280000,
+      benefits: ['Resultado visible'],
+      faq: [],
+      common_objections: ['Sensibilidad'],
+      is_active: false,
+    });
+    expect(fixture.componentInstance.selectedService()?.name).toBe('Blanqueamiento premium');
+    expect(fixture.componentInstance.success()).toBe('Servicio actualizado correctamente.');
+  });
+
+  it('deletes the selected service', () => {
+    fixture.componentInstance.selectService(services[0]);
+
+    fixture.componentInstance.deleteSelected();
+
+    expect(api.deleteService).toHaveBeenCalledWith('service-1');
+    expect(fixture.componentInstance.services()).toEqual([]);
+    expect(fixture.componentInstance.selectedService()).toBeNull();
+    expect(fixture.componentInstance.success()).toBe('Servicio eliminado correctamente.');
+  });
+});
