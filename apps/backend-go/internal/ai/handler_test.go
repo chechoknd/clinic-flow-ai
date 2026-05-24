@@ -21,7 +21,7 @@ func TestReplySuggestionValidationError(t *testing.T) {
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
 	}
-	if !strings.Contains(w.Body.String(), "VALIDATION_ERROR") || !strings.Contains(w.Body.String(), "lead_id") {
+	if !strings.Contains(w.Body.String(), "VALIDATION_ERROR") || !strings.Contains(w.Body.String(), "patient_message") {
 		t.Fatalf("unexpected response body: %s", w.Body.String())
 	}
 }

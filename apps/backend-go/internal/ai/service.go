@@ -135,34 +135,68 @@ func (s *Service) getAIContext(ctx context.Context, clinicID, serviceID, leadID 
 		return Context{}, err
 	}
 
-	serviceRes, err := s.serviceService.Get(ctx, clinicID, serviceID)
-	if err != nil {
-		return Context{}, err
+	aiCtx := Context{
+		ClinicName:        clinicRes.Name,
+		ClinicType:        clinicRes.ClinicType,
+		City:              clinicRes.City,
+		CommunicationTone: clinicRes.CommunicationTone,
+		ServiceName:       "servicio no especificado",
+		ServicePriceFrom:  "no informado",
+		ServiceBenefits:   "[]",
+		ServiceFAQ:        "[]",
+		CommonObjections:  "[]",
+		PatientName:       "prospecto",
+		LeadNotes:         "[]",
+	}
+
+	leadID = strings.TrimSpace(leadID)
+	serviceID = strings.TrimSpace(serviceID)
+	if leadID == "" && serviceID == "" {
+		return aiCtx, nil
+	}
+
+	if leadID == "" {
+		serviceRes, err := s.serviceService.Get(ctx, clinicID, serviceID)
+		if err != nil {
+			return Context{}, err
+		}
+		aiCtx.ServiceName = serviceRes.Name
+		aiCtx.ServicePriceFrom = formatServicePriceFrom(serviceRes.PriceFrom)
+		aiCtx.ServiceBenefits = string(serviceRes.Benefits)
+		aiCtx.ServiceFAQ = string(serviceRes.FAQ)
+		aiCtx.CommonObjections = string(serviceRes.CommonObjections)
+		return aiCtx, nil
 	}
 
 	leadRes, err := s.leadService.Get(ctx, clinicID, leadID)
 	if err != nil {
 		return Context{}, err
 	}
-
 	var leadNotes []string
 	for _, n := range leadRes.Notes {
 		leadNotes = append(leadNotes, n.Body)
 	}
+	aiCtx.PatientName = leadRes.FullName
+	aiCtx.LeadNotes = fmt.Sprintf("[%s]", strings.Join(leadNotes, ", "))
 
-	return Context{
-		ClinicName:        clinicRes.Name,
-		ClinicType:        clinicRes.ClinicType,
-		City:              clinicRes.City,
-		CommunicationTone: clinicRes.CommunicationTone,
-		ServiceName:       serviceRes.Name,
-		ServicePriceFrom:  formatServicePriceFrom(serviceRes.PriceFrom),
-		ServiceBenefits:   string(serviceRes.Benefits),
-		ServiceFAQ:        string(serviceRes.FAQ),
-		CommonObjections:  string(serviceRes.CommonObjections),
-		PatientName:       leadRes.FullName,
-		LeadNotes:         fmt.Sprintf("[%s]", strings.Join(leadNotes, ", ")),
-	}, nil
+	if serviceID == "" && leadRes.Service != nil {
+		serviceID = leadRes.Service.ID
+	}
+	if serviceID == "" {
+		return aiCtx, nil
+	}
+
+	serviceRes, err := s.serviceService.Get(ctx, clinicID, serviceID)
+	if err != nil {
+		return Context{}, err
+	}
+	aiCtx.ServiceName = serviceRes.Name
+	aiCtx.ServicePriceFrom = formatServicePriceFrom(serviceRes.PriceFrom)
+	aiCtx.ServiceBenefits = string(serviceRes.Benefits)
+	aiCtx.ServiceFAQ = string(serviceRes.FAQ)
+	aiCtx.CommonObjections = string(serviceRes.CommonObjections)
+
+	return aiCtx, nil
 }
 
 func formatServicePriceFrom(price *float64) string {
@@ -173,12 +207,6 @@ func formatServicePriceFrom(price *float64) string {
 }
 
 func validateReplySuggestionRequest(req ReplySuggestionRequest) error {
-	if strings.TrimSpace(req.LeadID) == "" {
-		return ValidationError{Field: "lead_id", Message: "lead_id is required"}
-	}
-	if strings.TrimSpace(req.ServiceID) == "" {
-		return ValidationError{Field: "service_id", Message: "service_id is required"}
-	}
 	message := strings.TrimSpace(req.PatientMessage)
 	if message == "" {
 		return ValidationError{Field: "patient_message", Message: "patient_message is required"}
@@ -193,12 +221,6 @@ func validateReplySuggestionRequest(req ReplySuggestionRequest) error {
 }
 
 func validateObjectionHandlerRequest(req ObjectionHandlerRequest) error {
-	if strings.TrimSpace(req.LeadID) == "" {
-		return ValidationError{Field: "lead_id", Message: "lead_id is required"}
-	}
-	if strings.TrimSpace(req.ServiceID) == "" {
-		return ValidationError{Field: "service_id", Message: "service_id is required"}
-	}
 	objection := strings.TrimSpace(req.Objection)
 	if objection == "" {
 		return ValidationError{Field: "objection", Message: "objection is required"}
@@ -212,9 +234,6 @@ func validateObjectionHandlerRequest(req ObjectionHandlerRequest) error {
 func validateFollowUpMessageRequest(req FollowUpMessageRequest) error {
 	if strings.TrimSpace(req.LeadID) == "" {
 		return ValidationError{Field: "lead_id", Message: "lead_id is required"}
-	}
-	if strings.TrimSpace(req.ServiceID) == "" {
-		return ValidationError{Field: "service_id", Message: "service_id is required"}
 	}
 	if len(strings.TrimSpace(req.LastContactNote)) > 1000 {
 		return ValidationError{Field: "last_contact_note", Message: "last_contact_note is too long"}

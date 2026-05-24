@@ -24,3 +24,31 @@ func TestBuildReplySuggestionUserPrompt(t *testing.T) {
 		t.Errorf("prompt missing user message or tone: %s", prompt)
 	}
 }
+
+func TestAIRequestValidationAllowsPartialContext(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "reply without lead or service",
+			err:  validateReplySuggestionRequest(ReplySuggestionRequest{PatientMessage: "Quiero saber el precio del tratamiento"}),
+		},
+		{
+			name: "objection with only lead",
+			err:  validateObjectionHandlerRequest(ObjectionHandlerRequest{LeadID: "lead-1", Objection: "Es costoso este tratamiento ?"}),
+		},
+		{
+			name: "follow up with only lead",
+			err:  validateFollowUpMessageRequest(FollowUpMessageRequest{LeadID: "lead-1"}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.err != nil {
+				t.Fatalf("expected valid request, got %v", tt.err)
+			}
+		})
+	}
+}

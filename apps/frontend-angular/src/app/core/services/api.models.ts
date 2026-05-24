@@ -149,6 +149,7 @@ export interface DashboardSummary {
 
 export interface AiReplyResponse {
   suggested_reply?: string;
+  suggested_message?: string;
   message?: string;
   variants?: Record<string, string>;
 }

@@ -52,6 +52,7 @@ export class AiAssistantPage {
       next: (response) => {
         this.answer.set(
           response.suggested_reply ||
+            response.suggested_message ||
             response.message ||
             this.firstVariant(response.variants) ||
             'No se recibio respuesta.',

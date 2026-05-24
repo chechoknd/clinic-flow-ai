@@ -13,7 +13,7 @@ describe('AiAssistantPage', () => {
 
   beforeEach(async () => {
     replySuggestion = vi.fn(() => of({ suggested_reply: 'Respuesta comercial sugerida.' }));
-    objectionHandler = vi.fn(() => of({ variants: { short: 'Manejo corto de objecion.' } }));
+    objectionHandler = vi.fn(() => of({ suggested_message: 'Respuesta de manejo de objecion.' }));
     writeText = vi.fn(() => Promise.resolve());
 
     Object.defineProperty(navigator, 'clipboard', {
@@ -74,7 +74,7 @@ describe('AiAssistantPage', () => {
     expect(fixture.componentInstance.loading()).toBe(false);
   });
 
-  it('uses the objection handler mode and falls back to the first variant', () => {
+  it('uses the objection handler mode and reads the suggested message', () => {
     fixture.componentInstance.form.setValue({
       mode: 'objection',
       message: 'Me parece muy costoso para hacerlo ahora.',
@@ -87,7 +87,7 @@ describe('AiAssistantPage', () => {
       lead_id: 'lead-1',
       service_id: 'service-1',
     });
-    expect(fixture.componentInstance.answer()).toBe('Manejo corto de objecion.');
+    expect(fixture.componentInstance.answer()).toBe('Respuesta de manejo de objecion.');
   });
 
   it('shows a readable error when the AI request fails', () => {
