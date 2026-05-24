@@ -6,6 +6,7 @@
     </div>
     <button
       type="button"
+      data-testid="services-start-create-button"
       class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700"
       (click)="startCreate()"
     >
@@ -14,22 +15,22 @@
   </div>
 
   @if (error()) {
-    <p class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</p>
+    <p data-testid="services-error-message" class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</p>
   }
 
   @if (success()) {
-    <p class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
+    <p data-testid="services-success-message" class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
   }
 
   <div class="grid gap-6 xl:grid-cols-[1fr_420px]">
     <div class="grid gap-4 lg:grid-cols-2">
       @if (loading()) {
-        <div class="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 lg:col-span-2">
+        <div data-testid="services-loading-state" class="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 lg:col-span-2">
           Cargando servicios...
         </div>
       } @else {
         @for (service of services(); track service.id) {
-          <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <article [attr.data-testid]="'services-card-' + service.id" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <div class="flex items-start justify-between gap-3">
               <div>
                 <h2 class="font-semibold text-slate-950">{{ service.name }}</h2>
@@ -45,13 +46,14 @@
             <p class="mt-4 text-sm font-semibold text-slate-950">Desde COP {{ service.price_from || 0 }}</p>
             <div class="mt-4 flex flex-wrap gap-2">
               @for (benefit of service.benefits; track benefit) {
-                <span class="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">{{ benefit }}</span>
+                <span [attr.data-testid]="'services-benefit-' + service.id" class="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">{{ benefit }}</span>
               } @empty {
                 <span class="text-xs text-slate-500">Sin beneficios cargados.</span>
               }
             </div>
             <button
               type="button"
+              [attr.data-testid]="'services-edit-button-' + service.id"
               class="mt-5 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               (click)="selectService(service)"
             >
@@ -68,11 +70,12 @@
 
     <aside class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <h2 class="text-base font-semibold text-slate-950">{{ formTitle() }}</h2>
-      <form class="mt-4 grid gap-4" [formGroup]="serviceForm" (ngSubmit)="saveService()">
+      <form data-testid="services-form" class="mt-4 grid gap-4" [formGroup]="serviceForm" (ngSubmit)="saveService()">
         <label class="grid gap-2 text-sm font-medium text-slate-700">
           Nombre
           <input
             type="text"
+            data-testid="services-name-input"
             formControlName="name"
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
@@ -85,6 +88,7 @@
           Descripcion comercial
           <textarea
             formControlName="description"
+            data-testid="services-description-textarea"
             rows="3"
             class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           ></textarea>
@@ -95,6 +99,7 @@
             Duracion min
             <input
               type="number"
+              data-testid="services-duration-input"
               formControlName="duration_minutes"
               min="1"
               class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
@@ -105,6 +110,7 @@
             Precio desde
             <input
               type="number"
+              data-testid="services-price-input"
               formControlName="price_from"
               min="0"
               class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
@@ -116,6 +122,7 @@
           Beneficios
           <textarea
             formControlName="benefits"
+            data-testid="services-benefits-textarea"
             rows="4"
             class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           ></textarea>
@@ -125,6 +132,7 @@
           Objeciones comunes
           <textarea
             formControlName="common_objections"
+            data-testid="services-common-objections-textarea"
             rows="3"
             class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           ></textarea>
@@ -132,7 +140,7 @@
 
         @if (selectedService()) {
           <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
-            <input type="checkbox" formControlName="is_active" class="h-4 w-4 rounded border-slate-300 text-teal-600" />
+            <input data-testid="services-active-checkbox" type="checkbox" formControlName="is_active" class="h-4 w-4 rounded border-slate-300 text-teal-600" />
             Servicio activo
           </label>
         }
@@ -140,6 +148,7 @@
         <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
           <button
             type="submit"
+            data-testid="services-save-button"
             class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
             [disabled]="saving() || deleting()"
           >
@@ -148,6 +157,7 @@
           @if (selectedService()) {
             <button
               type="button"
+              data-testid="services-delete-button"
               class="h-11 rounded-md border border-red-200 px-4 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
               [disabled]="saving() || deleting()"
               (click)="deleteSelected()"

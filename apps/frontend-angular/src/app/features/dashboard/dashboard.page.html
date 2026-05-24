@@ -5,10 +5,10 @@
       <p class="mt-1 text-sm text-slate-600">Vista rapida de leads, conversion y seguimientos.</p>
     </div>
     <div class="flex flex-wrap gap-2">
-      <a routerLink="/inbox-ai" class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
+      <a data-testid="dashboard-inbox-ai-link" routerLink="/inbox-ai" class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
         Analizar conversacion
       </a>
-      <a routerLink="/leads" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+      <a data-testid="dashboard-leads-link" routerLink="/leads" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
         Ver leads
       </a>
     </div>
@@ -16,7 +16,7 @@
 
   <div class="grid gap-4 md:grid-cols-4">
     @for (metric of metrics(); track metric.label) {
-      <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <article [attr.data-testid]="'dashboard-metric-card-' + metric.label" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <p class="text-sm text-slate-500">{{ metric.label }}</p>
         <strong class="mt-2 block text-3xl font-semibold text-slate-950">{{ metric.value }}</strong>
       </article>
@@ -28,7 +28,7 @@
       <h2 class="text-base font-semibold text-slate-950">Pipeline</h2>
       <div class="mt-4 grid gap-3">
         @for (item of statusRows(); track item.status) {
-          <div>
+          <div [attr.data-testid]="'dashboard-pipeline-row-' + item.status">
             <div class="mb-1 flex justify-between text-sm">
               <span class="font-medium text-slate-700">{{ item.status }}</span>
               <span class="text-slate-500">{{ item.count }}</span>
@@ -45,7 +45,7 @@
       <h2 class="text-base font-semibold text-slate-950">Servicios mas consultados</h2>
       <div class="mt-4 grid gap-3">
         @for (service of summary()?.top_services ?? []; track service.service_name) {
-          <div class="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm">
+          <div [attr.data-testid]="'dashboard-top-service-row-' + service.service_name" class="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm">
             <span class="font-medium text-slate-700">{{ service.service_name }}</span>
             <span class="text-slate-500">{{ service.total }}</span>
           </div>

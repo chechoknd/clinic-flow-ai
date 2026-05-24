@@ -5,19 +5,19 @@
   </div>
 
   @if (error()) {
-    <p class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</p>
+    <p data-testid="clinic-error-message" class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</p>
   }
 
   @if (success()) {
-    <p class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
+    <p data-testid="clinic-success-message" class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
   }
 
   <div class="grid gap-6 xl:grid-cols-[1fr_420px]">
     <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       @if (loading()) {
-        <p class="text-sm text-slate-500">Cargando perfil...</p>
+        <p data-testid="clinic-loading-state" class="text-sm text-slate-500">Cargando perfil...</p>
       } @else if (clinic(); as item) {
-        <div class="grid gap-5 md:grid-cols-2">
+        <div data-testid="clinic-profile-summary" class="grid gap-5 md:grid-cols-2">
           <div>
             <p class="text-sm text-slate-500">Nombre</p>
             <p class="font-semibold text-slate-950">{{ item.name }}</p>
@@ -54,11 +54,12 @@
 
     <aside class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <h2 class="text-base font-semibold text-slate-950">Editar datos comerciales</h2>
-      <form class="mt-4 grid gap-4" [formGroup]="clinicForm" (ngSubmit)="saveClinic()">
+      <form data-testid="clinic-form" class="mt-4 grid gap-4" [formGroup]="clinicForm" (ngSubmit)="saveClinic()">
         <label class="grid gap-2 text-sm font-medium text-slate-700">
           Nombre
           <input
             type="text"
+            data-testid="clinic-name-input"
             formControlName="name"
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
@@ -71,6 +72,7 @@
           Ciudad
           <input
             type="text"
+            data-testid="clinic-city-input"
             formControlName="city"
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
@@ -83,6 +85,7 @@
           WhatsApp
           <input
             type="tel"
+            data-testid="clinic-whatsapp-input"
             formControlName="whatsapp"
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
@@ -95,6 +98,7 @@
           Telefono
           <input
             type="tel"
+            data-testid="clinic-phone-input"
             formControlName="phone"
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
@@ -107,6 +111,7 @@
           Direccion
           <textarea
             formControlName="address"
+            data-testid="clinic-address-textarea"
             rows="3"
             class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           ></textarea>
@@ -116,6 +121,7 @@
           Tono de comunicacion
           <select
             formControlName="communication_tone"
+            data-testid="clinic-tone-select"
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           >
             @for (tone of tones; track tone.value) {
@@ -126,6 +132,7 @@
 
         <button
           type="submit"
+          data-testid="clinic-save-button"
           class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
           [disabled]="saving() || loading()"
         >
