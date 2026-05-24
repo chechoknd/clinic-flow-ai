@@ -240,3 +240,74 @@ func validateFollowUpMessageRequest(req FollowUpMessageRequest) error {
 	}
 	return nil
 }
+
+func (s *Service) AnalyzeConversation(ctx context.Context, clinicID string, req AnalyzeConversationRequest) (AnalyzeConversationResponse, error) {
+	if err := validateAnalyzeConversationRequest(req); err != nil {
+		return AnalyzeConversationResponse{}, err
+	}
+
+	aiCtx, err := s.getAIContext(ctx, clinicID, req.ServiceID, req.LeadID)
+	if err != nil {
+		return AnalyzeConversationResponse{}, err
+	}
+
+	systemPrompt := BuildSystemPrompt(aiCtx)
+	userPrompt := BuildAnalyzeConversationUserPrompt(strings.TrimSpace(req.ConversationText), strings.TrimSpace(req.Source))
+
+	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
+	if err != nil {
+		return AnalyzeConversationResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
+	}
+
+	var res AnalyzeConversationResponse
+	if err := json.Unmarshal([]byte(rawRes), &res); err != nil {
+		return AnalyzeConversationResponse{}, ResponseError{Err: err}
+	}
+
+	safetyStatus, safe := ValidateSafety(rawRes)
+	if !safe {
+		return AnalyzeConversationResponse{}, SafetyBlockedError{Status: safetyStatus}
+	}
+	res.AnalysisID = "analysis-" + clinicID
+	res.SafetyStatus = safetyStatus
+	res.SuggestedStatus = normalizeSuggestedStatus(res.SuggestedStatus)
+	res.Intent = normalizeConfidence(res.Intent)
+	res.DetectedService.Confidence = normalizeConfidence(res.DetectedService.Confidence)
+
+	return res, nil
+}
+
+func validateAnalyzeConversationRequest(req AnalyzeConversationRequest) error {
+	conversation := strings.TrimSpace(req.ConversationText)
+	if conversation == "" {
+		return ValidationError{Field: "conversation_text", Message: "conversation_text is required"}
+	}
+	if len(conversation) < 20 {
+		return ValidationError{Field: "conversation_text", Message: "conversation_text is too short"}
+	}
+	if len(conversation) > 8000 {
+		return ValidationError{Field: "conversation_text", Message: "conversation_text is too long"}
+	}
+	if len(strings.TrimSpace(req.Source)) > 80 {
+		return ValidationError{Field: "source", Message: "source is too long"}
+	}
+	return nil
+}
+
+func normalizeConfidence(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "low", "medium", "high":
+		return strings.ToLower(strings.TrimSpace(value))
+	default:
+		return "medium"
+	}
+}
+
+func normalizeSuggestedStatus(status string) string {
+	switch strings.TrimSpace(status) {
+	case "Nuevo", "Contactado", "Interesado", "Agendado", "No Respondio", "Perdido", "Convertido":
+		return strings.TrimSpace(status)
+	default:
+		return "Nuevo"
+	}
+}

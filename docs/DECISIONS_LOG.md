@@ -139,3 +139,56 @@ Initialize `apps/frontend-angular` as an Angular application with standalone com
 ### Consequences
 
 The frontend can now evolve screen by screen against the Go API. The current shell prioritizes navigation, read flows, AI response generation, and copy-to-clipboard behavior; create/update forms and deeper error handling remain pending.
+
+## 2026-05-24 — Plan Smart Lead Inbox before implementation
+
+### Context
+
+The current MVP validates AI-assisted commercial replies, objection handling, lead management, and manual follow-ups. The next product direction is to reduce manual copy/paste friction by letting staff paste complete conversations and receive structured commercial analysis, response drafts, and suggested next actions.
+
+This direction introduces potential scope risks around message automation, full conversation storage, WhatsApp integration, clinical data, and AI overreach.
+
+### Decision
+
+Document Smart Lead Inbox / Inbox AI and Dashboard Inteligente as planned product evolution before implementing code.
+
+The planned product rule is:
+
+```txt
+AI suggests -> human reviews -> human replies
+```
+
+ClinicFlow AI will continue to exclude autonomous WhatsApp bots, automatic message sending, diagnosis, prescriptions, clinical decision support, medical records, and required RAG/vector search from the immediate MVP extension.
+
+Initial implementation, when approved, should start with manual or semi-manual conversation capture: paste conversation, analyze commercial context, review extracted data, copy suggested response, and optionally create/update lead or follow-up after human confirmation.
+
+### Consequences
+
+The project now has a documented direction toward an intelligent commercial inbox and a more actionable dashboard without changing the current implemented scope.
+
+Future implementation must validate privacy and retention rules before storing raw conversations. Integrations such as n8n, Gmail, Meta Lead Ads, WhatsApp Business Cloud API, and browser extensions remain future options, not immediate dependencies.
+
+## 2026-05-24 — Implement first Smart Lead Inbox slice
+
+### Context
+
+The Smart Lead Inbox direction was approved to start implementation after documentation alignment. The immediate product need is a manual conversation-analysis workflow that feels more useful than copying isolated patient messages into separate AI tools.
+
+The first implementation must remain inside MVP guardrails: no autonomous WhatsApp bot, no automatic message sending, no required external integrations, no clinical records, and no diagnosis or prescription behavior.
+
+### Decision
+
+Implement the first Smart Lead Inbox slice as a manual, human-reviewed workflow:
+
+- Add `POST /api/ai/analyze-conversation` for authenticated users.
+- Analyze pasted commercial conversations through the backend AI provider abstraction.
+- Return structured commercial suggestions: detected lead data, detected service, intent, objections, suggested reply, next action, optional follow-up date, and safety status.
+- Add an Angular `Inbox AI` screen where staff can paste a conversation, review the AI result, copy the suggested reply, and create a lead through the existing leads API.
+- Do not store raw conversations in this slice.
+- Do not send messages automatically.
+
+### Consequences
+
+ClinicFlow AI now has a usable manual Inbox AI workflow without changing the product into an autonomous bot or clinical system.
+
+Next implementation decisions should focus on whether to prioritize updating existing leads from analysis, persisting reviewed analysis history, or adding dashboard action cards.

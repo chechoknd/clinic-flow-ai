@@ -237,4 +237,31 @@ describe('ApiService', () => {
     replyRequest.flush({ suggested_reply: 'Claro, con gusto.' });
     objectionRequest.flush({ suggested_reply: 'Entiendo tu inquietud.' });
   });
+  it('posts conversation analysis payload to the AI endpoint', () => {
+    const payload = {
+      conversation_text: 'Paciente: Hola, quiero saber cuanto cuesta el blanqueamiento.',
+      source: 'whatsapp',
+      service_id: 'service-1',
+    };
+
+    service.analyzeConversation(payload).subscribe();
+
+    const request = http.expectOne(`${baseUrl}/api/ai/analyze-conversation`);
+
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(payload);
+    request.flush({
+      analysis_id: 'analysis-1',
+      detected_lead: { full_name: 'Lead Demo', phone: '+573001234567' },
+      detected_service: { service_id: 'service-1', service_name: 'Blanqueamiento dental', confidence: 'medium' },
+      intent: 'high',
+      detected_objections: ['precio'],
+      suggested_status: 'Interesado',
+      commercial_summary: 'Pregunta por precio.',
+      suggested_reply: 'Claro, podemos ayudarte.',
+      suggested_next_action: 'Responder y proponer valoracion',
+      safety_status: 'passed',
+    });
+  });
+
 });

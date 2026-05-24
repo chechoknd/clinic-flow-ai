@@ -147,6 +147,34 @@ export interface DashboardSummary {
   top_services: Array<{ service_name: string; total: number }>;
 }
 
+export interface AnalyzeConversationPayload {
+  conversation_text: string;
+  source?: string;
+  lead_id?: string;
+  service_id?: string;
+}
+
+export interface AnalyzeConversationResponse {
+  analysis_id: string;
+  detected_lead: {
+    full_name: string;
+    phone: string;
+  };
+  detected_service: {
+    service_id: string;
+    service_name: string;
+    confidence: string;
+  };
+  intent: string;
+  detected_objections: string[];
+  suggested_status: LeadStatus;
+  commercial_summary: string;
+  suggested_reply: string;
+  suggested_next_action: string;
+  suggested_follow_up_at?: string;
+  safety_status: string;
+}
+
 export interface AiReplyResponse {
   suggested_reply?: string;
   suggested_message?: string;

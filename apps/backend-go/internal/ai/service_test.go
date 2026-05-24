@@ -52,3 +52,24 @@ func TestAIRequestValidationAllowsPartialContext(t *testing.T) {
 		})
 	}
 }
+
+func TestBuildAnalyzeConversationUserPrompt(t *testing.T) {
+	prompt := BuildAnalyzeConversationUserPrompt("Paciente: Quiero saber precio", "whatsapp")
+	if !strings.Contains(prompt, "Paciente: Quiero saber precio") || !strings.Contains(prompt, "detected_lead") {
+		t.Fatalf("prompt missing conversation or expected JSON shape: %s", prompt)
+	}
+	if !strings.Contains(prompt, "No diagnostiques") {
+		t.Fatalf("prompt missing safety rules: %s", prompt)
+	}
+}
+
+func TestAnalyzeConversationValidation(t *testing.T) {
+	if err := validateAnalyzeConversationRequest(AnalyzeConversationRequest{ConversationText: "Paciente pregunta por blanqueamiento y precio"}); err != nil {
+		t.Fatalf("expected valid request, got %v", err)
+	}
+
+	err := validateAnalyzeConversationRequest(AnalyzeConversationRequest{ConversationText: ""})
+	if err == nil || !strings.Contains(err.Error(), "conversation_text") {
+		t.Fatalf("expected conversation_text validation error, got %v", err)
+	}
+}

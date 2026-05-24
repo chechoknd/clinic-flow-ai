@@ -38,6 +38,24 @@ The MVP is optimized for dental clinics because they commonly have:
 
 Initial dental services may include dental cleaning, whitening, orthodontics, smile design, implants, oral rehabilitation, dental emergencies, initial evaluation, and preventive controls.
 
+## Product Direction: Smart Lead Inbox and Intelligent Dashboard
+
+Status: Planned.
+
+ClinicFlow AI is planned to evolve toward a Smart Lead Inbox experience: a commercial inbox assisted by AI where staff can paste conversations, analyze commercial intent, detect service interest and objections, generate safe response drafts, and decide the next follow-up action.
+
+This direction keeps the existing product rule:
+
+```txt
+AI suggests -> human reviews -> human replies
+```
+
+The system must not send autonomous WhatsApp messages in the MVP. The assistant or clinic staff member remains responsible for reviewing, editing, copying, and sending any response through the original channel.
+
+The dashboard is also planned to evolve from mostly metrics into an intelligent action layer that helps staff decide what to handle today: new leads without response, overdue follow-ups, high-intent leads, detected objections, service demand, and AI-recommended next actions.
+
+See `docs/SMART_LEAD_INBOX_PLAN.md` for the detailed product plan.
+
 ## MVP Scope
 
 The MVP includes the following planned capabilities:
@@ -50,6 +68,8 @@ The MVP includes the following planned capabilities:
 - AI objection handler.
 - Manual assisted follow-ups.
 - Basic dashboard.
+- Planned Smart Lead Inbox for manual conversation analysis.
+- Planned intelligent dashboard action layer.
 - AI content generator for marketing.
 - PostgreSQL database.
 - Docker Compose local environment.
@@ -91,7 +111,9 @@ If a task introduces excluded scope, it must be treated as a scope conflict.
 - Objection Handler: categorization and response strategy for commercial objections.
 - Follow-ups: manual reminders and AI-assisted re-engagement messages for stale leads.
 - Content Generator: marketing copy, post ideas, Reel/TikTok scripts, carousel outlines, and WhatsApp campaign text.
-- Dashboard: basic commercial KPIs for leads, service demand, pending follow-ups, and AI usage.
+- Dashboard: basic commercial KPIs for leads, service demand, pending follow-ups, and AI usage. Planned evolution: actionable dashboard cards for what the assistant should handle today.
+- Smart Lead Inbox: first manual conversation analysis slice implemented for pasted conversations, commercial extraction, response suggestion, and reviewed lead creation. Lead update, persisted analysis history, and richer follow-up confirmation remain planned.
+
 
 ## User Roles
 
@@ -125,7 +147,23 @@ Implement AI provider abstraction, backend-owned prompts, direct structured cont
 
 Implement AI content generation, manual follow-up reminders, follow-up message suggestions, priority indicators, and operational views for pending re-engagement.
 
-### Phase 6: MVP Closure and Pilot
+### Phase 6: Smart Lead Inbox Product Alignment
+
+Document and validate the Smart Lead Inbox direction, Dashboard Inteligente action layer, conceptual API contracts, safety rules, and implementation phases before writing code.
+
+### Phase 7: Manual Conversation Analysis
+
+Partially implemented: manual conversation paste screen, AI conversation analysis, extracted commercial fields, suggested response, and reviewed lead creation through the existing leads API. Pending: update existing lead from analysis and persisted analysis history.
+
+### Phase 8: Dashboard Action Layer
+
+Evolve the dashboard from metrics into an action queue: what to handle today, leads without response, overdue follow-ups, high-intent leads, detected objections, and quick actions.
+
+### Phase 9: Inbox AI MVP
+
+Implement a simple inbox-style operational view with attention states, response suggestions, follow-up suggestions, and reviewed analysis history.
+
+### Phase 10: MVP Closure and Pilot
 
 Finalize dashboard summary, integration testing under Docker Compose, safety review, documentation updates, pilot readiness checklist, and pilot execution with 5 to 10 independent dental clinics.
 
@@ -136,6 +174,9 @@ Finalize dashboard summary, integration testing under Docker Compose, safety rev
 - Staff can generate safe WhatsApp reply suggestions using clinic and service context.
 - Staff can generate objection-handling responses that avoid diagnosis and medical advice.
 - Staff can manage manual follow-ups without native WhatsApp API automation.
+- Staff can paste a conversation, receive AI commercial analysis, review it, and manually create or update a lead when Smart Lead Inbox is implemented.
+- Staff can use an intelligent dashboard to decide what to handle next when the action layer is implemented.
+
 - Clinic administrators can see basic commercial KPIs.
 - AI prompts and provider configuration are controlled by the backend.
 - The system enforces role-aware access and clinic-level data isolation.
@@ -148,13 +189,18 @@ Finalize dashboard summary, integration testing under Docker Compose, safety rev
 - AI medical safety risk: enforce backend-owned prompt safety, output validation, and fallback responses.
 - Scope creep into clinical systems: keep medical records, diagnosis, prescriptions, and clinical decision support out of MVP.
 - WhatsApp automation complexity: use manual assisted follow-ups and exclude native bidirectional WhatsApp Cloud API integration from MVP.
+- Inbox AI scope creep: keep conversation capture manual or semi-manual first, and require human approval before saving lead updates, follow-ups, or sending messages.
+
 - Multi-tenant data leakage: enforce clinic isolation in backend queries and authorization checks.
 - AI provider cost or reliability issues: use provider abstraction, token limits, timeouts, fallbacks, and usage metadata.
 - Product positioning confusion: communicate ClinicFlow AI as a commercial assistant, not "AI for medicine."
 
 ## Future Expansion Opportunities
 
+- Smart Lead Inbox with manual conversation paste, AI commercial analysis, and human-reviewed lead creation/update.
+- Intelligent dashboard action layer for daily assistant priorities.
 - WhatsApp Business Cloud API integration after MVP validation.
+
 - Chrome extension or lightweight overlay for faster WhatsApp Web workflows.
 - RAG/vector search for richer clinic knowledge bases when justified by usage.
 - Advanced analytics for conversion rates, response quality, and service demand.

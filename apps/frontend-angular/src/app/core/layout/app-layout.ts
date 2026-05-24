@@ -24,6 +24,7 @@ export class AppLayout {
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', path: '/dashboard' },
     { label: 'Leads', path: '/leads' },
+    { label: 'Inbox AI', path: '/inbox-ai' },
     { label: 'Seguimientos', path: '/followups' },
     { label: 'Servicios', path: '/services' },
     { label: 'Asistente AI', path: '/ai-assistant' },

@@ -204,6 +204,72 @@ Notes:
 - AI generation metadata is not persisted yet; there is no `ai_generations` table.
 - `pgvector` may be prepared for future phases, but it is not required for MVP functionality.
 
+## Smart Lead Inbox Architecture
+
+Status: Partially Implemented.
+
+Smart Lead Inbox extends the current AI, leads, follow-up, and dashboard modules. The first implemented slice analyzes pasted conversations and turns them into reviewed commercial actions without storing raw conversations or sending messages automatically.
+
+Implemented backend slice:
+
+- `POST /api/ai/analyze-conversation` under `internal/ai`.
+- Backend-owned prompt for commercial conversation analysis.
+- Structured response with detected lead, service, intent, objections, summary, suggested reply, next action, and safety status.
+- No raw conversation persistence.
+
+Planned backend modules or extensions:
+
+- Lead creation/update orchestration that only persists reviewed data.
+- Optional inbound conversation/message storage, only after explicit retention and privacy rules are approved.
+- Follow-up suggestion use case that proposes timing and next action without scheduling automatically.
+- Dashboard action aggregation for daily priorities.
+
+Implemented frontend slice:
+
+- `features/inbox-ai/` route for manual conversation paste.
+- Analysis result panel.
+- Suggested reply copy-to-clipboard.
+- Human-reviewed lead creation through the existing leads API.
+
+Planned frontend modules or extensions:
+
+- Dashboard action cards for daily assistant priorities.
+- Review panels for extracted lead data, detected objections, suggested reply, and suggested follow-up.
+- Copy-to-clipboard and explicit save/confirm buttons.
+
+Architectural guardrails:
+
+- No automatic message delivery.
+- No native WhatsApp Cloud API dependency for the immediate MVP extension.
+- No clinical records, diagnosis, prescriptions, or clinical decision support.
+- Backend remains the source of truth for prompt safety, AI provider calls, auth, tenant isolation, and persistence.
+- Frontend only presents and confirms reviewed actions.
+
+## Planned Intelligent Dashboard Architecture
+
+Status: Planned.
+
+The dashboard is planned to evolve from a KPI summary into an action layer. It should help the receptionist answer `what should I handle now?` rather than only displaying totals.
+
+Potential dashboard data sources:
+
+- Lead status and creation time.
+- `next_action_at` for overdue and due-today follow-ups.
+- Service demand counts.
+- AI conversation analysis outputs such as intent, objection type, and suggested next action when implemented.
+- Human-reviewed attention state from the future inbox workflow.
+
+Potential dashboard actions:
+
+- Analyze conversation.
+- Open Inbox AI.
+- Create lead with AI.
+- View overdue follow-ups.
+- Review high-intent leads.
+- Review detected objections.
+
+This remains an assistant workflow. Dashboard recommendations must not trigger automatic patient messages.
+
 ## AI Integration Strategy
 
 Status: Implemented for reply suggestions, objection handling, and manual follow-up messages.
@@ -223,6 +289,7 @@ Current MVP strategy:
 - Inject concise clinic, service, lead, and objection context into prompt templates.
 - Validate AI output before returning it.
 - Return structured JSON DTOs to the frontend.
+- Planned Smart Lead Inbox conversation analysis will continue using backend-owned prompts, direct context injection, and structured JSON output. It must not require RAG/vector search for the immediate MVP extension.
 
 Prompt context may include:
 
@@ -343,10 +410,27 @@ The MVP must not include architecture for:
 - Autonomous WhatsApp bots.
 - Required RAG/vector-search infrastructure.
 
+## Planned Integration Boundaries
+
+Status: Future.
+
+External sources may be considered after manual Smart Lead Inbox validation:
+
+- n8n for optional workflow experiments.
+- Gmail for email lead capture.
+- Web forms.
+- Meta Lead Ads.
+- WhatsApp Business Cloud API.
+- Browser extension for capturing selected text from WhatsApp Web or Gmail.
+
+These integrations must not become immediate dependencies for the MVP extension. The first implementation path should support manual or semi-manual capture.
+
 ## Future Architecture Evolution
 
 Potential post-MVP architecture additions:
 
+- Smart Lead Inbox and manual conversation analysis.
+- Intelligent dashboard action layer.
 - WhatsApp Business Cloud API integration.
 - Event-driven follow-up automation.
 - RAG/vector search for clinic-specific knowledge bases.

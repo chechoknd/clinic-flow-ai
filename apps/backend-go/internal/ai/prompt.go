@@ -98,3 +98,42 @@ Genera una respuesta de reenganche en formato JSON con la siguiente estructura:
 
 El mensaje debe sonar humano, no insistente, y debe invitar a agendar una valoración profesional. No incluyas texto fuera del objeto JSON.`, lastContactNote)
 }
+
+func BuildAnalyzeConversationUserPrompt(conversationText, source string) string {
+	if source == "" {
+		source = "no especificado"
+	}
+
+	return fmt.Sprintf(`Analiza esta conversacion comercial capturada manualmente desde el canal "%s".
+
+CONVERSACION:
+"""%s"""
+
+Devuelve SOLO un JSON valido con esta estructura exacta:
+{
+  "detected_lead": {
+    "full_name": "Nombre detectado o cadena vacia",
+    "phone": "Telefono en formato internacional si aparece o cadena vacia"
+  },
+  "detected_service": {
+    "service_id": "Cadena vacia si no tienes un ID confirmado",
+    "service_name": "Servicio de interes detectado o cadena vacia",
+    "confidence": "low|medium|high"
+  },
+  "intent": "low|medium|high",
+  "detected_objections": ["precio", "miedo", "tiempo", "confianza", "disponibilidad"],
+  "suggested_status": "Nuevo|Contactado|Interesado|Agendado|No Respondio|Perdido|Convertido",
+  "commercial_summary": "Resumen comercial breve sin datos clinicos",
+  "suggested_reply": "Respuesta breve lista para copiar en WhatsApp, revisada por humano antes de enviar",
+  "suggested_next_action": "Siguiente accion comercial manual",
+  "suggested_follow_up_at": "Fecha ISO 8601 sugerida o cadena vacia"
+}
+
+Reglas:
+- No diagnostiques.
+- No interpretes sintomas.
+- No recomiendes medicamentos.
+- No prometas resultados.
+- Si hay una pregunta clinica, invita a una valoracion profesional.
+- No incluyas texto fuera del JSON.`, source, conversationText)
+}

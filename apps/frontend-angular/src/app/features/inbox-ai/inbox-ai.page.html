@@ -1,0 +1,245 @@
+<section class="grid gap-6">
+  <div class="flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-950">Inbox AI</h1>
+      <p class="mt-1 text-sm text-slate-600">Analiza conversaciones comerciales pegadas y convierte hallazgos revisados en acciones.</p>
+    </div>
+    <div class="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+      AI sugiere. El equipo revisa y responde manualmente.
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ error() }}</p>
+  }
+
+  @if (success()) {
+    <p class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
+  }
+
+  <div class="grid gap-6 xl:grid-cols-[420px_1fr]">
+    <form class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="analyzeForm" (ngSubmit)="analyze()">
+      <div>
+        <h2 class="text-base font-semibold text-slate-950">Analizar conversacion</h2>
+        <p class="mt-1 text-sm text-slate-500">Pega una conversacion comercial. No pegues historias clinicas, diagnosticos ni datos medicos sensibles.</p>
+      </div>
+
+      <label class="grid gap-2 text-sm font-medium text-slate-700">
+        Canal
+        <select formControlName="source" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+          <option value="whatsapp">WhatsApp</option>
+          <option value="gmail">Gmail</option>
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="web">Formulario web</option>
+          <option value="otro">Otro</option>
+        </select>
+      </label>
+
+      <label class="grid gap-2 text-sm font-medium text-slate-700">
+        Lead existente
+        <select
+          formControlName="lead_id"
+          class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          (change)="onExistingLeadChange($any($event.target).value)"
+        >
+          <option value="">Crear lead nuevo</option>
+          @for (lead of leads(); track lead.id) {
+            <option [value]="lead.id">{{ lead.full_name }} - {{ lead.phone }}</option>
+          }
+        </select>
+        @if (analyzeForm.controls.lead_id.value) {
+          <span class="text-xs text-slate-500">El analisis se aplicara a {{ selectedLeadName() }}.</span>
+        }
+      </label>
+
+      <label class="grid gap-2 text-sm font-medium text-slate-700">
+        Servicio de referencia
+        <select formControlName="service_id" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+          <option value="">Detectar con AI</option>
+          @for (service of services(); track service.id) {
+            <option [value]="service.id">{{ service.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="grid gap-2 text-sm font-medium text-slate-700">
+        Conversacion pegada
+        <textarea
+          formControlName="conversation_text"
+          rows="12"
+          class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          placeholder="Paciente: Hola, quiero saber cuanto cuesta el blanqueamiento..."
+        ></textarea>
+        @if (analyzeForm.controls.conversation_text.touched && analyzeForm.controls.conversation_text.invalid) {
+          <span class="text-xs text-red-600">Pega una conversacion comercial de al menos 20 caracteres.</span>
+        }
+      </label>
+
+      <button
+        type="submit"
+        class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="analyzeForm.invalid || loading()"
+      >
+        {{ loading() ? 'Analizando...' : 'Analizar con AI' }}
+      </button>
+    </form>
+
+    <div class="grid gap-6">
+      <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+          <div>
+            <h2 class="text-base font-semibold text-slate-950">Resultado del analisis</h2>
+            <p class="mt-1 text-sm text-slate-500">Revisa antes de crear un lead o copiar una respuesta.</p>
+          </div>
+          @if (analysis()) {
+            <span class="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+              Seguridad: {{ analysis()?.safety_status }}
+            </span>
+          }
+        </div>
+
+        @if (analysis(); as result) {
+          <div class="mt-5 grid gap-4 md:grid-cols-3">
+            <div class="rounded-md bg-slate-50 p-4">
+              <p class="text-xs font-semibold uppercase text-slate-500">Intencion</p>
+              <p class="mt-1 text-lg font-semibold text-slate-950">{{ result.intent }}</p>
+            </div>
+            <div class="rounded-md bg-slate-50 p-4">
+              <p class="text-xs font-semibold uppercase text-slate-500">Estado sugerido</p>
+              <p class="mt-1 text-lg font-semibold text-slate-950">{{ result.suggested_status }}</p>
+            </div>
+            <div class="rounded-md bg-slate-50 p-4">
+              <p class="text-xs font-semibold uppercase text-slate-500">Servicio detectado</p>
+              <p class="mt-1 text-lg font-semibold text-slate-950">{{ result.detected_service.service_name || 'Sin detectar' }}</p>
+              <p class="text-xs text-slate-500">Confianza: {{ result.detected_service.confidence }}</p>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-4 lg:grid-cols-2">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-950">Resumen comercial</h3>
+              <p class="mt-2 rounded-md bg-slate-50 p-4 text-sm leading-6 text-slate-700">{{ result.commercial_summary || 'Sin resumen.' }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-950">Objeciones detectadas</h3>
+              <div class="mt-2 flex min-h-14 flex-wrap gap-2 rounded-md bg-slate-50 p-4">
+                @for (objection of result.detected_objections; track objection) {
+                  <span class="h-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">{{ objection }}</span>
+                } @empty {
+                  <span class="text-sm text-slate-500">Sin objeciones detectadas.</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-md bg-teal-50 p-4">
+            <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-950">Respuesta sugerida</h3>
+                <p class="mt-1 text-xs text-slate-600">Debe revisarse antes de enviarse manualmente.</p>
+              </div>
+              <button
+                type="button"
+                class="w-fit rounded-md border border-teal-300 bg-white px-3 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50"
+                (click)="copySuggestedReply()"
+              >
+                Copiar
+              </button>
+            </div>
+            <p class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-800">{{ result.suggested_reply || 'Sin respuesta sugerida.' }}</p>
+            @if (copied()) {
+              <p class="mt-3 text-sm font-medium text-teal-700">Respuesta copiada.</p>
+            }
+          </div>
+
+          <div class="mt-5 rounded-md border border-slate-200 p-4">
+            <h3 class="text-sm font-semibold text-slate-950">Siguiente accion sugerida</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-700">{{ result.suggested_next_action || 'Sin accion sugerida.' }}</p>
+          </div>
+        } @else {
+          <div class="mt-5 rounded-md bg-slate-50 p-8 text-center text-sm text-slate-500">
+            El analisis aparecera aqui despues de pegar una conversacion.
+          </div>
+        }
+      </section>
+
+      <form class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="leadForm">
+        <div>
+          <h2 class="text-base font-semibold text-slate-950">Accion sobre lead revisado</h2>
+          <p class="mt-1 text-sm text-slate-500">Edita los campos detectados antes de guardar. No guardes informacion clinica.</p>
+          @if (analyzeForm.controls.lead_id.value) {
+            <p class="mt-2 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-600">Actualizando {{ selectedLeadName() }} con estado, nota y proxima accion sugeridos.</p>
+          }
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="grid gap-2 text-sm font-medium text-slate-700">
+            Nombre
+            <input formControlName="full_name" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" />
+          </label>
+
+          <label class="grid gap-2 text-sm font-medium text-slate-700">
+            WhatsApp
+            <input formControlName="phone" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" />
+          </label>
+        </div>
+
+        <div class="grid gap-y-4 md:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.8fr)] md:gap-x-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.8fr)_minmax(220px,1fr)]">
+          <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
+            Servicio
+            <select formControlName="service_id" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+              <option value="">Sin servicio</option>
+              @for (service of services(); track service.id) {
+                <option [value]="service.id">{{ service.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700">
+            Estado
+            <select formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+              <option value="Nuevo">Nuevo</option>
+              <option value="Contactado">Contactado</option>
+              <option value="Interesado">Interesado</option>
+              <option value="Agendado">Agendado</option>
+              <option value="No Respondio">No Respondio</option>
+              <option value="Perdido">Perdido</option>
+              <option value="Convertido">Convertido</option>
+            </select>
+          </label>
+
+          <label class="grid min-w-0 gap-2 text-sm font-medium text-slate-700 md:col-span-2 xl:col-span-1">
+            Proxima accion
+            <input type="datetime-local" formControlName="next_action_at" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" />
+          </label>
+        </div>
+
+        <label class="grid gap-2 text-sm font-medium text-slate-700">
+          Nota comercial
+          <textarea formControlName="notes" rows="3" class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"></textarea>
+        </label>
+
+        <div class="grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            class="h-11 rounded-md border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="leadForm.invalid || !isLeadReady() || savingLead()"
+            (click)="createLead()"
+          >
+            {{ savingLead() ? 'Guardando...' : 'Crear lead nuevo' }}
+          </button>
+
+          <button
+            type="button"
+            class="h-11 rounded-md bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="!analyzeForm.controls.lead_id.value || leadForm.invalid || !isLeadReady() || savingLead()"
+            (click)="updateExistingLead()"
+          >
+            {{ savingLead() ? 'Actualizando...' : 'Actualizar lead existente' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

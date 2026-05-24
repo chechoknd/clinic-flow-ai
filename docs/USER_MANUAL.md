@@ -6,6 +6,22 @@ ClinicFlow AI es una herramienta comercial para clinicas privadas. Ayuda al equi
 
 No es un sistema medico, no guarda historias clinicas, no diagnostica, no prescribe y no envia mensajes automaticos por WhatsApp.
 
+## Estado actual y evolucion planeada
+
+Status: Current manual covers implemented screens. Inbox AI manual conversation analysis is implemented as a first Smart Lead Inbox slice; broader inbox history and integrations remain planned.
+
+La aplicacion actual permite gestionar leads, seguimientos, servicios, perfil de clinica, dashboard y respuestas asistidas por AI.
+
+La evolucion se llama `Smart Lead Inbox` o `Inbox AI`. La primera version permite pegar una conversacion completa, analizarla con AI, detectar interes comercial, detectar objeciones, sugerir una respuesta, sugerir una proxima accion y crear un lead despues de revision humana. Actualizar leads existentes, historial persistente e integraciones externas siguen planeados.
+
+Regla obligatoria:
+
+```txt
+AI sugiere -> humano revisa -> humano responde
+```
+
+La funcionalidad planeada no enviara mensajes automaticamente. El usuario seguira revisando, copiando y enviando manualmente la respuesta por el canal original.
+
 ## 1. Ingreso al sistema
 
 Abre la aplicacion en:
@@ -58,6 +74,25 @@ Usalo para responder preguntas rapidas como:
 - Que servicios generan mas interes?
 
 Desde el Dashboard puedes ir rapidamente a `Leads` con el boton `Ver leads`.
+
+
+## Inbox AI
+
+Inbox AI permite analizar una conversacion comercial pegada manualmente.
+
+Uso recomendado:
+
+1. Abre `Inbox AI`.
+2. Selecciona el canal de origen.
+3. Opcionalmente selecciona un servicio de referencia.
+4. Pega la conversacion comercial.
+5. Haz clic en `Analizar con AI`.
+6. Revisa intencion, servicio detectado, objeciones, resumen, respuesta sugerida y siguiente accion.
+7. Copia la respuesta sugerida solo si esta correcta.
+8. Revisa los campos detectados antes de crear el lead.
+9. Haz clic en `Crear lead con revision humana` si los datos son correctos.
+
+No pegues historias clinicas, diagnosticos, recetas ni informacion medica sensible. La respuesta sugerida no se envia automaticamente.
 
 ## 3. Leads
 

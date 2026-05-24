@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 1 — Technical Base (Local Infrastructure)
+Phase B — Manual Conversation Analysis
 
 ## Completed Items
 
@@ -40,13 +40,21 @@ Phase 1 — Technical Base (Local Infrastructure)
 - Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, leads, follow-ups, dashboard, and AI-assisted endpoints with a deterministic mock AI provider.
 - API contracts documentation updated to match the implemented backend/frontend response shapes and smoke coverage.
 - Architecture documentation reconciled with the actual repository structure and Phase 1 completion state.
+- Smart Lead Inbox product direction documented as planned in `docs/SMART_LEAD_INBOX_PLAN.md`.
+- Dashboard Inteligente evolution documented as planned, focused on daily assistant actions instead of metrics only.
+- Proposed Smart Lead Inbox API contracts documented as planned and not implemented.
+- Implemented `POST /api/ai/analyze-conversation` for manual pasted conversation analysis.
+- Added Angular Inbox AI screen for pasted conversation analysis, suggested reply copy, human-reviewed lead creation, and existing lead follow-up updates through the existing leads API.
 
 ## In-Progress Items
 
-- Phase 1 local technical base is ready for review.
+- Phase B manual conversation analysis first UX enhancement is implemented and ready for review.
 
 ## Pending Items
 
+- Review the Smart Lead Inbox create/update lead workflow with real local usage.
+- Define retention rules before storing full inbound conversations.
+- Define exact dashboard action scoring before coding priority queues.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
@@ -55,6 +63,8 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 - Scope creep into medical records, diagnosis, prescriptions, telemedicine, or hospital-system behavior.
 - Premature WhatsApp Business Cloud API integration before validating manual assisted workflows.
+- Smart Lead Inbox scope creep into autonomous bots or automatic message sending.
+- Full conversation storage creating privacy risk if retention rules are not defined.
 - AI responses producing medical advice or unsafe claims if backend safety controls are weak.
 - Multi-tenant data leakage if clinic scoping is not enforced in backend queries.
 - Receptionist adoption risk if the UI requires too many steps or feels like a complex CRM.
@@ -64,6 +74,7 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 - Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
 - Frontend screens currently cover first navigation, lead workflows, AI reply generation, follow-up actions, service catalog CRUD, and clinic profile editing.
+- Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, and frontend actions to create or update leads from reviewed analysis. Dashboard action layer, conversation analysis persistence, and remaining proposed API endpoints are not implemented.
 - API contracts now reflect implemented MVP endpoints, but should continue to be updated when response shapes change.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
@@ -71,9 +82,19 @@ Phase 1 — Technical Base (Local Infrastructure)
 
 ## Next Recommended Step
 
-Resolve GitHub remote authentication and push the accumulated commits, then open a PR with Phase 1 summary.
+Review the Inbox AI create/update lead flow, then implement dashboard action cards for the highest-priority manual follow-ups.
 
 ## Change Log
+
+### 2026-05-24
+
+- Documented planned Smart Lead Inbox / Inbox AI direction.
+- Implemented first Smart Lead Inbox slice: manual conversation analysis endpoint and Angular Inbox AI screen.
+- Enhanced Inbox AI so reviewed analysis can create a new lead or update an existing lead follow-up from the same screen.
+- Documented planned Dashboard Inteligente action layer.
+- Added proposed API contracts for conversation analysis, lead creation from conversation, optional inbound messages, and follow-up suggestions.
+- Recorded human-review requirement: AI suggests, human reviews, human replies.
+- Confirmed autonomous WhatsApp bots, automatic message sending, clinical records, diagnosis, prescriptions, and required RAG remain out of scope.
 
 ### 2026-05-23
 

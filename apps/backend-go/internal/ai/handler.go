@@ -86,6 +86,28 @@ func (h *Handler) ObjectionHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
+func (h *Handler) AnalyzeConversation(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication is required.")
+		return
+	}
+
+	var req AnalyzeConversationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "The request body is invalid.")
+		return
+	}
+
+	res, err := h.service.AnalyzeConversation(r.Context(), claims.ClinicID, req)
+	if err != nil {
+		handleAIError(w, "analyze_conversation", err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, res)
+}
+
 func handleAIError(w http.ResponseWriter, operation string, err error) {
 	switch {
 	case errors.Is(err, ErrValidation):

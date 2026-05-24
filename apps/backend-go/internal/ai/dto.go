@@ -49,6 +49,38 @@ type FollowUpMessageResponse struct {
 	SafetyStatus      string `json:"safety_status"`
 }
 
+type AnalyzeConversationRequest struct {
+	ConversationText string `json:"conversation_text"`
+	Source           string `json:"source,omitempty"`
+	LeadID           string `json:"lead_id,omitempty"`
+	ServiceID        string `json:"service_id,omitempty"`
+}
+
+type AnalyzeConversationResponse struct {
+	AnalysisID          string          `json:"analysis_id"`
+	DetectedLead        DetectedLead    `json:"detected_lead"`
+	DetectedService     DetectedService `json:"detected_service"`
+	Intent              string          `json:"intent"`
+	DetectedObjections  []string        `json:"detected_objections"`
+	SuggestedStatus     string          `json:"suggested_status"`
+	CommercialSummary   string          `json:"commercial_summary"`
+	SuggestedReply      string          `json:"suggested_reply"`
+	SuggestedNextAction string          `json:"suggested_next_action"`
+	SuggestedFollowUpAt string          `json:"suggested_follow_up_at,omitempty"`
+	SafetyStatus        string          `json:"safety_status"`
+}
+
+type DetectedLead struct {
+	FullName string `json:"full_name"`
+	Phone    string `json:"phone"`
+}
+
+type DetectedService struct {
+	ServiceID   string `json:"service_id"`
+	ServiceName string `json:"service_name"`
+	Confidence  string `json:"confidence"`
+}
+
 type ErrorResponse struct {
 	Error APIError `json:"error"`
 }

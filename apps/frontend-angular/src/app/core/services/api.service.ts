@@ -5,6 +5,8 @@ import { map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AiReplyResponse,
+  AnalyzeConversationPayload,
+  AnalyzeConversationResponse,
   ClinicProfile,
   ClinicServiceItem,
   CompleteFollowUpPayload,
@@ -95,6 +97,10 @@ export class ApiService {
 
   objectionHandler(payload: { objection: string; service_id?: string; lead_id?: string }) {
     return this.http.post<AiReplyResponse>(`${this.baseUrl}/api/ai/objection-handler`, payload);
+  }
+
+  analyzeConversation(payload: AnalyzeConversationPayload) {
+    return this.http.post<AnalyzeConversationResponse>(`${this.baseUrl}/api/ai/analyze-conversation`, payload);
   }
 
   private mapDashboardSummary(response: DashboardSummaryApiResponse): DashboardSummary {

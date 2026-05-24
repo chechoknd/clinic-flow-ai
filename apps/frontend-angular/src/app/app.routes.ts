@@ -25,6 +25,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/leads/leads.page').then((m) => m.LeadsPage),
       },
       {
+        path: 'inbox-ai',
+        loadComponent: () =>
+          import('./features/inbox-ai/inbox-ai.page').then((m) => m.InboxAiPage),
+      },
+      {
         path: 'followups',
         loadComponent: () =>
           import('./features/followups/followups.page').then((m) => m.FollowupsPage),

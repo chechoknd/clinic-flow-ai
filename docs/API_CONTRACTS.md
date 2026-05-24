@@ -113,6 +113,7 @@ Paginated responses use:
 | GET | `/api/followups` | Yes | any authenticated user |
 | POST | `/api/followups/:id/complete` | Yes | any authenticated user |
 | POST | `/api/followups/:id/reschedule` | Yes | any authenticated user |
+| POST | `/api/ai/analyze-conversation` | Yes | any authenticated user |
 | POST | `/api/ai/reply-suggestion` | Yes | any authenticated user |
 | POST | `/api/ai/objection-handler` | Yes | any authenticated user |
 | POST | `/api/ai/follow-up-message` | Yes | any authenticated user |
@@ -542,6 +543,53 @@ AI endpoints are commercial-assistance endpoints. They must not diagnose, prescr
 
 The backend supports configured providers `openai`, `gemini`, `deepseek`, plus `mock` for local smoke testing only.
 
+### POST /api/ai/analyze-conversation
+
+Status: Implemented.
+
+Analyzes a manually pasted commercial conversation and returns structured commercial insight plus a safe response draft. This endpoint does not store the raw conversation and does not send messages. Any lead creation still requires human review and a separate `POST /api/leads` request.
+
+Request:
+
+```json
+{
+  "conversation_text": "Paciente: Hola, cuanto cuesta el blanqueamiento?\nClinica: Hola, con gusto...",
+  "source": "whatsapp",
+  "service_id": "33333333-3333-4333-8333-333333333331"
+}
+```
+
+Response:
+
+```json
+{
+  "analysis_id": "analysis-11111111-1111-4111-8111-111111111111",
+  "detected_lead": {
+    "full_name": "Maria Perez",
+    "phone": "+573009998877"
+  },
+  "detected_service": {
+    "service_id": "",
+    "service_name": "Blanqueamiento dental",
+    "confidence": "medium"
+  },
+  "intent": "high",
+  "detected_objections": ["precio"],
+  "suggested_status": "Interesado",
+  "commercial_summary": "Pregunta por precio y muestra interes en conocer el tratamiento.",
+  "suggested_reply": "Claro, podemos orientarte y agendar una valoracion para revisar tu caso.",
+  "suggested_next_action": "Responder y proponer valoracion",
+  "suggested_follow_up_at": "",
+  "safety_status": "passed"
+}
+```
+
+Notes:
+
+- `conversation_text` is analyzed as commercial context, not stored as a medical record.
+- Extracted fields are suggestions until a human reviews them.
+- The frontend uses reviewed fields with the existing `POST /api/leads` endpoint when creating a lead.
+
 ### POST /api/ai/reply-suggestion
 
 Generates safe WhatsApp-ready reply suggestions.
@@ -671,9 +719,120 @@ Response:
 - AI reply, objection, and follow-up message generation with `AI_PROVIDER=mock`.
 - Dashboard summary.
 
+## Proposed Smart Lead Inbox API Contracts
+
+Status: Planned / Proposed. Not implemented.
+
+These contracts document remaining proposed Smart Lead Inbox capabilities. They are intentionally not part of the implemented API surface yet and must be validated before development. All proposed endpoints require JWT auth, clinic-level tenant isolation, sanitized errors, and backend-owned AI safety controls.
+
+These endpoints must not send WhatsApp messages or any other patient message automatically. They only support analysis, draft generation, reviewed lead updates, and suggested follow-ups.
+
+### POST /api/leads/from-conversation
+
+Creates or updates a lead from human-reviewed conversation analysis.
+
+Proposed request:
+
+```json
+{
+  "analysis_id": "analysis-id",
+  "action": "create",
+  "lead_id": "optional-existing-lead-id",
+  "reviewed_lead": {
+    "full_name": "Maria Perez",
+    "phone": "+573009998877",
+    "service_id": "33333333-3333-4333-8333-333333333331",
+    "status": "Interesado",
+    "source": "whatsapp",
+    "note": "Pregunta por precio y quiere conocer disponibilidad.",
+    "next_action_at": "2026-05-25T14:00:00Z"
+  }
+}
+```
+
+Proposed response:
+
+```json
+{
+  "id": "lead-id",
+  "status": "Interesado",
+  "created_from_analysis": true
+}
+```
+
+Notes:
+
+- A human must review and submit this request.
+- Backend must enforce clinic isolation and validate allowed lead fields.
+- Do not store diagnosis, prescription, or clinical-history content in the note.
+
+### POST /api/inbound/messages
+
+Optionally stores a manually captured inbound commercial message or conversation fragment after retention rules are approved.
+
+Proposed request:
+
+```json
+{
+  "source": "whatsapp",
+  "lead_id": "optional-lead-id",
+  "message_text": "Hola, quiero saber el precio del blanqueamiento",
+  "received_at": "2026-05-24T15:00:00Z"
+}
+```
+
+Proposed response:
+
+```json
+{
+  "id": "message-id",
+  "status": "stored"
+}
+```
+
+Notes:
+
+- This endpoint is optional and should not be implemented until privacy and retention rules are clear.
+- Full conversation logging can create sensitive-data risk. Prefer summarized commercial notes when possible.
+
+### POST /api/followups/suggest
+
+Suggests a manual follow-up action from lead context or conversation analysis.
+
+Proposed request:
+
+```json
+{
+  "lead_id": "lead-id",
+  "analysis_id": "optional-analysis-id",
+  "last_contact_note": "Respondio que lo va a pensar por precio."
+}
+```
+
+Proposed response:
+
+```json
+{
+  "suggested_next_action": "Enviar mensaje amable de seguimiento",
+  "suggested_follow_up_at": "2026-05-25T14:00:00Z",
+  "suggested_message": "Hola, queriamos saber si pudiste revisar la informacion. Estamos atentos para ayudarte.",
+  "safety_status": "passed"
+}
+```
+
+Notes:
+
+- The response is a suggestion only.
+- Scheduling a follow-up requires human confirmation through an implemented lead/follow-up update flow.
+- Sending a message remains manual.
+
 ## Planned But Not Implemented
 
 - `POST /api/content/generate-post`.
+- `POST /api/leads/from-conversation` for proposed human-reviewed lead creation/update from analysis.
+- `POST /api/inbound/messages` for optional future manual inbound message storage after retention rules are approved.
+- `POST /api/followups/suggest` for proposed follow-up suggestions requiring human confirmation.
+
 - User management endpoints.
 - Superadmin platform administration endpoints.
 - Lead deletion endpoint.
@@ -685,4 +844,6 @@ Response:
 - Add explicit superadmin endpoints when platform administration is implemented.
 - Keep AI provider selection provider-agnostic and environment-based.
 - Keep WhatsApp Business Cloud API integration out of the MVP contract unless scope is explicitly changed.
+- Keep Smart Lead Inbox endpoints marked as planned until backend, frontend, persistence, safety, and privacy decisions are approved.
+
 - Do not add clinical-history, diagnosis, prescription, or medical-record endpoints.

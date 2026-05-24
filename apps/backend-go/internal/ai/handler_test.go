@@ -42,6 +42,22 @@ func TestObjectionHandlerValidationError(t *testing.T) {
 	}
 }
 
+func TestAnalyzeConversationValidationError(t *testing.T) {
+	handler := NewHandler(&Service{})
+	req := httptest.NewRequest(http.MethodPost, "/api/ai/analyze-conversation", strings.NewReader(`{}`))
+	req = req.WithContext(auth.ContextWithClaims(req.Context(), auth.Claims{ClinicID: "clinic-1", UserID: "user-1", Role: auth.RoleAssistant}))
+	w := httptest.NewRecorder()
+
+	handler.AnalyzeConversation(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+	}
+	if !strings.Contains(w.Body.String(), "VALIDATION_ERROR") || !strings.Contains(w.Body.String(), "conversation_text") {
+		t.Fatalf("unexpected response body: %s", w.Body.String())
+	}
+}
+
 func TestAITypedErrors(t *testing.T) {
 	if !errors.Is(ValidationError{Field: "lead_id", Message: "required"}, ErrValidation) {
 		t.Fatal("ValidationError should match ErrValidation")
