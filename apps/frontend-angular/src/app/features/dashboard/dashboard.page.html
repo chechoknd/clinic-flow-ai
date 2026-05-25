@@ -16,9 +16,9 @@
 
   <div class="grid gap-4 md:grid-cols-4">
     @for (metric of metrics(); track metric.label) {
-      <article [attr.data-testid]="'dashboard-metric-card-' + metric.label" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <article [attr.data-testid]="'dashboard-metric-card-' + metric.label" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm min-w-0 overflow-hidden">
         <p class="text-sm text-slate-500">{{ metric.label }}</p>
-        <strong class="mt-2 block text-3xl font-semibold text-slate-950">{{ metric.value }}</strong>
+        <strong class="mt-2 block text-3xl font-semibold text-slate-950 truncate" [title]="metric.value">{{ metric.value }}</strong>
       </article>
     }
   </div>

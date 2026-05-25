@@ -25,7 +25,7 @@ export class DashboardPage {
       { label: 'Leads totales', value: data?.total_leads ?? 0 },
       { label: 'Para hoy', value: data?.pending_followups_today ?? 0 },
       { label: 'Vencidos', value: data?.overdue_followups ?? 0 },
-      { label: 'Conversion', value: `${data?.conversion_rate ?? 0}%` },
+      { label: 'Conversion', value: `${Math.round(data?.conversion_rate ?? 0)}%` },
     ];
   }
 

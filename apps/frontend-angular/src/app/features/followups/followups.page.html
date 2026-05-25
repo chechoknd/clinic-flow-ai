@@ -29,7 +29,7 @@
               <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">{{ followup.status }}</span>
             </div>
             <p class="mt-4 text-sm text-slate-600">{{ followup.service_name || 'Servicio por confirmar' }}</p>
-            <p class="mt-2 text-sm font-medium text-slate-800">{{ followup.next_action_at }}</p>
+            <p class="mt-2 text-sm font-medium text-slate-800">{{ formatDate(followup.next_action_at) }}</p>
             <div class="mt-5 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -79,18 +79,30 @@
           </select>
         </label>
 
-        <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Nueva proxima accion
-          <input
-            type="datetime-local"
-            data-testid="followups-next-action-input"
-            formControlName="next_action_at"
-            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-          />
+        <div class="grid gap-2 text-sm font-medium text-slate-700">
+          Nueva proxima accion (Fecha y Hora)
+          <div class="grid grid-cols-[1.2fr_0.8fr] gap-3">
+            <input
+              type="date"
+              #followupDateInput
+              data-testid="followups-next-action-date"
+              [value]="getDatePart(actionForm.controls.next_action_at.value)"
+              (input)="updateNextActionAt(actionForm.controls.next_action_at, followupDateInput.value, followupTimeInput.value)"
+              class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 w-full"
+            />
+            <input
+              type="time"
+              #followupTimeInput
+              data-testid="followups-next-action-time"
+              [value]="getTimePart(actionForm.controls.next_action_at.value)"
+              (input)="updateNextActionAt(actionForm.controls.next_action_at, followupDateInput.value, followupTimeInput.value)"
+              class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 w-full"
+            />
+          </div>
           @if (actionForm.controls.next_action_at.touched && actionForm.controls.next_action_at.invalid) {
             <span class="text-xs text-red-600">Selecciona fecha y hora para reprogramar.</span>
           }
-        </label>
+        </div>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
           Nota
@@ -110,7 +122,7 @@
             [disabled]="!selectedFollowUp() || saving()"
             (click)="completeSelected()"
           >
-            Completar
+            {{ saving() ? 'Completando...' : 'Completar' }}
           </button>
           <button
             type="button"
@@ -119,7 +131,7 @@
             [disabled]="!selectedFollowUp() || saving()"
             (click)="rescheduleSelected()"
           >
-            Reprogramar
+            {{ saving() ? 'Reprogramando...' : 'Reprogramar' }}
           </button>
         </div>
 

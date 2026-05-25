@@ -237,6 +237,31 @@ export class InboxAiPage {
     });
   }
 
+
+  getDatePart(value: string | null | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const offsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
+  }
+
+  getTimePart(value: string | null | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const offsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offsetMs).toISOString().slice(11, 16);
+  }
+
+  updateNextActionAt(control: any, dateVal: string, timeVal: string): void {
+    if (!dateVal || !timeVal) {
+      control.setValue('');
+    } else {
+      control.setValue(`${dateVal}T${timeVal}`);
+    }
+  }
+
   private toApiDateTime(value: string | undefined): string | undefined {
     if (!value) {
       return undefined;
