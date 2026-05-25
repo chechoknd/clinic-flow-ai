@@ -37,6 +37,21 @@ export class LeadsPage {
     this.leads().filter((lead) => lead.status === this.selectedStatus()),
   );
 
+  statusCount(status: LeadStatus): number {
+    return this.leads().filter((lead) => lead.status === status).length;
+  }
+
+  urgencyLabel(lead: Lead): string {
+    if (this.isOverdue(lead.next_action_at)) {
+      return 'Vencido';
+    }
+    if (this.isToday(lead.next_action_at)) {
+      return 'Hoy';
+    }
+    return '';
+  }
+
+
   readonly createForm = this.fb.nonNullable.group({
     full_name: ['', [Validators.required, Validators.minLength(3)]],
     phone: ['', [Validators.required, Validators.pattern(/^\+[1-9]\d{7,14}$/)]],
@@ -220,12 +235,34 @@ export class LeadsPage {
     return new Date(date.getTime() - offsetMs).toISOString().slice(11, 16);
   }
 
-  updateNextActionAt(control: any, dateVal: string, timeVal: string): void {
+  updateNextActionAt(control: { setValue(value: string): void }, dateVal: string, timeVal: string): void {
     if (!dateVal || !timeVal) {
       control.setValue('');
     } else {
       control.setValue(`${dateVal}T${timeVal}`);
     }
+  }
+
+  private isOverdue(value: string | undefined): boolean {
+    const date = this.parseDate(value);
+    return Boolean(date && date.getTime() < Date.now());
+  }
+
+  private isToday(value: string | undefined): boolean {
+    const date = this.parseDate(value);
+    if (!date) {
+      return false;
+    }
+    const now = new Date();
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+  }
+
+  private parseDate(value: string | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private toApiDateTime(value: string | undefined): string | undefined {

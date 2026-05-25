@@ -43,37 +43,36 @@ Haz clic en `Entrar`.
 
 Si los datos son correctos, veras el menu principal con:
 
-- Dashboard.
+- Atender hoy.
 - Leads.
+- Inbox AI.
 - Seguimientos.
-- Servicios.
 - Asistente AI.
+- Servicios.
 - Clinica.
 
 Para cerrar sesion, usa el boton `Salir`.
 
-## 2. Dashboard comercial
+## 2. Atender hoy
 
-El Dashboard muestra una vista rapida del estado comercial de la clinica.
+`Atender hoy` es la pantalla inicial de trabajo diario. Combina acciones prioritarias con metricas comerciales.
 
-Aqui puedes ver:
+La cola de accion prioriza:
+
+- Seguimientos vencidos.
+- Seguimientos programados para hoy.
+- Leads nuevos que requieren primer contacto.
+
+Desde cada accion puedes ir a gestionar el seguimiento, responder con AI, abrir el pipeline o analizar una conversacion en Inbox AI.
+
+La misma pantalla tambien muestra:
 
 - Total de leads.
 - Seguimientos pendientes para hoy.
 - Seguimientos vencidos.
-- Seguimientos proximos.
 - Tasa de conversion.
 - Pipeline por estado.
 - Servicios mas consultados.
-
-Usalo para responder preguntas rapidas como:
-
-- Cuantos leads hay registrados?
-- Cuantos seguimientos requieren accion?
-- En que estados se concentran los leads?
-- Que servicios generan mas interes?
-
-Desde el Dashboard puedes ir rapidamente a `Leads` con el boton `Ver leads`.
 
 
 ## Inbox AI
@@ -90,7 +89,7 @@ Uso recomendado:
 6. Revisa intencion, servicio detectado, objeciones, resumen, respuesta sugerida y siguiente accion.
 7. Copia la respuesta sugerida solo si esta correcta.
 8. Revisa los campos detectados antes de crear el lead.
-9. Haz clic en `Crear lead con revision humana` si los datos son correctos.
+9. Haz clic en la accion principal: `Crear lead revisado` o `Actualizar lead revisado`, segun si seleccionaste un lead existente.
 
 No pegues historias clinicas, diagnosticos, recetas ni informacion medica sensible. La respuesta sugerida no se envia automaticamente.
 
@@ -145,11 +144,11 @@ En la parte superior de la lista puedes seleccionar un estado:
 - Perdido.
 - Convertido.
 
-La lista mostrara solo los leads que pertenecen al estado seleccionado.
+La lista mostrara solo los leads que pertenecen al estado seleccionado. Cada filtro muestra su conteo actual para ayudar a entender donde esta concentrado el trabajo.
 
 ### Editar seguimiento de un lead
 
-En la lista, haz clic en `Editar` sobre un lead.
+En la lista, haz clic en `Editar` sobre un lead. Si el lead tiene una proxima accion vencida o para hoy, la fila aparece resaltada. Tambien puedes usar `Responder` para abrir el Asistente AI con contexto del lead.
 
 Luego puedes cambiar:
 
@@ -185,7 +184,7 @@ La respuesta generada debe revisarla una persona antes de enviarla por WhatsApp.
 
 ## 4. Seguimientos
 
-El modulo de Seguimientos muestra leads que tienen una proxima accion pendiente.
+El modulo de Seguimientos muestra leads que tienen una proxima accion pendiente, agrupados por urgencia: `Vencidos`, `Hoy` y `Proximos`.
 
 Sirve para que el equipo comercial no olvide recuperar conversaciones.
 

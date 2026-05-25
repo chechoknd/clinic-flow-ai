@@ -45,17 +45,19 @@ Phase B — Manual Conversation Analysis
 - Proposed Smart Lead Inbox API contracts documented as planned and not implemented.
 - Implemented `POST /api/ai/analyze-conversation` for manual pasted conversation analysis.
 - Added Angular Inbox AI screen for pasted conversation analysis, suggested reply copy, human-reviewed lead creation, and existing lead follow-up updates through the existing leads API.
+- Improved frontend UX around the receptionist daily workflow: actionable dashboard queue, clearer navigation, lead status counts, follow-up urgency groups, and a primary reviewed action in Inbox AI.
+- Added optional UX demo seed data with five extra services and two fictional leads per commercial status, plus a Docker Compose seed helper script.
 
 ## In-Progress Items
 
-- Phase B manual conversation analysis first UX enhancement is implemented and ready for review.
+- Phase B manual conversation analysis and first daily-workflow UX enhancements are implemented and ready for local review.
 
 ## Pending Items
 
-- Review the Smart Lead Inbox create/update lead workflow with real local usage.
+- Review the actionable dashboard, Inbox AI create/update lead workflow, and urgency grouping with real local usage.
 - Define retention rules before storing full inbound conversations.
 - Define exact dashboard action scoring before coding priority queues.
-- Add automated seed runner if seed usage grows beyond local/demo data.
+- Keep seed data fictional and update the demo seed helper if new demo datasets are added.
 - Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
 
@@ -74,7 +76,7 @@ Phase B — Manual Conversation Analysis
 
 - Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
 - Frontend screens currently cover first navigation, lead workflows, AI reply generation, follow-up actions, service catalog CRUD, and clinic profile editing.
-- Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, and frontend actions to create or update leads from reviewed analysis. Dashboard action layer, conversation analysis persistence, and remaining proposed API endpoints are not implemented.
+- Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, and frontend actions to create or update leads from reviewed analysis. Dashboard now has a frontend-computed action queue from current leads/follow-ups; conversation analysis persistence and remaining proposed API endpoints are not implemented.
 - API contracts now reflect implemented MVP endpoints, but should continue to be updated when response shapes change.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
@@ -82,9 +84,18 @@ Phase B — Manual Conversation Analysis
 
 ## Next Recommended Step
 
-Review the Inbox AI create/update lead flow, then implement dashboard action cards for the highest-priority manual follow-ups.
+Run a local product review of the updated receptionist workflow, then decide whether the dashboard action queue needs a dedicated backend endpoint for richer scoring.
 
 ## Change Log
+
+### 2026-05-25
+
+- Improved the daily receptionist workflow in Angular without adding new backend endpoints.
+- Renamed the main dashboard navigation to `Atender hoy` and added a dashboard action queue for overdue follow-ups, today's follow-ups, and new leads.
+- Added lead status counts, lead urgency highlights, and quick response actions in the Leads screen.
+- Grouped Follow-ups into `Vencidos`, `Hoy`, and `Proximos` for clearer prioritization.
+- Simplified Inbox AI save actions around one primary human-reviewed action based on whether an existing lead is selected.
+- Added optional UX demo seed data and `database/seeds/apply_demo_seeds.sh` to populate more services and leads for local review.
 
 ### 2026-05-24
 

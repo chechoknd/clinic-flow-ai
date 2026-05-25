@@ -3,6 +3,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { FollowUp, LeadStatus } from '../../core/services/api.models';
+
+interface FollowUpGroup {
+  label: string;
+  description: string;
+  tone: 'urgent' | 'today' | 'upcoming';
+  items: FollowUp[];
+}
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -26,6 +33,26 @@ export class FollowupsPage {
   readonly generatedMessage = signal('');
   readonly copied = signal(false);
   readonly canGenerateMessage = computed(() => Boolean(this.selectedFollowUp()?.service_id));
+  readonly followupGroups = computed<FollowUpGroup[]>(() => [
+    {
+      label: 'Vencidos',
+      description: 'Requieren accion primero.',
+      tone: 'urgent',
+      items: this.followups().filter((followup) => this.isOverdue(followup.next_action_at)),
+    },
+    {
+      label: 'Hoy',
+      description: 'Contactos programados para el dia.',
+      tone: 'today',
+      items: this.followups().filter((followup) => this.isToday(followup.next_action_at) && !this.isOverdue(followup.next_action_at)),
+    },
+    {
+      label: 'Proximos',
+      description: 'Seguimientos futuros.',
+      tone: 'upcoming',
+      items: this.followups().filter((followup) => !this.isToday(followup.next_action_at) && !this.isOverdue(followup.next_action_at)),
+    },
+  ]);
 
   readonly actionForm = this.fb.nonNullable.group({
     status: ['Contactado' as LeadStatus, Validators.required],
@@ -215,12 +242,35 @@ export class FollowupsPage {
     return new Date(date.getTime() - offsetMs).toISOString().slice(11, 16);
   }
 
-  updateNextActionAt(control: any, dateVal: string, timeVal: string): void {
+  updateNextActionAt(control: { setValue(value: string): void }, dateVal: string, timeVal: string): void {
     if (!dateVal || !timeVal) {
       control.setValue('');
     } else {
       control.setValue(`${dateVal}T${timeVal}`);
     }
+  }
+
+
+  private isOverdue(value: string | undefined): boolean {
+    const date = this.parseDate(value);
+    return Boolean(date && date.getTime() < Date.now());
+  }
+
+  private isToday(value: string | undefined): boolean {
+    const date = this.parseDate(value);
+    if (!date) {
+      return false;
+    }
+    const now = new Date();
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+  }
+
+  private parseDate(value: string | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private toApiDateTime(value: string | undefined): string | undefined {

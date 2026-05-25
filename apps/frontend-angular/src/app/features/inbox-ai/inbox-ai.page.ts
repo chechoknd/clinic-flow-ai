@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 import {
   AnalyzeConversationResponse,
@@ -18,6 +19,7 @@ import { ApiService } from '../../core/services/api.service';
 export class InboxAiPage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute, { optional: true });
 
   readonly services = signal<ClinicServiceItem[]>([]);
   readonly leads = signal<Lead[]>([]);
@@ -46,6 +48,7 @@ export class InboxAiPage {
   });
 
   constructor() {
+    this.applyRouteContext();
     this.loadInitialData();
   }
 
@@ -95,7 +98,13 @@ export class InboxAiPage {
     });
 
     this.api.leads().subscribe({
-      next: (response) => this.leads.set(response.data),
+      next: (response) => {
+        this.leads.set(response.data);
+        const leadID = this.analyzeForm.controls.lead_id.value;
+        if (leadID) {
+          this.selectExistingLead(leadID);
+        }
+      },
       error: () => this.error.set('No fue posible cargar los leads existentes.'),
     });
   }
@@ -130,6 +139,25 @@ export class InboxAiPage {
           this.loading.set(false);
         },
       });
+  }
+
+  hasExistingLead(): boolean {
+    return Boolean(this.analyzeForm.controls.lead_id.value);
+  }
+
+  primaryLeadActionLabel(): string {
+    if (this.savingLead()) {
+      return this.hasExistingLead() ? 'Actualizando...' : 'Guardando...';
+    }
+    return this.hasExistingLead() ? 'Actualizar lead revisado' : 'Crear lead revisado';
+  }
+
+  saveReviewedLead(): void {
+    if (this.hasExistingLead()) {
+      this.updateExistingLead();
+      return;
+    }
+    this.createLead();
   }
 
   isLeadReady(): boolean {
@@ -222,6 +250,16 @@ export class InboxAiPage {
     void navigator.clipboard.writeText(text).then(() => this.copied.set(true));
   }
 
+  private applyRouteContext(): void {
+    const leadID = this.route?.snapshot.queryParamMap.get('lead_id') || '';
+    const serviceID = this.route?.snapshot.queryParamMap.get('service_id') || '';
+    this.analyzeForm.patchValue({
+      lead_id: leadID,
+      service_id: serviceID,
+    });
+    this.leadForm.patchValue({ service_id: serviceID });
+  }
+
   private hydrateLeadForm(analysis: AnalyzeConversationResponse, source: string, selectedServiceID: string): void {
     const detectedServiceID = analysis.detected_service.service_id || selectedServiceID;
     const existingLeadID = this.analyzeForm.controls.lead_id.value;
@@ -254,7 +292,7 @@ export class InboxAiPage {
     return new Date(date.getTime() - offsetMs).toISOString().slice(11, 16);
   }
 
-  updateNextActionAt(control: any, dateVal: string, timeVal: string): void {
+  updateNextActionAt(control: { setValue(value: string): void }, dateVal: string, timeVal: string): void {
     if (!dateVal || !timeVal) {
       control.setValue('');
     } else {

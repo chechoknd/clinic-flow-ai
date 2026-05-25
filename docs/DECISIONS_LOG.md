@@ -192,3 +192,25 @@ Implement the first Smart Lead Inbox slice as a manual, human-reviewed workflow:
 ClinicFlow AI now has a usable manual Inbox AI workflow without changing the product into an autonomous bot or clinical system.
 
 Next implementation decisions should focus on whether to prioritize updating existing leads from analysis, persisting reviewed analysis history, or adding dashboard action cards.
+
+## 2026-05-25 — Prioritize receptionist daily workflow in the frontend
+
+### Context
+
+The MVP already has separate screens for dashboard, leads, follow-ups, AI replies, and Inbox AI. Local usage analysis showed that the product risk is no longer basic coverage, but the amount of mental routing required from a receptionist to decide what to handle next.
+
+### Decision
+
+Improve the Angular frontend around a daily commercial workflow:
+
+- Rename the dashboard navigation concept to `Atender hoy`.
+- Add a dashboard action queue computed from existing leads and follow-ups.
+- Show lead counts and urgency indicators in the lead pipeline.
+- Group follow-ups by `Vencidos`, `Hoy`, and `Proximos`.
+- Make Inbox AI expose one primary human-reviewed save action depending on whether an existing lead is selected.
+
+No new backend endpoint, WhatsApp automation, message sending, clinical records, or diagnosis behavior is introduced.
+
+### Consequences
+
+The MVP should feel closer to a practical receptionist workspace while staying inside the manual assisted workflow. If pilots need richer prioritization, the frontend-computed dashboard queue can later be replaced or supported by a dedicated backend action-summary endpoint with explicit scoring rules.

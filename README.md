@@ -28,6 +28,12 @@ docker compose cp database/seeds/20260521000100_demo_core_data.sql postgres:/tmp
 docker compose exec -T postgres psql -U clinicflow -d clinicflow_db -f /tmp/demo_core_data.sql
 ```
 
+Optionally populate the UI with more demo services and two fictional leads per commercial status:
+
+```bash
+./database/seeds/apply_demo_seeds.sh
+```
+
 Run the backend API:
 
 ```bash

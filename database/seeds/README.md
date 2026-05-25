@@ -4,7 +4,7 @@ This directory contains SQL seeds for local development and testing.
 
 ## Current Status
 
-Initial demo seed data exists for one clinic, one clinic admin user, and sample dental services.
+Initial demo seed data exists for one clinic, one clinic admin user, sample dental services, and an optional UX demo seed with more services and leads.
 
 ## Intended Usage
 
@@ -12,7 +12,16 @@ Apply seeds after running migrations:
 
 ```bash
 psql "postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" -v ON_ERROR_STOP=1 -f database/seeds/20260521000100_demo_core_data.sql
+psql "postgres://clinicflow:clinicflow@localhost:5432/clinicflow_db?sslmode=disable" -v ON_ERROR_STOP=1 -f database/seeds/20260525000100_demo_ux_data.sql
 ```
+
+Or apply both demo seeds through Docker Compose from the repository root:
+
+```bash
+./database/seeds/apply_demo_seeds.sh
+```
+
+The UX seed adds five more services and at least two fictional leads for each commercial status: `Nuevo`, `Contactado`, `Interesado`, `Agendado`, `No Respondio`, `Perdido`, and `Convertido`.
 
 Demo login for local development only:
 
@@ -26,7 +35,7 @@ Seeds are intended to populate the local database with initial demo data:
 - One demo clinic admin user.
 - One sample clinic.
 - Sample dental services catalog.
-- Sample commercial leads (future seed, not included yet).
+- Optional UX demo services and fictional commercial leads for every status.
 
 ## Principles
 

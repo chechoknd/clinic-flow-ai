@@ -22,12 +22,12 @@ export class AppLayout {
   readonly toggleOpen = (open: boolean) => !open;
   readonly userLabel = computed(() => this.auth.user()?.full_name ?? 'Equipo comercial');
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard', path: '/dashboard' },
+    { label: 'Atender hoy', path: '/dashboard' },
     { label: 'Leads', path: '/leads' },
     { label: 'Inbox AI', path: '/inbox-ai' },
     { label: 'Seguimientos', path: '/followups' },
-    { label: 'Servicios', path: '/services' },
     { label: 'Asistente AI', path: '/ai-assistant' },
+    { label: 'Servicios', path: '/services' },
     { label: 'Clinica', path: '/clinic' },
   ];
 

@@ -1,18 +1,67 @@
 <section class="grid gap-6">
   <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
     <div>
-      <h1 class="text-2xl font-semibold text-slate-950">Dashboard comercial</h1>
-      <p class="mt-1 text-sm text-slate-600">Vista rapida de leads, conversion y seguimientos.</p>
+      <h1 class="text-2xl font-semibold text-slate-950">Atender hoy</h1>
+      <p class="mt-1 text-sm text-slate-600">Prioriza conversaciones, seguimientos y nuevos leads sin salir del flujo comercial.</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <a data-testid="dashboard-inbox-ai-link" routerLink="/inbox-ai" class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
         Analizar conversacion
       </a>
-      <a data-testid="dashboard-leads-link" routerLink="/leads" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-        Ver leads
+      <a data-testid="dashboard-followups-link" routerLink="/followups" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+        Ver seguimientos
       </a>
     </div>
   </div>
+
+  <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+      <div>
+        <h2 class="text-base font-semibold text-slate-950">Cola de accion</h2>
+        <p class="mt-1 text-sm text-slate-500">Primero vencidos, luego tareas de hoy y nuevos leads por contactar.</p>
+      </div>
+      <a routerLink="/leads" class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Ver pipeline</a>
+    </div>
+
+    @if (actionError()) {
+      <p class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ actionError() }}</p>
+    }
+
+    @if (loadingActions()) {
+      <div class="mt-4 rounded-md bg-slate-50 p-8 text-center text-sm text-slate-500">Cargando acciones prioritarias...</div>
+    } @else {
+      <div class="mt-4 grid gap-3 lg:grid-cols-2">
+        @for (action of actionCards(); track action.title + action.meta) {
+          <article
+            class="grid gap-4 rounded-md border p-4"
+            [class.border-red-200]="action.tone === 'urgent'"
+            [class.bg-red-50]="action.tone === 'urgent'"
+            [class.text-red-800]="action.tone === 'urgent'"
+            [class.border-amber-200]="action.tone === 'today'"
+            [class.bg-amber-50]="action.tone === 'today'"
+            [class.text-amber-800]="action.tone === 'today'"
+            [class.border-teal-200]="action.tone === 'new'"
+            [class.bg-teal-50]="action.tone === 'new'"
+            [class.text-teal-800]="action.tone === 'new'"
+          >
+            <div>
+              <p class="text-xs font-semibold uppercase">{{ action.meta }}</p>
+              <h3 class="mt-1 text-base font-semibold text-slate-950">{{ action.title }}</h3>
+              <p class="mt-1 text-sm text-slate-700">{{ action.detail }}</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <a [routerLink]="action.primaryPath" [queryParams]="action.primaryQueryParams" class="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800">{{ action.primaryLabel }}</a>
+              <a [routerLink]="action.secondaryPath" [queryParams]="action.secondaryQueryParams" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">{{ action.secondaryLabel }}</a>
+            </div>
+          </article>
+        } @empty {
+          <div class="rounded-md bg-slate-50 p-8 text-center text-sm text-slate-500 lg:col-span-2">
+            No hay acciones pendientes. Usa Inbox AI para analizar una conversacion nueva.
+          </div>
+        }
+      </div>
+    }
+  </section>
 
   <div class="grid gap-4 md:grid-cols-4">
     @for (metric of metrics(); track metric.label) {
