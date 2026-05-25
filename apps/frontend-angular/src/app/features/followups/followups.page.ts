@@ -176,6 +176,53 @@ export class FollowupsPage {
     this.copied.set(false);
   }
 
+
+  formatDate(value: string | null | undefined): string {
+    if (!value) {
+      return 'Sin fecha';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
+    try {
+      return date.toLocaleString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch {
+      return 'Sin fecha';
+    }
+  }
+
+  getDatePart(value: string | null | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const offsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offsetMs).toISOString().slice(0, 10);
+  }
+
+  getTimePart(value: string | null | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const offsetMs = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offsetMs).toISOString().slice(11, 16);
+  }
+
+  updateNextActionAt(control: any, dateVal: string, timeVal: string): void {
+    if (!dateVal || !timeVal) {
+      control.setValue('');
+    } else {
+      control.setValue(`${dateVal}T${timeVal}`);
+    }
+  }
+
   private toApiDateTime(value: string | undefined): string | undefined {
     if (!value) {
       return undefined;

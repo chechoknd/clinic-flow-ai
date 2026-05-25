@@ -2,6 +2,7 @@ package ai
 
 import (
 	"fmt"
+	"time"
 )
 
 type Context struct {
@@ -104,7 +105,11 @@ func BuildAnalyzeConversationUserPrompt(conversationText, source string) string 
 		source = "no especificado"
 	}
 
+	currentDate := time.Now().Format("2006-01-02")
+	currentYear := time.Now().Year()
+
 	return fmt.Sprintf(`Analiza esta conversacion comercial capturada manualmente desde el canal "%s".
+Nota importante: Hoy es %s. Cualquier fecha sugerida en "suggested_follow_up_at" debe ser en el año %d o posterior.
 
 CONVERSACION:
 """%s"""
@@ -135,5 +140,5 @@ Reglas:
 - No recomiendes medicamentos.
 - No prometas resultados.
 - Si hay una pregunta clinica, invita a una valoracion profesional.
-- No incluyas texto fuera del JSON.`, source, conversationText)
+- No incluyas texto fuera del JSON.`, source, currentDate, currentYear, conversationText)
 }

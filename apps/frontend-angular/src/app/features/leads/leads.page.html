@@ -84,15 +84,27 @@
         </label>
       </div>
 
-      <label class="grid gap-2 text-sm font-medium text-slate-700">
-        Proxima accion
-        <input
-          type="datetime-local"
-          data-testid="leads-create-next-action-input"
-          formControlName="next_action_at"
-          class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-        />
-      </label>
+      <div class="grid gap-2 text-sm font-medium text-slate-700">
+        Proxima accion (Fecha y Hora)
+        <div class="grid grid-cols-[1.2fr_0.8fr] gap-3">
+          <input
+            type="date"
+            #createDateInput
+            data-testid="leads-create-next-action-date"
+            [value]="getDatePart(createForm.controls.next_action_at.value)"
+            (input)="updateNextActionAt(createForm.controls.next_action_at, createDateInput.value, createTimeInput.value)"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 w-full"
+          />
+          <input
+            type="time"
+            #createTimeInput
+            data-testid="leads-create-next-action-time"
+            [value]="getTimePart(createForm.controls.next_action_at.value)"
+            (input)="updateNextActionAt(createForm.controls.next_action_at, createDateInput.value, createTimeInput.value)"
+            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 w-full"
+          />
+        </div>
+      </div>
 
       <label class="grid gap-2 text-sm font-medium text-slate-700">
         Nota inicial
@@ -135,7 +147,7 @@
       </div>
 
       <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div class="hidden grid-cols-[1.2fr_1fr_1fr_1fr_150px] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase text-slate-500 md:grid">
+        <div class="hidden grid-cols-[1.2fr_1fr_0.8fr_1.5fr_150px] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase text-slate-500 md:grid">
           <span>Paciente</span>
           <span>Servicio</span>
           <span>Estado</span>
@@ -147,14 +159,14 @@
           <div data-testid="leads-loading-state" class="px-4 py-10 text-center text-sm text-slate-500">Cargando leads...</div>
         } @else {
           @for (lead of filteredLeads(); track lead.id) {
-            <article [attr.data-testid]="'leads-row-' + lead.id" class="grid gap-3 border-b border-slate-100 px-4 py-4 last:border-0 md:grid-cols-[1.2fr_1fr_1fr_1fr_150px] md:items-center">
+            <article [attr.data-testid]="'leads-row-' + lead.id" class="grid gap-3 border-b border-slate-100 px-4 py-4 last:border-0 md:grid-cols-[1.2fr_1fr_0.8fr_1.5fr_150px] md:items-center">
               <div>
                 <h2 class="font-semibold text-slate-950">{{ lead.full_name }}</h2>
                 <p class="text-sm text-slate-500">{{ lead.phone }}</p>
               </div>
               <p class="text-sm text-slate-700">{{ lead.service_name || 'Sin servicio' }}</p>
               <span class="w-fit rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">{{ lead.status }}</span>
-              <p class="text-sm text-slate-600">{{ lead.next_action_at || 'Sin fecha' }}</p>
+              <p class="text-sm text-slate-600 whitespace-nowrap">{{ formatDate(lead.next_action_at) }}</p>
               <button
                 type="button"
                 [attr.data-testid]="'leads-edit-button-' + lead.id"
@@ -206,15 +218,27 @@
             </select>
           </label>
 
-          <label class="grid gap-2 text-sm font-medium text-slate-700">
-            Proxima accion
-            <input
-              type="datetime-local"
-              data-testid="leads-update-next-action-input"
-              formControlName="next_action_at"
-              class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-            />
-          </label>
+          <div class="grid gap-2 text-sm font-medium text-slate-700">
+            Proxima accion (Fecha y Hora)
+            <div class="grid grid-cols-[1.2fr_0.8fr] gap-3">
+              <input
+                type="date"
+                #updateDateInput
+                data-testid="leads-update-next-action-date"
+                [value]="getDatePart(updateForm.controls.next_action_at.value)"
+                (input)="updateNextActionAt(updateForm.controls.next_action_at, updateDateInput.value, updateTimeInput.value)"
+                class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 w-full"
+              />
+              <input
+                type="time"
+                #updateTimeInput
+                data-testid="leads-update-next-action-time"
+                [value]="getTimePart(updateForm.controls.next_action_at.value)"
+                (input)="updateNextActionAt(updateForm.controls.next_action_at, updateDateInput.value, updateTimeInput.value)"
+                class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 w-full"
+              />
+            </div>
+          </div>
         </div>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
