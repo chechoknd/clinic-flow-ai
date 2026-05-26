@@ -24,6 +24,7 @@ export class ServicesPage {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
   readonly formTitle = computed(() => (this.selectedService() ? 'Editar servicio' : 'Nuevo servicio'));
+  readonly priceInputValue = signal(0);
   readonly currentCurrency = computed(() => this.clinic()?.currency ?? defaultCurrency);
   readonly priceStep = computed(() => (this.currentCurrency().decimal_digits === 0 ? '1' : '0.01'));
   readonly priceDecimalHelp = computed(() => {
@@ -32,6 +33,7 @@ export class ServicesPage {
       ? `Valor en ${currency.code}, sin decimales.`
       : `Valor en ${currency.code}, hasta ${currency.decimal_digits} decimales.`;
   });
+  readonly formattedPricePreview = computed(() => formatClinicCurrency(this.priceInputValue(), this.currentCurrency()));
 
   readonly serviceForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
@@ -44,6 +46,10 @@ export class ServicesPage {
   });
 
   constructor() {
+    this.priceInputValue.set(this.serviceForm.controls.price_from.value);
+    this.serviceForm.controls.price_from.valueChanges.subscribe((value) => {
+      this.priceInputValue.set(Number(value ?? 0));
+    });
     this.loadClinic();
     this.loadServices();
   }
@@ -105,8 +111,8 @@ export class ServicesPage {
           this.success.set('Servicio actualizado correctamente.');
           this.saving.set(false);
         },
-        error: () => {
-          this.error.set('No fue posible actualizar el servicio.');
+        error: (err: unknown) => {
+          this.error.set(this.serviceErrorMessage(err, 'No fue posible actualizar el servicio.'));
           this.saving.set(false);
         },
       });
@@ -120,8 +126,8 @@ export class ServicesPage {
         this.success.set('Servicio creado correctamente.');
         this.saving.set(false);
       },
-      error: () => {
-        this.error.set('No fue posible crear el servicio. Revisa los datos e intenta de nuevo.');
+      error: (err: unknown) => {
+        this.error.set(this.serviceErrorMessage(err, 'No fue posible crear el servicio. Revisa los datos e intenta de nuevo.'));
         this.saving.set(false);
       },
     });
@@ -185,6 +191,29 @@ export class ServicesPage {
   private clearMessages(): void {
     this.error.set(null);
     this.success.set(null);
+  }
+
+  private serviceErrorMessage(err: unknown, fallback: string): string {
+    const apiMessage = this.extractApiErrorMessage(err);
+    if (apiMessage?.includes('too many decimal places')) {
+      const currency = this.currentCurrency();
+      return currency.decimal_digits === 0
+        ? `La moneda ${currency.code} no permite decimales en el precio.`
+        : `La moneda ${currency.code} permite maximo ${currency.decimal_digits} decimales.`;
+    }
+    if (apiMessage?.includes('greater than or equal to zero')) {
+      return 'El precio no puede ser negativo.';
+    }
+    return fallback;
+  }
+
+  private extractApiErrorMessage(err: unknown): string | null {
+    if (!err || typeof err !== 'object') {
+      return null;
+    }
+    const maybeHttpError = err as { error?: { error?: { message?: unknown } } };
+    const message = maybeHttpError.error?.error?.message;
+    return typeof message === 'string' ? message : null;
   }
 
   private pricePrecisionValidator(): ValidatorFn {

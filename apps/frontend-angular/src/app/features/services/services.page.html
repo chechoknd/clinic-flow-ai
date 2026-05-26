@@ -3,6 +3,11 @@
     <div>
       <h1 class="text-2xl font-semibold text-slate-950">Catalogo de servicios</h1>
       <p class="mt-1 text-sm text-slate-600">Contexto comercial que usa el asistente AI.</p>
+      <div class="mt-3 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
+        <span class="font-semibold text-slate-950">{{ currentCurrency().code }}</span>
+        <span>{{ currentCurrency().symbol }}</span>
+        <span class="text-slate-400">{{ currentCurrency().locale }}</span>
+      </div>
     </div>
     <button
       type="button"
@@ -123,6 +128,10 @@
             @if (serviceForm.controls.price_from.touched && serviceForm.controls.price_from.hasError('min')) {
               <span class="text-xs text-red-600">El precio no puede ser negativo.</span>
             }
+            <div class="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <span class="text-xs font-medium uppercase text-slate-500">Vista previa</span>
+              <p class="mt-1 font-semibold text-slate-950">{{ formattedPricePreview() }}</p>
+            </div>
           </label>
         </div>
 

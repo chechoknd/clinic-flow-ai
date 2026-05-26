@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { ClinicProfile, ClinicServiceItem } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
@@ -114,7 +114,6 @@ describe('ServicesPage', () => {
     expect(fixture.componentInstance.success()).toBe('Servicio creado correctamente.');
   });
 
-
   it('rejects decimal service prices for zero-decimal currencies', () => {
     fixture.componentInstance.startCreate();
     fixture.componentInstance.serviceForm.setValue({
@@ -163,6 +162,43 @@ describe('ServicesPage', () => {
     fixture.componentInstance.saveService();
 
     expect(api.createService).toHaveBeenCalledWith(expect.objectContaining({ price_from: 120.5 }));
+  });
+
+  it('shows the active currency and formatted price preview', () => {
+    fixture.componentInstance.serviceForm.controls.price_from.setValue(250000);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('COP');
+    expect(text).toContain('Vista previa');
+    expect(text).toContain('COP');
+  });
+
+  it('shows a specific backend price precision error', () => {
+    api.createService.mockReturnValueOnce(
+      throwError(() => ({
+        error: {
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'price_from has too many decimal places for clinic currency',
+          },
+        },
+      })),
+    );
+    fixture.componentInstance.startCreate();
+    fixture.componentInstance.serviceForm.setValue({
+      name: 'Limpieza',
+      description: 'Control preventivo',
+      duration_minutes: 30,
+      price_from: 120000,
+      benefits: '',
+      common_objections: '',
+      is_active: true,
+    });
+
+    fixture.componentInstance.saveService();
+
+    expect(fixture.componentInstance.error()).toBe('La moneda COP no permite decimales en el precio.');
   });
 
   it('updates the selected service', () => {
