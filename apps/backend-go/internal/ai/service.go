@@ -199,16 +199,15 @@ func (s *Service) getAIContext(ctx context.Context, clinicID, serviceID, leadID 
 	return aiCtx, nil
 }
 
-func formatServicePriceFrom(price *float64, currencyCode string) string {
+func formatServicePriceFrom(price *services.DecimalString, currencyCode string) string {
 	if price == nil {
 		return "no informado"
 	}
 	currency, ok := shared.CurrencyByCode(currencyCode)
 	if !ok {
-		return fmt.Sprintf("%.2f", *price)
+		return price.String()
 	}
-	format := fmt.Sprintf("%%.%df", currency.DecimalDigits)
-	return fmt.Sprintf("%s %s", currency.Code, fmt.Sprintf(format, *price))
+	return fmt.Sprintf("%s %s", currency.Code, price.String())
 }
 
 func validateReplySuggestionRequest(req ReplySuggestionRequest) error {

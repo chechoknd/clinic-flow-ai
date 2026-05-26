@@ -10,7 +10,7 @@ export const defaultCurrency: CurrencyMetadata = {
   symbol_position: 'before',
 };
 
-export function formatClinicCurrency(value: number | null | undefined, currency: CurrencyMetadata | null | undefined): string {
+export function formatClinicCurrency(value: number | string | null | undefined, currency: CurrencyMetadata | null | undefined): string {
   const amount = Number(value ?? 0);
   const metadata = currency ?? defaultCurrency;
   const formatted = new Intl.NumberFormat(metadata.locale, {

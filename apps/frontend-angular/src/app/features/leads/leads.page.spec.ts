@@ -30,7 +30,7 @@ const services: ClinicServiceItem[] = [
     name: 'Blanqueamiento dental',
     description: 'Tratamiento estetico',
     duration_minutes: 60,
-    price_from: 250000,
+    price_from: '250000.00',
     benefits: [],
     faq: [],
     common_objections: [],

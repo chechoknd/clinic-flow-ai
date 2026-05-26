@@ -219,7 +219,7 @@ Supported MVP country/currency pairs:
 | AR | ARS | es-AR | 2 |
 | CL | CLP | es-CL | 0 |
 
-Service responses include `currency_code` next to `price_from`. `price_from` remains numeric for MVP compatibility; exact decimal request/response handling remains future technical debt before adding more money fields.
+Service create/update requests and responses include `price_from` as a string decimal value plus `currency_code` in responses. The backend accepts either a JSON string or number for compatibility, but responses use strings to avoid floating-point money precision issues.
 
 No endpoint should perform exchange-rate conversion in the MVP.
 
@@ -314,7 +314,7 @@ Service response shape:
   "name": "Blanqueamiento dental",
   "description": "Tratamiento estetico para mejorar el tono de la sonrisa con valoracion previa.",
   "duration_minutes": 60,
-  "price_from": 250000,
+  "price_from": "250000.00",
   "currency_code": "COP",
   "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
   "faq": [
@@ -342,7 +342,7 @@ Response:
     "name": "Blanqueamiento dental",
     "description": "Tratamiento estetico para mejorar el tono de la sonrisa con valoracion previa.",
     "duration_minutes": 60,
-    "price_from": 250000,
+    "price_from": "250000.00",
     "currency_code": "COP",
     "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
     "faq": [],
@@ -369,7 +369,7 @@ Request:
   "name": "Blanqueamiento dental",
   "description": "Tratamiento estetico para mejorar el tono de la sonrisa.",
   "duration_minutes": 60,
-  "price_from": 250000,
+  "price_from": "250000.00",
   "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
   "faq": [
     {
@@ -394,7 +394,7 @@ Request:
   "name": "Blanqueamiento dental",
   "description": "Tratamiento estetico supervisado por profesionales.",
   "duration_minutes": 60,
-  "price_from": 280000,
+  "price_from": "280000.00",
   "benefits": ["Mejora estetica visible"],
   "faq": [],
   "common_objections": ["Esta muy caro"],

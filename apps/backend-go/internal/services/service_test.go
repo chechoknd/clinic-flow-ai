@@ -106,7 +106,7 @@ func TestServiceCreate(t *testing.T) {
 }
 
 func TestServiceCreateRejectsDecimalsForZeroDecimalCurrency(t *testing.T) {
-	price := 120000.50
+	price := DecimalString("120000.50")
 	repo := &fakeRepository{currencyCode: "COP"}
 	s := NewService(repo)
 
@@ -117,12 +117,23 @@ func TestServiceCreateRejectsDecimalsForZeroDecimalCurrency(t *testing.T) {
 }
 
 func TestServiceCreateAllowsTwoDecimalsForTwoDecimalCurrency(t *testing.T) {
-	price := 120.50
+	price := DecimalString("120.50")
 	repo := &fakeRepository{currencyCode: "PEN"}
 	s := NewService(repo)
 
 	_, err := s.Create(context.Background(), "clinic-1", CreateServiceRequest{Name: "Consulta", PriceFrom: &price})
 	if err != nil {
 		t.Fatalf("expected price to be accepted: %v", err)
+	}
+}
+
+func TestServiceCreateRejectsInvalidDecimalValue(t *testing.T) {
+	price := DecimalString("abc")
+	repo := &fakeRepository{currencyCode: "PEN"}
+	s := NewService(repo)
+
+	_, err := s.Create(context.Background(), "clinic-1", CreateServiceRequest{Name: "Consulta", PriceFrom: &price})
+	if err == nil {
+		t.Fatal("expected invalid decimal validation error")
 	}
 }

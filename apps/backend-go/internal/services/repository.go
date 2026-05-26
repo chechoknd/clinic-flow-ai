@@ -33,7 +33,7 @@ func (r *PostgresRepository) ListByClinicID(ctx context.Context, clinicID string
 			name,
 			description,
 			duration_minutes,
-			price_from,
+			price_from::text,
 			(SELECT c.currency_code FROM clinics c WHERE c.id = clinic_services.clinic_id),
 			benefits,
 			faq,
@@ -53,13 +53,14 @@ func (r *PostgresRepository) ListByClinicID(ctx context.Context, clinicID string
 	var entities []ServiceEntity
 	for rows.Next() {
 		var s ServiceEntity
+		var priceFrom sql.NullString
 		err := rows.Scan(
 			&s.ID,
 			&s.ClinicID,
 			&s.Name,
 			&s.Description,
 			&s.DurationMinutes,
-			&s.PriceFrom,
+			&priceFrom,
 			&s.CurrencyCode,
 			&s.Benefits,
 			&s.FAQ,
@@ -68,6 +69,10 @@ func (r *PostgresRepository) ListByClinicID(ctx context.Context, clinicID string
 		)
 		if err != nil {
 			return nil, err
+		}
+		if priceFrom.Valid {
+			value := DecimalString(priceFrom.String)
+			s.PriceFrom = &value
 		}
 		entities = append(entities, s)
 	}
@@ -87,7 +92,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, serviceID s
 			name,
 			description,
 			duration_minutes,
-			price_from,
+			price_from::text,
 			(SELECT c.currency_code FROM clinics c WHERE c.id = clinic_services.clinic_id),
 			benefits,
 			faq,
@@ -99,13 +104,14 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, serviceID s
 	`
 
 	var s ServiceEntity
+	var priceFrom sql.NullString
 	err := r.db.QueryRowContext(ctx, query, serviceID, clinicID).Scan(
 		&s.ID,
 		&s.ClinicID,
 		&s.Name,
 		&s.Description,
 		&s.DurationMinutes,
-		&s.PriceFrom,
+		&priceFrom,
 		&s.CurrencyCode,
 		&s.Benefits,
 		&s.FAQ,
@@ -117,6 +123,10 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, serviceID s
 	}
 	if err != nil {
 		return ServiceEntity{}, err
+	}
+	if priceFrom.Valid {
+		value := DecimalString(priceFrom.String)
+		s.PriceFrom = &value
 	}
 
 	return s, nil

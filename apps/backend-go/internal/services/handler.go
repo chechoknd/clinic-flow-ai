@@ -73,7 +73,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.service.Create(r.Context(), claims.ClinicID, req)
 	if err != nil {
-		if err.Error() == "service name is required" || err.Error() == "price_from must be greater than or equal to zero" || err.Error() == "price_from has too many decimal places for clinic currency" {
+		if err.Error() == "service name is required" || err.Error() == "price_from must be a valid decimal value" || err.Error() == "price_from must be greater than or equal to zero" || err.Error() == "price_from has too many decimal places for clinic currency" {
 			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error())
 			return
 		}
@@ -109,7 +109,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		if err.Error() == "service name is required" || err.Error() == "price_from must be greater than or equal to zero" || err.Error() == "price_from has too many decimal places for clinic currency" {
+		if err.Error() == "service name is required" || err.Error() == "price_from must be a valid decimal value" || err.Error() == "price_from must be greater than or equal to zero" || err.Error() == "price_from has too many decimal places for clinic currency" {
 			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error())
 			return
 		}

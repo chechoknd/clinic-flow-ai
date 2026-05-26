@@ -33,7 +33,7 @@ const services: ClinicServiceItem[] = [
     name: 'Blanqueamiento dental',
     description: 'Tratamiento estetico',
     duration_minutes: 60,
-    price_from: 250000,
+    price_from: '250000.00',
     currency_code: 'COP',
     benefits: ['Sonrisa mas clara'],
     faq: [],
@@ -93,7 +93,7 @@ describe('ServicesPage', () => {
       name: 'Ortodoncia',
       description: 'Alineacion dental',
       duration_minutes: 45,
-      price_from: 120000,
+      price_from: '120000',
       benefits: 'Mejora mordida\nMejora estetica',
       common_objections: 'Precio',
       is_active: true,
@@ -105,7 +105,7 @@ describe('ServicesPage', () => {
       name: 'Ortodoncia',
       description: 'Alineacion dental',
       duration_minutes: 45,
-      price_from: 120000,
+      price_from: '120000',
       benefits: ['Mejora mordida', 'Mejora estetica'],
       faq: [],
       common_objections: ['Precio'],
@@ -120,7 +120,7 @@ describe('ServicesPage', () => {
       name: 'Limpieza',
       description: 'Control preventivo',
       duration_minutes: 30,
-      price_from: 120000.5,
+      price_from: '120000.5',
       benefits: '',
       common_objections: '',
       is_active: true,
@@ -153,7 +153,7 @@ describe('ServicesPage', () => {
       name: 'Consulta estetica',
       description: 'Valoracion comercial',
       duration_minutes: 30,
-      price_from: 120.5,
+      price_from: '120.5',
       benefits: '',
       common_objections: '',
       is_active: true,
@@ -161,11 +161,11 @@ describe('ServicesPage', () => {
 
     fixture.componentInstance.saveService();
 
-    expect(api.createService).toHaveBeenCalledWith(expect.objectContaining({ price_from: 120.5 }));
+    expect(api.createService).toHaveBeenCalledWith(expect.objectContaining({ price_from: '120.5' }));
   });
 
   it('shows the active currency and formatted price preview', () => {
-    fixture.componentInstance.serviceForm.controls.price_from.setValue(250000);
+    fixture.componentInstance.serviceForm.controls.price_from.setValue('250000');
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
@@ -190,7 +190,7 @@ describe('ServicesPage', () => {
       name: 'Limpieza',
       description: 'Control preventivo',
       duration_minutes: 30,
-      price_from: 120000,
+      price_from: '120000',
       benefits: '',
       common_objections: '',
       is_active: true,
@@ -207,7 +207,7 @@ describe('ServicesPage', () => {
       name: 'Blanqueamiento premium',
       description: 'Tratamiento estetico guiado',
       duration_minutes: 75,
-      price_from: 280000,
+      price_from: '280000',
       benefits: 'Resultado visible',
       common_objections: 'Sensibilidad',
       is_active: false,
@@ -219,7 +219,7 @@ describe('ServicesPage', () => {
       name: 'Blanqueamiento premium',
       description: 'Tratamiento estetico guiado',
       duration_minutes: 75,
-      price_from: 280000,
+      price_from: '280000',
       benefits: ['Resultado visible'],
       faq: [],
       common_objections: ['Sensibilidad'],

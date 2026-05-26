@@ -134,7 +134,7 @@ describe('ApiService', () => {
       name: 'Ortodoncia',
       description: 'Alineacion dental',
       duration_minutes: 45,
-      price_from: 120000,
+      price_from: '120000',
       benefits: ['Mejora estetica'],
       faq: [],
       common_objections: ['Precio'],

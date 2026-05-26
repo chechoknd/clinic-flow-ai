@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"math"
+	"regexp"
 	"strings"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 )
 
-var ErrMissingClinicID = errors.New("clinic id is required")
+var (
+	ErrMissingClinicID = errors.New("clinic id is required")
+	decimalPattern     = regexp.MustCompile(`^-?\d+(\.\d+)?$`)
+)
 
 type Service struct {
 	repository Repository
@@ -154,11 +157,16 @@ func (s *Service) Delete(ctx context.Context, clinicID, serviceID string) error 
 	return s.repository.Delete(ctx, clinicID, serviceID)
 }
 
-func (s *Service) validatePriceForClinic(ctx context.Context, clinicID string, price *float64) error {
+func (s *Service) validatePriceForClinic(ctx context.Context, clinicID string, price *DecimalString) error {
 	if price == nil {
 		return nil
 	}
-	if *price < 0 {
+
+	value := strings.TrimSpace(price.String())
+	if value == "" || !decimalPattern.MatchString(value) {
+		return errors.New("price_from must be a valid decimal value")
+	}
+	if strings.HasPrefix(value, "-") {
 		return errors.New("price_from must be greater than or equal to zero")
 	}
 
@@ -171,10 +179,16 @@ func (s *Service) validatePriceForClinic(ctx context.Context, clinicID string, p
 		return errors.New("unsupported clinic currency")
 	}
 
-	factor := math.Pow10(currency.DecimalDigits)
-	if math.Round(*price*factor) != *price*factor {
-		return errors.New("price_from has too many decimal places for clinic currency")
+	parts := strings.SplitN(value, ".", 2)
+	if len(parts) == 2 {
+		fractional := strings.TrimRight(parts[1], "0")
+		if len(fractional) > currency.DecimalDigits {
+			return errors.New("price_from has too many decimal places for clinic currency")
+		}
 	}
+
+	normalized := DecimalString(value)
+	*price = normalized
 	return nil
 }
 

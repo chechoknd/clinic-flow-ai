@@ -14,7 +14,7 @@ export interface ClinicServiceItem {
   name: string;
   description?: string;
   duration_minutes?: number;
-  price_from?: number;
+  price_from?: string;
   currency_code?: string;
   benefits: string[];
   faq: unknown[];
@@ -26,7 +26,7 @@ export interface CreateServicePayload {
   name: string;
   description?: string;
   duration_minutes?: number;
-  price_from?: number;
+  price_from?: string;
   benefits: string[];
   faq: unknown[];
   common_objections: string[];

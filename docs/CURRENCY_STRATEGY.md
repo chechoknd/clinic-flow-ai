@@ -1,6 +1,6 @@
 # Currency Strategy
 
-Status: Implemented for the MVP baseline. Currency conversion, exchange rates, payments, invoicing, and exact decimal refactors remain out of scope.
+Status: Implemented for the MVP baseline. Currency conversion, exchange rates, payments, and invoicing remain out of scope. Service prices use string decimal API contracts to avoid float precision issues.
 
 ## Problem Summary
 
@@ -47,7 +47,7 @@ Implemented currency metadata contract:
 }
 ```
 
-For storage, keep monetary values as PostgreSQL `NUMERIC(12,2)` in the MVP. Avoid Go `float64` in future DTO/domain work and move toward exact decimal handling or string-based request parsing before adding more monetary fields. Do not convert existing `price_from` to integer minor units in the MVP because COP and CLP commonly use zero decimal display while PEN and ARS use two decimals, and current data is already modeled as decimal-like SQL.
+For storage, keep monetary values as PostgreSQL `NUMERIC(12,2)` in the MVP. Service `price_from` now uses string decimal request/response handling in the API and exact string-based validation in backend services. Do not convert existing `price_from` to integer minor units in the MVP because COP and CLP commonly use zero decimal display while PEN and ARS use two decimals, and current data is already modeled as decimal-like SQL.
 
 ## Questions Answered
 
@@ -99,11 +99,7 @@ Implemented backend changes:
 - Expose currency metadata in `GET /api/clinics/current`.
 - Include currency metadata, or at minimum `currency_code`, in service responses where `price_from` appears.
 - Update AI context so service price context includes currency code/symbol/locale, not only a raw number.
-- `float64` monetary DTOs still exist for `price_from`; replacing them with exact decimal parsing remains future technical debt before adding more money fields.
-
-Current risk to address:
-
-- `internal/services` currently maps `NUMERIC(12,2)` to `*float64`. That is acceptable only as a short-lived MVP simplification. A currency implementation should avoid expanding this pattern.
+- `price_from` uses string decimal DTOs and exact string-based validation in `internal/services` instead of Go `float64`.
 
 ### 4. What frontend Angular changes are needed?
 
@@ -148,7 +144,7 @@ Implemented service response addition:
 }
 ```
 
-For MVP compatibility, `price_from` may remain numeric in the first migration if changing it to a string is too disruptive. The preferred future-safe API shape is a string decimal to avoid JavaScript and Go float precision issues.
+`price_from` is returned as a string decimal to avoid JavaScript and Go float precision issues. The backend accepts numeric JSON input for compatibility, but frontend clients should send strings.
 
 ### 6. How to avoid hardcoded symbols like `$`?
 
@@ -180,12 +176,13 @@ Migration strategy:
 
 ### 8. Integer minor units or decimal?
 
-Recommendation for MVP: keep PostgreSQL `NUMERIC(12,2)` and move backend/frontend contracts toward string decimal values when practical.
+Recommendation for MVP: keep PostgreSQL `NUMERIC(12,2)` and use string decimal values in backend/frontend contracts for service prices.
 
 Rationale:
 
 - Existing schema already uses `NUMERIC(12,2)`.
 - PostgreSQL numeric is exact for money-like decimal storage.
+- String decimal contracts avoid binary floating-point precision issues.
 - Currency conversion is out of scope.
 - Some target currencies display zero decimals, but storing two decimal places is acceptable if validation prevents unwanted fractional input for zero-decimal currencies.
 
@@ -327,7 +324,7 @@ Docs:
 ## Risks and Care Points
 
 - Do not introduce exchange rates, payment gateway behavior, invoicing, or accounting logic as part of this feature.
-- Avoid expanding `float64` monetary handling. It is already present, but new money work should move toward exact decimal handling.
+- Keep future monetary fields aligned with the service `price_from` string decimal contract; do not reintroduce `float64` for money.
 - Avoid frontend-only currency logic; backend must validate and expose the clinic configuration.
 - Avoid hardcoded symbols and currency codes in templates, AI prompts, seeds, and tests.
 - Be careful with ambiguous `$` symbols across COP, ARS, and CLP; commercial UI may need to show code plus symbol.

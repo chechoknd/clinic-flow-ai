@@ -24,7 +24,7 @@ export class ServicesPage {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
   readonly formTitle = computed(() => (this.selectedService() ? 'Editar servicio' : 'Nuevo servicio'));
-  readonly priceInputValue = signal(0);
+  readonly priceInputValue = signal('0');
   readonly currentCurrency = computed(() => this.clinic()?.currency ?? defaultCurrency);
   readonly priceStep = computed(() => (this.currentCurrency().decimal_digits === 0 ? '1' : '0.01'));
   readonly priceDecimalHelp = computed(() => {
@@ -39,7 +39,7 @@ export class ServicesPage {
     name: ['', [Validators.required, Validators.minLength(3)]],
     description: [''],
     duration_minutes: [60, [Validators.required, Validators.min(1)]],
-    price_from: [0, [Validators.required, Validators.min(0), this.pricePrecisionValidator()]],
+    price_from: ['0', [Validators.required, this.pricePrecisionValidator()]],
     benefits: [''],
     common_objections: [''],
     is_active: [true],
@@ -48,7 +48,7 @@ export class ServicesPage {
   constructor() {
     this.priceInputValue.set(this.serviceForm.controls.price_from.value);
     this.serviceForm.controls.price_from.valueChanges.subscribe((value) => {
-      this.priceInputValue.set(Number(value ?? 0));
+      this.priceInputValue.set(String(value ?? '0'));
     });
     this.loadClinic();
     this.loadServices();
@@ -61,7 +61,7 @@ export class ServicesPage {
       name: '',
       description: '',
       duration_minutes: 60,
-      price_from: 0,
+      price_from: '0',
       benefits: '',
       common_objections: '',
       is_active: true,
@@ -75,7 +75,7 @@ export class ServicesPage {
       name: service.name,
       description: service.description ?? '',
       duration_minutes: service.duration_minutes ?? 60,
-      price_from: service.price_from ?? 0,
+      price_from: service.price_from ?? '0',
       benefits: this.joinLines(service.benefits),
       common_objections: this.joinLines(service.common_objections),
       is_active: service.is_active ?? true,
@@ -94,7 +94,7 @@ export class ServicesPage {
       name: value.name.trim(),
       description: value.description.trim() || undefined,
       duration_minutes: Number(value.duration_minutes),
-      price_from: Number(value.price_from),
+      price_from: String(value.price_from).trim(),
       benefits: this.splitLines(value.benefits),
       faq: [],
       common_objections: this.splitLines(value.common_objections),
@@ -133,7 +133,7 @@ export class ServicesPage {
     });
   }
 
-  formatPrice(value: number | null | undefined, currencyCode?: string): string {
+  formatPrice(value: number | string | null | undefined, currencyCode?: string): string {
     const clinicCurrency = this.currentCurrency();
     const currency: CurrencyMetadata = currencyCode && currencyCode !== clinicCurrency.code
       ? { ...clinicCurrency, code: currencyCode as CurrencyMetadata['code'] }
@@ -223,14 +223,17 @@ export class ServicesPage {
         return null;
       }
 
-      const amount = Number(value);
-      if (!Number.isFinite(amount)) {
+      const raw = String(value).trim();
+      if (!/^-?\d+(\.\d+)?$/.test(raw)) {
         return { invalidPrice: true };
+      }
+      if (raw.startsWith('-')) {
+        return { min: true };
       }
 
       const decimalDigits = this.currentCurrency().decimal_digits;
-      const factor = 10 ** decimalDigits;
-      return Math.round(amount * factor) === amount * factor
+      const fractional = raw.split('.')[1]?.replace(/0+$/, '') ?? '';
+      return fractional.length <= decimalDigits
         ? null
         : { currencyDecimals: { allowed: decimalDigits } };
     };

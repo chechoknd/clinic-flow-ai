@@ -115,11 +115,10 @@
             Precio desde
             <span class="text-xs font-normal text-slate-500">{{ priceDecimalHelp() }}</span>
             <input
-              type="number"
+              type="text"
+              inputmode="decimal"
               data-testid="services-price-input"
               formControlName="price_from"
-              min="0"
-              [step]="priceStep()"
               class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
             />
             @if (serviceForm.controls.price_from.touched && serviceForm.controls.price_from.hasError('currencyDecimals')) {
