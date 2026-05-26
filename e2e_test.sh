@@ -42,6 +42,26 @@ api_delete() {
     -H "Authorization: Bearer ${TOKEN}"
 }
 
+api_request_status() {
+  local method="$1"
+  local path="$2"
+  local payload="${3:-}"
+  local response
+
+  if [[ -n "${payload}" ]]; then
+    response=$(curl -sS -w $'\n%{http_code}' -X "${method}" "${API_BASE_URL}${path}" \
+      -H "Authorization: Bearer ${TOKEN}" \
+      -H "Content-Type: application/json" \
+      -d "${payload}")
+  else
+    response=$(curl -sS -w $'\n%{http_code}' -X "${method}" "${API_BASE_URL}${path}" \
+      -H "Authorization: Bearer ${TOKEN}")
+  fi
+
+  HTTP_STATUS="${response##*$'\n'}"
+  HTTP_BODY="${response%$'\n'*}"
+}
+
 assert_jq() {
   local payload="$1"
   local filter="$2"
@@ -73,8 +93,12 @@ echo "Login OK."
 
 ORIGINAL_CLINIC=""
 SMOKE_SERVICE_ID=""
+CURRENCY_SERVICE_ID=""
 
 cleanup() {
+  if [[ -n "${CURRENCY_SERVICE_ID}" ]]; then
+    api_delete "/api/services/${CURRENCY_SERVICE_ID}" >/dev/null 2>&1 || true
+  fi
   if [[ -n "${SMOKE_SERVICE_ID}" ]]; then
     api_delete "/api/services/${SMOKE_SERVICE_ID}" >/dev/null 2>&1 || true
   fi
@@ -82,6 +106,8 @@ cleanup() {
     RESTORE_PAYLOAD=$(jq '{
       name,
       city,
+      country_code,
+      currency_code,
       phone,
       whatsapp,
       address,
@@ -98,11 +124,15 @@ echo -e "\n1. GET /api/clinics/current"
 ORIGINAL_CLINIC=$(api_get "/api/clinics/current")
 echo "${ORIGINAL_CLINIC}" | jq .
 assert_jq "${ORIGINAL_CLINIC}" '.id and .name and .whatsapp' "clinic profile should include id, name, and whatsapp"
+ORIGINAL_COUNTRY_CODE=$(jq -r '.country_code' <<<"${ORIGINAL_CLINIC}")
+ORIGINAL_CURRENCY_CODE=$(jq -r '.currency_code' <<<"${ORIGINAL_CLINIC}")
 
 echo -e "\n2. PUT /api/clinics/current"
 CLINIC_UPDATE_PAYLOAD=$(jq '{
   name: (.name + " Smoke"),
   city,
+  country_code,
+  currency_code,
   phone,
   whatsapp,
   address,
@@ -119,7 +149,7 @@ SERVICE_CREATE_PAYLOAD=$(jq -n '{
   name: "Servicio Smoke E2E",
   description: "Servicio creado por e2e_test.sh para validar catalogo.",
   duration_minutes: 30,
-  price_from: 99000,
+  price_from: "99000",
   benefits: ["Validacion local", "Contexto para AI"],
   faq: [],
   common_objections: ["Precio"]
@@ -137,7 +167,7 @@ SERVICE_UPDATE_PAYLOAD=$(jq -n '{
   name: "Servicio Smoke E2E Actualizado",
   description: "Servicio actualizado por e2e_test.sh.",
   duration_minutes: 45,
-  price_from: 125000,
+  price_from: "125000",
   benefits: ["Validacion local actualizada"],
   faq: [],
   common_objections: ["Tiempo"],
@@ -152,6 +182,97 @@ SERVICES_RESPONSE=$(api_get "/api/services")
 echo "${SERVICES_RESPONSE}" | jq .
 if ! jq -e --arg id "${SMOKE_SERVICE_ID}" 'if type == "array" then any(.[]; .id == $id) else any(.data[]; .id == $id) end' <<<"${SERVICES_RESPONSE}" >/dev/null; then
   echo "Assertion failed: service list should include smoke service" >&2
+  exit 1
+fi
+
+echo -e "\n5b. Currency price validation"
+COP_CLINIC_PAYLOAD=$(jq '{
+  name,
+  city,
+  country_code: "CO",
+  currency_code: "COP",
+  phone,
+  whatsapp,
+  address,
+  opening_hours: (.opening_hours // {}),
+  general_faq: (.general_faq // []),
+  communication_tone
+}' <<<"${ORIGINAL_CLINIC}")
+COP_CLINIC_RESPONSE=$(api_put "/api/clinics/current" "${COP_CLINIC_PAYLOAD}")
+echo "${COP_CLINIC_RESPONSE}" | jq .
+assert_jq "${COP_CLINIC_RESPONSE}" '.country_code == "CO" and .currency_code == "COP"' "clinic should switch to COP"
+
+COP_DECIMAL_PAYLOAD=$(jq -n '{
+  name: "Servicio Decimal COP E2E",
+  description: "Debe ser rechazado porque COP no permite decimales.",
+  duration_minutes: 30,
+  price_from: "120000.50",
+  benefits: [],
+  faq: [],
+  common_objections: []
+}')
+api_request_status "POST" "/api/services" "${COP_DECIMAL_PAYLOAD}"
+echo "${HTTP_BODY}" | jq .
+if [[ "${HTTP_STATUS}" != "400" ]]; then
+  echo "Assertion failed: COP decimal price should return 400, got ${HTTP_STATUS}" >&2
+  exit 1
+fi
+assert_jq "${HTTP_BODY}" '.error.message == "price_from has too many decimal places for clinic currency"' "COP decimal rejection should explain precision"
+
+PEN_CLINIC_PAYLOAD=$(jq '{
+  name,
+  city,
+  country_code: "PE",
+  currency_code: "PEN",
+  phone,
+  whatsapp,
+  address,
+  opening_hours: (.opening_hours // {}),
+  general_faq: (.general_faq // []),
+  communication_tone
+}' <<<"${ORIGINAL_CLINIC}")
+PEN_CLINIC_RESPONSE=$(api_put "/api/clinics/current" "${PEN_CLINIC_PAYLOAD}")
+echo "${PEN_CLINIC_RESPONSE}" | jq .
+assert_jq "${PEN_CLINIC_RESPONSE}" '.country_code == "PE" and .currency_code == "PEN"' "clinic should switch to PEN"
+
+PEN_DECIMAL_PAYLOAD=$(jq -n '{
+  name: "Servicio Decimal PEN E2E",
+  description: "Debe ser aceptado porque PEN permite dos decimales.",
+  duration_minutes: 30,
+  price_from: "120.50",
+  benefits: ["Decimal exacto"],
+  faq: [],
+  common_objections: []
+}')
+PEN_DECIMAL_RESPONSE=$(api_post "/api/services" "${PEN_DECIMAL_PAYLOAD}")
+echo "${PEN_DECIMAL_RESPONSE}" | jq .
+CURRENCY_SERVICE_ID=$(jq -r '.id // empty' <<<"${PEN_DECIMAL_RESPONSE}")
+if [[ -z "${CURRENCY_SERVICE_ID}" ]]; then
+  echo "Currency service creation did not return an id." >&2
+  exit 1
+fi
+assert_jq "${PEN_DECIMAL_RESPONSE}" '.price_from == "120.50" and .currency_code == "PEN"' "PEN decimal service should return exact string price and PEN currency"
+api_delete "/api/services/${CURRENCY_SERVICE_ID}" >/dev/null
+CURRENCY_SERVICE_ID=""
+
+RESTORE_CLINIC_PAYLOAD=$(jq '{
+  name,
+  city,
+  country_code,
+  currency_code,
+  phone,
+  whatsapp,
+  address,
+  opening_hours: (.opening_hours // {}),
+  general_faq: (.general_faq // []),
+  communication_tone
+}' <<<"${ORIGINAL_CLINIC}")
+RESTORE_CLINIC_RESPONSE=$(api_put "/api/clinics/current" "${RESTORE_CLINIC_PAYLOAD}")
+echo "${RESTORE_CLINIC_RESPONSE}" | jq .
+if ! jq -e --arg country "${ORIGINAL_COUNTRY_CODE}" --arg currency "${ORIGINAL_CURRENCY_CODE}" '.country_code == $country and .currency_code == $currency' <<<"${RESTORE_CLINIC_RESPONSE}" >/dev/null; then
+  echo "Assertion failed: clinic currency should be restored after currency validation" >&2
+  echo "Payload:" >&2
+  jq . <<<"${RESTORE_CLINIC_RESPONSE}" >&2
   exit 1
 fi
 

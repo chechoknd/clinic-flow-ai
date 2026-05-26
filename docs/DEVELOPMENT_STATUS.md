@@ -37,7 +37,7 @@ Phase B — Manual Conversation Analysis
 - Frontend follow-up screen connected to complete, reschedule, and AI follow-up message workflows.
 - Frontend service catalog workflow implemented for create, update, active state, and delete actions.
 - Frontend clinic profile workflow implemented for editing commercial profile and communication tone.
-- Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, leads, follow-ups, dashboard, and AI-assisted endpoints with a deterministic mock AI provider.
+- Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, currency/price validation, leads, follow-ups, dashboard, and AI-assisted endpoints with a deterministic mock AI provider.
 - API contracts documentation updated to match the implemented backend/frontend response shapes and smoke coverage.
 - Architecture documentation reconciled with the actual repository structure and Phase 1 completion state.
 - Smart Lead Inbox product direction documented as planned in `docs/SMART_LEAD_INBOX_PLAN.md`.
@@ -100,6 +100,7 @@ Run a local product review of the updated receptionist workflow, then decide whe
 - Added optional UX demo seed data and `database/seeds/apply_demo_seeds.sh` to populate more services and leads for local review.
 - Implemented clinic-level currency support for Colombia, Peru, Argentina, and Chile without exchange rates, payments, or invoicing.
 - Replaced service `price_from` float DTO handling with string decimal request/response contracts and exact backend validation.
+- Expanded `e2e_test.sh` to validate COP decimal rejection, PEN decimal acceptance, exact string `price_from` responses, and clinic currency restoration.
 
 ### 2026-05-24
 
