@@ -1,9 +1,31 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
-import { ClinicServiceItem } from '../../core/services/api.models';
+import { ClinicProfile, ClinicServiceItem } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { ServicesPage } from './services.page';
+
+const clinic: ClinicProfile = {
+  id: 'clinic-1',
+  name: 'Sonrisa Viva',
+  clinic_type: 'dental',
+  city: 'Bogota',
+  country_code: 'CO',
+  currency_code: 'COP',
+  currency: {
+    code: 'COP',
+    symbol: '$',
+    locale: 'es-CO',
+    decimal_digits: 0,
+    thousand_separator: '.',
+    decimal_separator: ',',
+    symbol_position: 'before',
+  },
+  whatsapp: '+573001234567',
+  opening_hours: {},
+  general_faq: [],
+  communication_tone: 'profesional',
+};
 
 const services: ClinicServiceItem[] = [
   {
@@ -12,6 +34,7 @@ const services: ClinicServiceItem[] = [
     description: 'Tratamiento estetico',
     duration_minutes: 60,
     price_from: 250000,
+    currency_code: 'COP',
     benefits: ['Sonrisa mas clara'],
     faq: [],
     common_objections: ['Precio'],
@@ -22,6 +45,7 @@ const services: ClinicServiceItem[] = [
 describe('ServicesPage', () => {
   let fixture: ComponentFixture<ServicesPage>;
   let api: {
+    clinicCurrent: ReturnType<typeof vi.fn>;
     services: ReturnType<typeof vi.fn>;
     createService: ReturnType<typeof vi.fn>;
     updateService: ReturnType<typeof vi.fn>;
@@ -30,6 +54,7 @@ describe('ServicesPage', () => {
 
   beforeEach(async () => {
     api = {
+      clinicCurrent: vi.fn(() => of(clinic)),
       services: vi.fn(() => of({ data: services })),
       createService: vi.fn((payload) => of({ id: 'service-2', ...payload, is_active: true })),
       updateService: vi.fn((id, payload) => of({ id, ...payload })),
@@ -87,6 +112,57 @@ describe('ServicesPage', () => {
     });
     expect(fixture.componentInstance.services()[0].id).toBe('service-2');
     expect(fixture.componentInstance.success()).toBe('Servicio creado correctamente.');
+  });
+
+
+  it('rejects decimal service prices for zero-decimal currencies', () => {
+    fixture.componentInstance.startCreate();
+    fixture.componentInstance.serviceForm.setValue({
+      name: 'Limpieza',
+      description: 'Control preventivo',
+      duration_minutes: 30,
+      price_from: 120000.5,
+      benefits: '',
+      common_objections: '',
+      is_active: true,
+    });
+
+    fixture.componentInstance.saveService();
+
+    expect(fixture.componentInstance.serviceForm.controls.price_from.hasError('currencyDecimals')).toBe(true);
+    expect(api.createService).not.toHaveBeenCalled();
+  });
+
+  it('allows two decimal service prices for two-decimal currencies', () => {
+    fixture.componentInstance.clinic.set({
+      ...clinic,
+      country_code: 'PE',
+      currency_code: 'PEN',
+      currency: {
+        code: 'PEN',
+        symbol: 'S/',
+        locale: 'es-PE',
+        decimal_digits: 2,
+        thousand_separator: ',',
+        decimal_separator: '.',
+        symbol_position: 'before',
+      },
+    });
+    fixture.componentInstance.serviceForm.controls.price_from.updateValueAndValidity();
+    fixture.componentInstance.startCreate();
+    fixture.componentInstance.serviceForm.setValue({
+      name: 'Consulta estetica',
+      description: 'Valoracion comercial',
+      duration_minutes: 30,
+      price_from: 120.5,
+      benefits: '',
+      common_objections: '',
+      is_active: true,
+    });
+
+    fixture.componentInstance.saveService();
+
+    expect(api.createService).toHaveBeenCalledWith(expect.objectContaining({ price_from: 120.5 }));
   });
 
   it('updates the selected service', () => {

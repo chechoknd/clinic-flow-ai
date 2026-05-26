@@ -1,8 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 
-import { ClinicServiceItem } from '../../core/services/api.models';
+import { ClinicProfile, ClinicServiceItem, CurrencyMetadata } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
+import { defaultCurrency, formatClinicCurrency } from '../../shared/currency-format';
 
 @Component({
   selector: 'app-services-page',
@@ -15,6 +16,7 @@ export class ServicesPage {
   private readonly fb = inject(FormBuilder);
 
   readonly services = signal<ClinicServiceItem[]>([]);
+  readonly clinic = signal<ClinicProfile | null>(null);
   readonly selectedService = signal<ClinicServiceItem | null>(null);
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -22,18 +24,27 @@ export class ServicesPage {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
   readonly formTitle = computed(() => (this.selectedService() ? 'Editar servicio' : 'Nuevo servicio'));
+  readonly currentCurrency = computed(() => this.clinic()?.currency ?? defaultCurrency);
+  readonly priceStep = computed(() => (this.currentCurrency().decimal_digits === 0 ? '1' : '0.01'));
+  readonly priceDecimalHelp = computed(() => {
+    const currency = this.currentCurrency();
+    return currency.decimal_digits === 0
+      ? `Valor en ${currency.code}, sin decimales.`
+      : `Valor en ${currency.code}, hasta ${currency.decimal_digits} decimales.`;
+  });
 
   readonly serviceForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     description: [''],
     duration_minutes: [60, [Validators.required, Validators.min(1)]],
-    price_from: [0, [Validators.required, Validators.min(0)]],
+    price_from: [0, [Validators.required, Validators.min(0), this.pricePrecisionValidator()]],
     benefits: [''],
     common_objections: [''],
     is_active: [true],
   });
 
   constructor() {
+    this.loadClinic();
     this.loadServices();
   }
 
@@ -116,6 +127,15 @@ export class ServicesPage {
     });
   }
 
+  formatPrice(value: number | null | undefined, currencyCode?: string): string {
+    const clinicCurrency = this.currentCurrency();
+    const currency: CurrencyMetadata = currencyCode && currencyCode !== clinicCurrency.code
+      ? { ...clinicCurrency, code: currencyCode as CurrencyMetadata['code'] }
+      : clinicCurrency;
+
+    return formatClinicCurrency(value, currency);
+  }
+
   deleteSelected(): void {
     const selected = this.selectedService();
     if (!selected) {
@@ -138,6 +158,16 @@ export class ServicesPage {
     });
   }
 
+  private loadClinic(): void {
+    this.api.clinicCurrent().subscribe({
+      next: (profile) => {
+        this.clinic.set(profile);
+        this.serviceForm.controls.price_from.updateValueAndValidity();
+      },
+      error: () => this.error.set('No fue posible cargar la moneda de la clinica.'),
+    });
+  }
+
   private loadServices(): void {
     this.loading.set(true);
     this.api.services().subscribe({
@@ -155,6 +185,26 @@ export class ServicesPage {
   private clearMessages(): void {
     this.error.set(null);
     this.success.set(null);
+  }
+
+  private pricePrecisionValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (value === null || value === undefined || value === '') {
+        return null;
+      }
+
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) {
+        return { invalidPrice: true };
+      }
+
+      const decimalDigits = this.currentCurrency().decimal_digits;
+      const factor = 10 ** decimalDigits;
+      return Math.round(amount * factor) === amount * factor
+        ? null
+        : { currencyDecimals: { allowed: decimalDigits } };
+    };
   }
 
   private splitLines(value: string): string[] {

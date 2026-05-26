@@ -214,3 +214,19 @@ No new backend endpoint, WhatsApp automation, message sending, clinical records,
 ### Consequences
 
 The MVP should feel closer to a practical receptionist workspace while staying inside the manual assisted workflow. If pilots need richer prioritization, the frontend-computed dashboard queue can later be replaced or supported by a dedicated backend action-summary endpoint with explicit scoring rules.
+
+## 2026-05-26 — Implement clinic-level currency configuration
+
+### Context
+
+ClinicFlow AI is expected to support clinics in Colombia, Peru, Argentina, and Chile. The current service catalog stores `price_from`, and the frontend has already exposed a hardcoded `COP` label. The MVP needs correct storage and display per clinic without adding payments, invoicing, or exchange-rate complexity.
+
+### Decision
+
+Implement multi-currency support around clinic-level `country_code` and `currency_code`, validated by a small backend-owned static catalog for the MVP. The initial catalog covers `COP`, `PEN`, `ARS`, and `CLP`.
+
+The MVP will not implement currency conversion, real-time exchange rates, payment processing, or accounting behavior. Existing service prices should be interpreted in the clinic default currency.
+
+### Consequences
+
+The application can expand across initial Latin American markets with simple tenant-level currency configuration. Backend validation and API metadata keep frontend formatting consistent, while avoiding a heavier country/currency administration model until product needs justify it. Future work should reduce or replace current `float64` money handling before adding more amount fields.

@@ -15,6 +15,7 @@ export interface ClinicServiceItem {
   description?: string;
   duration_minutes?: number;
   price_from?: number;
+  currency_code?: string;
   benefits: string[];
   faq: unknown[];
   common_objections: string[];
@@ -100,12 +101,27 @@ export interface FollowUpMessageResponse {
 }
 
 export type CommunicationTone = 'amable' | 'profesional' | 'cercano' | 'juvenil' | 'elegante';
+export type CountryCode = 'CO' | 'PE' | 'AR' | 'CL';
+export type CurrencyCode = 'COP' | 'PEN' | 'ARS' | 'CLP';
+
+export interface CurrencyMetadata {
+  code: CurrencyCode;
+  symbol: string;
+  locale: string;
+  decimal_digits: number;
+  thousand_separator: string;
+  decimal_separator: string;
+  symbol_position: 'before' | 'after';
+}
 
 export interface ClinicProfile {
   id: string;
   name: string;
   clinic_type: string;
   city: string;
+  country_code: CountryCode;
+  currency_code: CurrencyCode;
+  currency: CurrencyMetadata;
   phone?: string;
   whatsapp: string;
   address?: string;
@@ -117,6 +133,8 @@ export interface ClinicProfile {
 export interface UpdateClinicPayload {
   name: string;
   city: string;
+  country_code: CountryCode;
+  currency_code: CurrencyCode;
   phone?: string;
   whatsapp: string;
   address?: string;

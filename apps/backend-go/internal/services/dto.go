@@ -9,6 +9,7 @@ type ServiceResponse struct {
 	Description      *string         `json:"description,omitempty"`
 	DurationMinutes  *int            `json:"duration_minutes,omitempty"`
 	PriceFrom        *float64        `json:"price_from,omitempty"`
+	CurrencyCode     string          `json:"currency_code"`
 	Benefits         json.RawMessage `json:"benefits"`
 	FAQ              json.RawMessage `json:"faq"`
 	CommonObjections json.RawMessage `json:"common_objections"`

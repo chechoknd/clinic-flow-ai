@@ -36,6 +36,8 @@ func TestCurrentReturnsClinicResponse(t *testing.T) {
 		Name:              "Sonrisa Viva Demo",
 		ClinicType:        "odontologia",
 		City:              "Bogota",
+		CountryCode:       "CO",
+		CurrencyCode:      "COP",
 		Phone:             &phone,
 		WhatsApp:          "+573001112233",
 		Address:           &address,
@@ -72,6 +74,8 @@ func TestUpdateChangesClinicData(t *testing.T) {
 		Name:              "Old Name",
 		ClinicType:        "odontologia",
 		City:              "Old City",
+		CountryCode:       "CO",
+		CurrencyCode:      "COP",
 		WhatsApp:          "+573001112233",
 		CommunicationTone: "amable",
 	}}
@@ -80,6 +84,8 @@ func TestUpdateChangesClinicData(t *testing.T) {
 	req := UpdateClinicRequest{
 		Name:              "New Name",
 		City:              "New City",
+		CountryCode:       "PE",
+		CurrencyCode:      "PEN",
 		WhatsApp:          "+573009998877",
 		CommunicationTone: "profesional",
 		OpeningHours:      []byte(`{"all":"24h"}`),
@@ -94,7 +100,7 @@ func TestUpdateChangesClinicData(t *testing.T) {
 	if !repo.updated {
 		t.Fatal("repository was not updated")
 	}
-	if res.Name != "New Name" || res.City != "New City" || res.CommunicationTone != "profesional" {
+	if res.Name != "New Name" || res.City != "New City" || res.CountryCode != "PE" || res.CurrencyCode != "PEN" || res.Currency.Code != "PEN" || res.CommunicationTone != "profesional" {
 		t.Fatalf("unexpected response: %#v", res)
 	}
 }

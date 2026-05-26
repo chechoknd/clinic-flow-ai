@@ -7,6 +7,7 @@ type ServiceEntity struct {
 	Description      *string
 	DurationMinutes  *int
 	PriceFrom        *float64
+	CurrencyCode     string
 	Benefits         []byte
 	FAQ              []byte
 	CommonObjections []byte

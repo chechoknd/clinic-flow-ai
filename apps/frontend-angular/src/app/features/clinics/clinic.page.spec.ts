@@ -10,6 +10,17 @@ const clinic: ClinicProfile = {
   name: 'Sonrisa Viva',
   clinic_type: 'dental',
   city: 'Bogota',
+  country_code: 'CO',
+  currency_code: 'COP',
+  currency: {
+    code: 'COP',
+    symbol: '$',
+    locale: 'es-CO',
+    decimal_digits: 0,
+    thousand_separator: '.',
+    decimal_separator: ',',
+    symbol_position: 'before',
+  },
   phone: '+5710000000',
   whatsapp: '+573001234567',
   address: 'Calle 1',
@@ -63,10 +74,21 @@ describe('ClinicPage', () => {
     expect(fixture.componentInstance.clinicForm.controls.name.touched).toBe(true);
   });
 
+
+  it('keeps country and currency selections synchronized', () => {
+    fixture.componentInstance.onCountryChange('CL');
+    expect(fixture.componentInstance.clinicForm.controls.currency_code.value).toBe('CLP');
+
+    fixture.componentInstance.onCurrencyChange('ARS');
+    expect(fixture.componentInstance.clinicForm.controls.country_code.value).toBe('AR');
+  });
+
   it('updates the clinic profile with normalized optional fields', () => {
     fixture.componentInstance.clinicForm.setValue({
       name: 'Sonrisa Viva Norte',
       city: 'Medellin',
+      country_code: 'PE',
+      currency_code: 'PEN',
       phone: '',
       whatsapp: '+573009998877',
       address: 'Carrera 10',
@@ -78,6 +100,8 @@ describe('ClinicPage', () => {
     expect(api.updateClinicCurrent).toHaveBeenCalledWith({
       name: 'Sonrisa Viva Norte',
       city: 'Medellin',
+      country_code: 'PE',
+      currency_code: 'PEN',
       phone: undefined,
       whatsapp: '+573009998877',
       address: 'Carrera 10',

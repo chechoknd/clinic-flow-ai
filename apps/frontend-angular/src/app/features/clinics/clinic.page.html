@@ -31,6 +31,14 @@
             <p class="font-semibold text-slate-950">{{ item.city }}</p>
           </div>
           <div>
+            <p class="text-sm text-slate-500">Pais</p>
+            <p class="font-semibold text-slate-950">{{ item.country_code }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-slate-500">Moneda</p>
+            <p class="font-semibold text-slate-950">{{ item.currency_code }} · {{ item.currency.symbol }}</p>
+          </div>
+          <div>
             <p class="text-sm text-slate-500">WhatsApp</p>
             <p class="font-semibold text-slate-950">{{ item.whatsapp }}</p>
           </div>
@@ -80,6 +88,36 @@
             <span class="text-xs text-red-600">Ingresa la ciudad de la clinica.</span>
           }
         </label>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <label class="grid gap-2 text-sm font-medium text-slate-700">
+            Pais
+            <select
+              formControlName="country_code"
+              data-testid="clinic-country-select"
+              class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              (change)="onCountryChange($any($event.target).value)"
+            >
+              @for (item of countryCurrencies; track item.country_code) {
+                <option [value]="item.country_code">{{ item.country_label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="grid gap-2 text-sm font-medium text-slate-700">
+            Moneda
+            <select
+              formControlName="currency_code"
+              data-testid="clinic-currency-select"
+              class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              (change)="onCurrencyChange($any($event.target).value)"
+            >
+              @for (item of countryCurrencies; track item.currency_code) {
+                <option [value]="item.currency_code">{{ item.currency_label }}</option>
+              }
+            </select>
+          </label>
+        </div>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
           WhatsApp

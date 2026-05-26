@@ -177,6 +177,52 @@ Response:
 }
 ```
 
+## Currency Contract
+
+Status: Implemented for MVP baseline.
+
+The API exposes clinic-level country/currency configuration and service-level `currency_code` next to `price_from`. The MVP does not perform exchange-rate conversion.
+
+Clinic response additions:
+
+```json
+{
+  "country_code": "CO",
+  "currency_code": "COP",
+  "currency": {
+    "code": "COP",
+    "symbol": "$",
+    "locale": "es-CO",
+    "decimal_digits": 0,
+    "thousand_separator": ".",
+    "decimal_separator": ",",
+    "symbol_position": "before"
+  }
+}
+```
+
+Clinic update additions:
+
+```json
+{
+  "country_code": "CO",
+  "currency_code": "COP"
+}
+```
+
+Supported MVP country/currency pairs:
+
+| country_code | currency_code | Locale | Decimal digits |
+| --- | --- | --- | --- |
+| CO | COP | es-CO | 0 |
+| PE | PEN | es-PE | 2 |
+| AR | ARS | es-AR | 2 |
+| CL | CLP | es-CL | 0 |
+
+Service responses include `currency_code` next to `price_from`. `price_from` remains numeric for MVP compatibility; exact decimal request/response handling remains future technical debt before adding more money fields.
+
+No endpoint should perform exchange-rate conversion in the MVP.
+
 ## Clinic Endpoints
 
 ### GET /api/clinics/current
@@ -191,6 +237,17 @@ Response:
   "name": "Sonrisa Viva Demo",
   "clinic_type": "odontologia",
   "city": "Bogota",
+  "country_code": "CO",
+  "currency_code": "COP",
+  "currency": {
+    "code": "COP",
+    "symbol": "$",
+    "locale": "es-CO",
+    "decimal_digits": 0,
+    "thousand_separator": ".",
+    "decimal_separator": ",",
+    "symbol_position": "before"
+  },
   "phone": "+573001112233",
   "whatsapp": "+573001112233",
   "address": "Calle 123 #45-67",
@@ -228,6 +285,8 @@ Request:
 {
   "name": "Sonrisa Viva Demo",
   "city": "Bogota",
+  "country_code": "CO",
+  "currency_code": "COP",
   "phone": "+573001112233",
   "whatsapp": "+573001112233",
   "address": "Calle 123 #45-67",
@@ -256,6 +315,7 @@ Service response shape:
   "description": "Tratamiento estetico para mejorar el tono de la sonrisa con valoracion previa.",
   "duration_minutes": 60,
   "price_from": 250000,
+  "currency_code": "COP",
   "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
   "faq": [
     {
@@ -283,6 +343,7 @@ Response:
     "description": "Tratamiento estetico para mejorar el tono de la sonrisa con valoracion previa.",
     "duration_minutes": 60,
     "price_from": 250000,
+    "currency_code": "COP",
     "benefits": ["Mejora estetica visible", "Valoracion personalizada"],
     "faq": [],
     "common_objections": ["Esta muy caro", "Me da miedo"],

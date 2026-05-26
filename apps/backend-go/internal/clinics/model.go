@@ -5,6 +5,8 @@ type Clinic struct {
 	Name              string
 	ClinicType        string
 	City              string
+	CountryCode       string
+	CurrencyCode      string
 	Phone             *string
 	WhatsApp          string
 	Address           *string

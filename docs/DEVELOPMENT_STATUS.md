@@ -47,6 +47,7 @@ Phase B — Manual Conversation Analysis
 - Added Angular Inbox AI screen for pasted conversation analysis, suggested reply copy, human-reviewed lead creation, and existing lead follow-up updates through the existing leads API.
 - Improved frontend UX around the receptionist daily workflow: actionable dashboard queue, clearer navigation, lead status counts, follow-up urgency groups, and a primary reviewed action in Inbox AI.
 - Added optional UX demo seed data with five extra services and two fictional leads per commercial status, plus a Docker Compose seed helper script.
+- Implemented MVP multi-currency baseline with clinic-level country/currency configuration, backend validation, service currency metadata, frontend formatting, and updated docs.
 
 ## In-Progress Items
 
@@ -58,6 +59,7 @@ Phase B — Manual Conversation Analysis
 - Define retention rules before storing full inbound conversations.
 - Define exact dashboard action scoring before coding priority queues.
 - Keep seed data fictional and update the demo seed helper if new demo datasets are added.
+- Replace current `float64` money DTO handling with exact decimal parsing before adding more monetary fields.
 - Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
 
@@ -81,6 +83,7 @@ Phase B — Manual Conversation Analysis
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
 - Backend unit tests exist for implemented modules; e2e coverage should be expanded.
+- Currency support is implemented for the MVP baseline; exact decimal money DTOs remain technical debt before adding more monetary fields.
 
 ## Next Recommended Step
 
@@ -96,6 +99,7 @@ Run a local product review of the updated receptionist workflow, then decide whe
 - Grouped Follow-ups into `Vencidos`, `Hoy`, and `Proximos` for clearer prioritization.
 - Simplified Inbox AI save actions around one primary human-reviewed action based on whether an existing lead is selected.
 - Added optional UX demo seed data and `database/seeds/apply_demo_seeds.sh` to populate more services and leads for local review.
+- Implemented clinic-level currency support for Colombia, Peru, Argentina, and Chile without exchange rates, payments, or invoicing.
 
 ### 2026-05-24
 

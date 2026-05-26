@@ -48,6 +48,21 @@ func (s *Service) Update(ctx context.Context, clinicID string, req UpdateClinicR
 	if req.City == "" {
 		return ClinicResponse{}, errors.New("city is required")
 	}
+	req.CountryCode = shared.NormalizeCountryCode(req.CountryCode)
+	req.CurrencyCode = shared.NormalizeCurrencyCode(req.CurrencyCode)
+	if req.CountryCode == "" {
+		req.CountryCode = "CO"
+	}
+	if req.CurrencyCode == "" {
+		currency, ok := shared.CurrencyForCountry(req.CountryCode)
+		if !ok {
+			return ClinicResponse{}, errors.New("invalid country code")
+		}
+		req.CurrencyCode = currency.Code
+	}
+	if !shared.IsValidCountryCurrency(req.CountryCode, req.CurrencyCode) {
+		return ClinicResponse{}, errors.New("invalid country currency")
+	}
 	req.WhatsApp = shared.NormalizePhone(req.WhatsApp)
 	if req.WhatsApp == "" {
 		return ClinicResponse{}, errors.New("whatsapp is required")
@@ -79,6 +94,8 @@ func (s *Service) Update(ctx context.Context, clinicID string, req UpdateClinicR
 		ID:                clinicID,
 		Name:              req.Name,
 		City:              req.City,
+		CountryCode:       req.CountryCode,
+		CurrencyCode:      req.CurrencyCode,
 		Phone:             req.Phone,
 		WhatsApp:          req.WhatsApp,
 		Address:           req.Address,
@@ -103,11 +120,16 @@ func (s *Service) Update(ctx context.Context, clinicID string, req UpdateClinicR
 }
 
 func mapClinicToResponse(clinic Clinic) ClinicResponse {
+	currency, _ := shared.CurrencyByCode(clinic.CurrencyCode)
+
 	return ClinicResponse{
 		ID:                clinic.ID,
 		Name:              clinic.Name,
 		ClinicType:        clinic.ClinicType,
 		City:              clinic.City,
+		CountryCode:       clinic.CountryCode,
+		CurrencyCode:      clinic.CurrencyCode,
+		Currency:          currency,
 		Phone:             clinic.Phone,
 		WhatsApp:          clinic.WhatsApp,
 		Address:           clinic.Address,

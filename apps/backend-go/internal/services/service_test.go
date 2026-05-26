@@ -6,8 +6,9 @@ import (
 )
 
 type fakeRepository struct {
-	entities []ServiceEntity
-	err      error
+	entities     []ServiceEntity
+	err          error
+	currencyCode string
 }
 
 func (r *fakeRepository) ListByClinicID(ctx context.Context, clinicID string) ([]ServiceEntity, error) {
@@ -51,6 +52,16 @@ func (r *fakeRepository) Update(ctx context.Context, s ServiceEntity) error {
 	return ErrServiceNotFound
 }
 
+func (r *fakeRepository) CurrencyCodeByClinicID(ctx context.Context, clinicID string) (string, error) {
+	if r.err != nil {
+		return "", r.err
+	}
+	if r.currencyCode != "" {
+		return r.currencyCode, nil
+	}
+	return "COP", nil
+}
+
 func (r *fakeRepository) Delete(ctx context.Context, clinicID, serviceID string) error {
 	if r.err != nil {
 		return r.err
@@ -66,8 +77,8 @@ func (r *fakeRepository) Delete(ctx context.Context, clinicID, serviceID string)
 
 func TestServiceList(t *testing.T) {
 	repo := &fakeRepository{entities: []ServiceEntity{
-		{ID: "1", ClinicID: "clinic-1", Name: "Service 1"},
-		{ID: "2", ClinicID: "clinic-1", Name: "Service 2"},
+		{ID: "1", ClinicID: "clinic-1", Name: "Service 1", CurrencyCode: "COP"},
+		{ID: "2", ClinicID: "clinic-1", Name: "Service 2", CurrencyCode: "COP"},
 	}}
 	s := NewService(repo)
 
@@ -91,5 +102,27 @@ func TestServiceCreate(t *testing.T) {
 	}
 	if res.ID != "new-id" || res.Name != "New Service" {
 		t.Fatalf("unexpected response: %#v", res)
+	}
+}
+
+func TestServiceCreateRejectsDecimalsForZeroDecimalCurrency(t *testing.T) {
+	price := 120000.50
+	repo := &fakeRepository{currencyCode: "COP"}
+	s := NewService(repo)
+
+	_, err := s.Create(context.Background(), "clinic-1", CreateServiceRequest{Name: "Limpieza", PriceFrom: &price})
+	if err == nil {
+		t.Fatal("expected decimal validation error")
+	}
+}
+
+func TestServiceCreateAllowsTwoDecimalsForTwoDecimalCurrency(t *testing.T) {
+	price := 120.50
+	repo := &fakeRepository{currencyCode: "PEN"}
+	s := NewService(repo)
+
+	_, err := s.Create(context.Background(), "clinic-1", CreateServiceRequest{Name: "Consulta", PriceFrom: &price})
+	if err != nil {
+		t.Fatalf("expected price to be accepted: %v", err)
 	}
 }

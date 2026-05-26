@@ -64,7 +64,8 @@ apps/frontend-angular/src/app/
 │   ├── leads/
 │   └── services/
 ├── shared/
-│   └── components/
+│   ├── components/
+│   └── currency-format.ts
 ├── app.config.ts
 ├── app.routes.ts
 └── app.ts
@@ -203,6 +204,25 @@ Notes:
 - Follow-ups are implemented through `leads.next_action_at`; there is no separate `followups` table.
 - AI generation metadata is not persisted yet; there is no `ai_generations` table.
 - `pgvector` may be prepared for future phases, but it is not required for MVP functionality.
+
+## Currency Architecture
+
+Status: Implemented for MVP baseline.
+
+ClinicFlow AI needs multi-country commercial price display without becoming a payment, invoicing, or exchange-rate system. The approach is documented in `docs/CURRENCY_STRATEGY.md`.
+
+Implemented architecture:
+
+- Store default `country_code` and `currency_code` on each clinic.
+- Validate values against a small backend-owned static currency catalog for the MVP.
+- Keep service prices scoped to the clinic default currency.
+- Do not perform automatic currency conversion or exchange-rate lookup.
+- Expose currency metadata through clinic API responses so the frontend can format prices consistently.
+- Expose service-level `currency_code` next to `price_from` for screens that render service prices.
+- Use shared frontend formatting utilities instead of hardcoding symbols such as `COP`, `$`, or `S/` in feature templates.
+- Keep monetary storage in PostgreSQL `NUMERIC(12,2)` for MVP compatibility, while avoiding new `float64`-based money handling in future backend code.
+
+Initial planned currencies: `COP`, `PEN`, `ARS`, and `CLP`.
 
 ## Smart Lead Inbox Architecture
 

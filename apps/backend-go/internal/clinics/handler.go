@@ -64,7 +64,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		// Basic validation error mapping (could be improved with specific error types)
-		if err.Error() == "clinic name is required" || err.Error() == "city is required" || err.Error() == "whatsapp is required" {
+		if err.Error() == "clinic name is required" || err.Error() == "city is required" || err.Error() == "whatsapp is required" || err.Error() == "invalid country code" || err.Error() == "invalid country currency" {
 			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error())
 			return
 		}

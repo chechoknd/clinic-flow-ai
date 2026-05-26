@@ -14,6 +14,7 @@ type Repository interface {
 	Create(ctx context.Context, service ServiceEntity) (ServiceEntity, error)
 	Update(ctx context.Context, service ServiceEntity) error
 	Delete(ctx context.Context, clinicID, serviceID string) error
+	CurrencyCodeByClinicID(ctx context.Context, clinicID string) (string, error)
 }
 
 type PostgresRepository struct {
@@ -33,6 +34,7 @@ func (r *PostgresRepository) ListByClinicID(ctx context.Context, clinicID string
 			description,
 			duration_minutes,
 			price_from,
+			(SELECT c.currency_code FROM clinics c WHERE c.id = clinic_services.clinic_id),
 			benefits,
 			faq,
 			common_objections,
@@ -58,6 +60,7 @@ func (r *PostgresRepository) ListByClinicID(ctx context.Context, clinicID string
 			&s.Description,
 			&s.DurationMinutes,
 			&s.PriceFrom,
+			&s.CurrencyCode,
 			&s.Benefits,
 			&s.FAQ,
 			&s.CommonObjections,
@@ -85,6 +88,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, serviceID s
 			description,
 			duration_minutes,
 			price_from,
+			(SELECT c.currency_code FROM clinics c WHERE c.id = clinic_services.clinic_id),
 			benefits,
 			faq,
 			common_objections,
@@ -102,6 +106,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, serviceID s
 		&s.Description,
 		&s.DurationMinutes,
 		&s.PriceFrom,
+		&s.CurrencyCode,
 		&s.Benefits,
 		&s.FAQ,
 		&s.CommonObjections,
@@ -218,4 +223,15 @@ func (r *PostgresRepository) Delete(ctx context.Context, clinicID, serviceID str
 	}
 
 	return nil
+}
+
+func (r *PostgresRepository) CurrencyCodeByClinicID(ctx context.Context, clinicID string) (string, error) {
+	const query = `SELECT currency_code FROM clinics WHERE id = $1 LIMIT 1`
+
+	var currencyCode string
+	err := r.db.QueryRowContext(ctx, query, clinicID).Scan(&currencyCode)
+	if err != nil {
+		return "", err
+	}
+	return currencyCode, nil
 }

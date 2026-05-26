@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math"
 	"strings"
+
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 )
 
 var ErrMissingClinicID = errors.New("clinic id is required")
@@ -62,6 +65,10 @@ func (s *Service) Create(ctx context.Context, clinicID string, req CreateService
 		return ServiceResponse{}, errors.New("service name is required")
 	}
 
+	if err := s.validatePriceForClinic(ctx, clinicID, req.PriceFrom); err != nil {
+		return ServiceResponse{}, err
+	}
+
 	// Default empty JSON if nil
 	if req.Benefits == nil {
 		req.Benefits = json.RawMessage(`[]`)
@@ -90,6 +97,11 @@ func (s *Service) Create(ctx context.Context, clinicID string, req CreateService
 		return ServiceResponse{}, err
 	}
 
+	created, err = s.repository.FindByID(ctx, clinicID, created.ID)
+	if err != nil {
+		return ServiceResponse{}, err
+	}
+
 	return mapModelToResponse(created)
 }
 
@@ -102,6 +114,10 @@ func (s *Service) Update(ctx context.Context, clinicID, serviceID string, req Up
 	req.Name = strings.TrimSpace(req.Name)
 	if req.Name == "" {
 		return ServiceResponse{}, errors.New("service name is required")
+	}
+
+	if err := s.validatePriceForClinic(ctx, clinicID, req.PriceFrom); err != nil {
+		return ServiceResponse{}, err
 	}
 
 	entity := ServiceEntity{
@@ -121,9 +137,12 @@ func (s *Service) Update(ctx context.Context, clinicID, serviceID string, req Up
 		return ServiceResponse{}, err
 	}
 
-	// We could return mapModelToResponse(entity) but some fields might be updated by DB (like updated_at, though not in model yet)
-	// For consistency with create, let's just map it.
-	return mapModelToResponse(entity)
+	updated, err := s.repository.FindByID(ctx, clinicID, serviceID)
+	if err != nil {
+		return ServiceResponse{}, err
+	}
+
+	return mapModelToResponse(updated)
 }
 
 func (s *Service) Delete(ctx context.Context, clinicID, serviceID string) error {
@@ -135,6 +154,30 @@ func (s *Service) Delete(ctx context.Context, clinicID, serviceID string) error 
 	return s.repository.Delete(ctx, clinicID, serviceID)
 }
 
+func (s *Service) validatePriceForClinic(ctx context.Context, clinicID string, price *float64) error {
+	if price == nil {
+		return nil
+	}
+	if *price < 0 {
+		return errors.New("price_from must be greater than or equal to zero")
+	}
+
+	currencyCode, err := s.repository.CurrencyCodeByClinicID(ctx, clinicID)
+	if err != nil {
+		return err
+	}
+	currency, ok := shared.CurrencyByCode(currencyCode)
+	if !ok {
+		return errors.New("unsupported clinic currency")
+	}
+
+	factor := math.Pow10(currency.DecimalDigits)
+	if math.Round(*price*factor) != *price*factor {
+		return errors.New("price_from has too many decimal places for clinic currency")
+	}
+	return nil
+}
+
 func mapModelToResponse(m ServiceEntity) (ServiceResponse, error) {
 	return ServiceResponse{
 		ID:               m.ID,
@@ -143,6 +186,7 @@ func mapModelToResponse(m ServiceEntity) (ServiceResponse, error) {
 		Description:      m.Description,
 		DurationMinutes:  m.DurationMinutes,
 		PriceFrom:        m.PriceFrom,
+		CurrencyCode:     m.CurrencyCode,
 		Benefits:         json.RawMessage(m.Benefits),
 		FAQ:              json.RawMessage(m.FAQ),
 		CommonObjections: json.RawMessage(m.CommonObjections),

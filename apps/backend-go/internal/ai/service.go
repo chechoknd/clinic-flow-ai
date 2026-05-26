@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/leads"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/services"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 )
 
 type Service struct {
@@ -161,7 +161,7 @@ func (s *Service) getAIContext(ctx context.Context, clinicID, serviceID, leadID 
 			return Context{}, err
 		}
 		aiCtx.ServiceName = serviceRes.Name
-		aiCtx.ServicePriceFrom = formatServicePriceFrom(serviceRes.PriceFrom)
+		aiCtx.ServicePriceFrom = formatServicePriceFrom(serviceRes.PriceFrom, serviceRes.CurrencyCode)
 		aiCtx.ServiceBenefits = string(serviceRes.Benefits)
 		aiCtx.ServiceFAQ = string(serviceRes.FAQ)
 		aiCtx.CommonObjections = string(serviceRes.CommonObjections)
@@ -191,7 +191,7 @@ func (s *Service) getAIContext(ctx context.Context, clinicID, serviceID, leadID 
 		return Context{}, err
 	}
 	aiCtx.ServiceName = serviceRes.Name
-	aiCtx.ServicePriceFrom = formatServicePriceFrom(serviceRes.PriceFrom)
+	aiCtx.ServicePriceFrom = formatServicePriceFrom(serviceRes.PriceFrom, serviceRes.CurrencyCode)
 	aiCtx.ServiceBenefits = string(serviceRes.Benefits)
 	aiCtx.ServiceFAQ = string(serviceRes.FAQ)
 	aiCtx.CommonObjections = string(serviceRes.CommonObjections)
@@ -199,11 +199,16 @@ func (s *Service) getAIContext(ctx context.Context, clinicID, serviceID, leadID 
 	return aiCtx, nil
 }
 
-func formatServicePriceFrom(price *float64) string {
+func formatServicePriceFrom(price *float64, currencyCode string) string {
 	if price == nil {
 		return "no informado"
 	}
-	return strconv.FormatFloat(*price, 'f', -1, 64)
+	currency, ok := shared.CurrencyByCode(currencyCode)
+	if !ok {
+		return fmt.Sprintf("%.2f", *price)
+	}
+	format := fmt.Sprintf("%%.%df", currency.DecimalDigits)
+	return fmt.Sprintf("%s %s", currency.Code, fmt.Sprintf(format, *price))
 }
 
 func validateReplySuggestionRequest(req ReplySuggestionRequest) error {

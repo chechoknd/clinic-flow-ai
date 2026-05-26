@@ -39,6 +39,8 @@ func (r *handlerRepository) Create(ctx context.Context, s ServiceEntity) (Servic
 		return ServiceEntity{}, r.err
 	}
 	s.ID = "new-id"
+	s.CurrencyCode = "COP"
+	r.entities = append(r.entities, s)
 	return s, nil
 }
 
@@ -50,9 +52,16 @@ func (r *handlerRepository) Delete(ctx context.Context, clinicID, serviceID stri
 	return r.err
 }
 
+func (r *handlerRepository) CurrencyCodeByClinicID(ctx context.Context, clinicID string) (string, error) {
+	if r.err != nil {
+		return "", r.err
+	}
+	return "COP", nil
+}
+
 func TestHandlerList(t *testing.T) {
 	repo := &handlerRepository{entities: []ServiceEntity{
-		{ID: "1", ClinicID: "clinic-1", Name: "Service 1", IsActive: true, Benefits: []byte("[]"), FAQ: []byte("[]"), CommonObjections: []byte("[]")},
+		{ID: "1", ClinicID: "clinic-1", Name: "Service 1", CurrencyCode: "COP", IsActive: true, Benefits: []byte("[]"), FAQ: []byte("[]"), CommonObjections: []byte("[]")},
 	}}
 	h := NewHandler(NewService(repo))
 
