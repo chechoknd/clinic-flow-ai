@@ -48,16 +48,18 @@ Phase B — Manual Conversation Analysis
 - Improved frontend UX around the receptionist daily workflow: actionable dashboard queue, clearer navigation, lead status counts, follow-up urgency groups, and a primary reviewed action in Inbox AI.
 - Added optional UX demo seed data with five extra services and two fictional leads per commercial status, plus a Docker Compose seed helper script.
 - Implemented MVP multi-currency baseline with clinic-level country/currency configuration, backend validation, service currency metadata, frontend formatting, and updated docs.
+- Implemented backend-prioritized dashboard action queue endpoint and connected the Angular dashboard to it.
+- Implemented backend AI generation metadata persistence for provider/model/feature/status/safety audit without storing raw prompts or conversations.
+- Implemented reviewed Inbox AI metadata persistence on lead create/update and connected high-intent/objection signals to dashboard priority actions.
 
 ## In-Progress Items
 
-- Phase B manual conversation analysis and first daily-workflow UX enhancements are implemented and ready for local review.
+- Review the actionable dashboard and Inbox AI workflow with real local usage.
 
 ## Pending Items
 
-- Review the actionable dashboard, Inbox AI create/update lead workflow, and urgency grouping with real local usage.
 - Define retention rules before storing full inbound conversations.
-- Define exact dashboard action scoring before coding priority queues.
+- Expand dashboard action scoring later with aging, follow-up history, and conversion outcome signals.
 - Keep seed data fictional and update the demo seed helper if new demo datasets are added.
 - Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
@@ -75,20 +77,28 @@ Phase B — Manual Conversation Analysis
 
 ## Technical Debt
 
-- Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
+- Backend has implemented MVP modules and AI usage metadata, but content generation and richer AI error handling remain pending.
 - Frontend screens currently cover first navigation, lead workflows, AI reply generation, follow-up actions, service catalog CRUD, and clinic profile editing.
-- Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, and frontend actions to create or update leads from reviewed analysis. Dashboard now has a frontend-computed action queue from current leads/follow-ups; conversation analysis persistence and remaining proposed API endpoints are not implemented.
+- Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, frontend actions to create or update leads from reviewed analysis, and reviewed AI metadata persistence. Dashboard now consumes a backend-prioritized action queue for follow-up, new-lead, high-intent, and objection signals; remaining proposed API endpoints are not implemented.
 - API contracts now reflect implemented MVP endpoints, but should continue to be updated when response shapes change.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
-- AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
+- AI safety validation and basic usage metadata exist, but provider error taxonomy still needs improvement.
 - Backend unit tests exist for implemented modules; e2e coverage should be expanded.
 - Currency support is implemented for the MVP baseline; service prices now use string decimal API contracts and exact backend validation.
 
 ## Next Recommended Step
 
-Run a local product review of the updated receptionist workflow, then decide whether the dashboard action queue needs a dedicated backend endpoint for richer scoring.
+Review the updated Inbox AI to dashboard workflow locally and tune priority wording/order from real receptionist usage.
 
 ## Change Log
+
+### 2026-05-27
+
+- Added `GET /api/dashboard/actions` with backend-owned daily prioritization for overdue follow-ups, today's follow-ups, and new leads.
+- Updated Angular `Atender hoy` to consume the dashboard action queue endpoint instead of assembling actions from separate leads and follow-ups calls.
+- Expanded API service tests and smoke coverage for dashboard priority actions.
+- Added `ai_generations` metadata persistence for AI feature, provider, model, status, safety status, user, clinic, and character counts without storing raw prompt or conversation content.
+- Added `lead_ai_insights` metadata persistence for reviewed Inbox AI analysis and dashboard prioritization of high-intent leads and detected objections.
 
 ### 2026-05-25
 

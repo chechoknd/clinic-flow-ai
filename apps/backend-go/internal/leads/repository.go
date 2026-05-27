@@ -3,6 +3,7 @@ package leads
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -12,9 +13,9 @@ var ErrLeadNotFound = errors.New("lead not found")
 type Repository interface {
 	List(ctx context.Context, clinicID string, filter ListFilter) ([]Lead, int, error)
 	ListFollowUps(ctx context.Context, clinicID string, filter FollowUpFilter) ([]Lead, int, error)
-	FindByID(ctx context.Context, clinicID, leadID string) (Lead, []LeadNote, error)
-	Create(ctx context.Context, lead Lead, initialNote string) (Lead, error)
-	Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string) error
+	FindByID(ctx context.Context, clinicID, leadID string) (Lead, []LeadNote, []AIInsight, error)
+	Create(ctx context.Context, lead Lead, initialNote string, insight *AIInsight) (Lead, error)
+	Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string, insight *AIInsight) error
 	CompleteFollowUp(ctx context.Context, clinicID, leadID, status, note string) error
 	RescheduleFollowUp(ctx context.Context, clinicID, leadID string, nextActionAt sql.NullTime, note string) error
 }
@@ -187,7 +188,7 @@ func (r *PostgresRepository) ListFollowUps(ctx context.Context, clinicID string,
 	return leads, total, nil
 }
 
-func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, leadID string) (Lead, []LeadNote, error) {
+func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, leadID string) (Lead, []LeadNote, []AIInsight, error) {
 	const leadQuery = `
 		SELECT
 			l.id::text,
@@ -221,10 +222,10 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, leadID stri
 		&l.UpdatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return Lead{}, nil, ErrLeadNotFound
+		return Lead{}, nil, nil, ErrLeadNotFound
 	}
 	if err != nil {
-		return Lead{}, nil, err
+		return Lead{}, nil, nil, err
 	}
 
 	const notesQuery = `
@@ -239,7 +240,7 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, leadID stri
 
 	rows, err := r.db.QueryContext(ctx, notesQuery, leadID)
 	if err != nil {
-		return l, nil, err
+		return l, nil, nil, err
 	}
 	defer rows.Close()
 
@@ -247,15 +248,20 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID, leadID stri
 	for rows.Next() {
 		var n LeadNote
 		if err := rows.Scan(&n.ID, &n.Body, &n.CreatedAt); err != nil {
-			return l, nil, err
+			return l, nil, nil, err
 		}
 		notes = append(notes, n)
 	}
 
-	return l, notes, nil
+	insights, err := r.listAIInsights(ctx, clinicID, leadID)
+	if err != nil {
+		return l, notes, nil, err
+	}
+
+	return l, notes, insights, nil
 }
 
-func (r *PostgresRepository) Create(ctx context.Context, l Lead, initialNote string) (Lead, error) {
+func (r *PostgresRepository) Create(ctx context.Context, l Lead, initialNote string, insight *AIInsight) (Lead, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return Lead{}, err
@@ -298,6 +304,14 @@ func (r *PostgresRepository) Create(ctx context.Context, l Lead, initialNote str
 		}
 	}
 
+	if insight != nil {
+		insight.ClinicID = l.ClinicID
+		insight.LeadID = l.ID
+		if err := insertAIInsightTx(ctx, tx, *insight); err != nil {
+			return Lead{}, err
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return Lead{}, err
 	}
@@ -305,7 +319,7 @@ func (r *PostgresRepository) Create(ctx context.Context, l Lead, initialNote str
 	return l, nil
 }
 
-func (r *PostgresRepository) Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string) error {
+func (r *PostgresRepository) Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string, insight *AIInsight) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -344,7 +358,113 @@ func (r *PostgresRepository) Update(ctx context.Context, clinicID, leadID string
 		}
 	}
 
+	if insight != nil {
+		insight.ClinicID = clinicID
+		insight.LeadID = leadID
+		if err := insertAIInsightTx(ctx, tx, *insight); err != nil {
+			return err
+		}
+	}
+
 	return tx.Commit()
+}
+
+func (r *PostgresRepository) listAIInsights(ctx context.Context, clinicID, leadID string) ([]AIInsight, error) {
+	const query = `
+		SELECT
+			id::text,
+			clinic_id::text,
+			lead_id::text,
+			ai_generation_id::text,
+			intent,
+			detected_objections,
+			COALESCE(commercial_summary, ''),
+			COALESCE(suggested_next_action, ''),
+			COALESCE(source, ''),
+			created_at
+		FROM lead_ai_insights
+		WHERE clinic_id = $1 AND lead_id = $2
+		ORDER BY created_at DESC
+		LIMIT 10
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, clinicID, leadID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var insights []AIInsight
+	for rows.Next() {
+		var insight AIInsight
+		var generationID sql.NullString
+		var objectionsRaw []byte
+		if err := rows.Scan(
+			&insight.ID,
+			&insight.ClinicID,
+			&insight.LeadID,
+			&generationID,
+			&insight.Intent,
+			&objectionsRaw,
+			&insight.CommercialSummary,
+			&insight.SuggestedNextAction,
+			&insight.Source,
+			&insight.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		if generationID.Valid {
+			insight.AIGenerationID = &generationID.String
+		}
+		if len(objectionsRaw) > 0 {
+			if err := json.Unmarshal(objectionsRaw, &insight.DetectedObjections); err != nil {
+				return nil, err
+			}
+		}
+		insights = append(insights, insight)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return insights, nil
+}
+
+func insertAIInsightTx(ctx context.Context, tx *sql.Tx, insight AIInsight) error {
+	objections, err := json.Marshal(insight.DetectedObjections)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO lead_ai_insights (
+			clinic_id,
+			lead_id,
+			ai_generation_id,
+			intent,
+			detected_objections,
+			commercial_summary,
+			suggested_next_action,
+			source
+		) VALUES ($1, $2, NULLIF($3, '')::uuid, $4, $5::jsonb, NULLIF($6, ''), NULLIF($7, ''), NULLIF($8, ''))
+	`,
+		insight.ClinicID,
+		insight.LeadID,
+		stringValue(insight.AIGenerationID),
+		insight.Intent,
+		string(objections),
+		insight.CommercialSummary,
+		insight.SuggestedNextAction,
+		insight.Source,
+	)
+	return err
+}
+
+func stringValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }
 
 func (r *PostgresRepository) CompleteFollowUp(ctx context.Context, clinicID, leadID, status, note string) error {

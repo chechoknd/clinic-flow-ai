@@ -478,9 +478,19 @@ Request:
   "status": "Nuevo",
   "source": "whatsapp",
   "notes": "Pregunta por precio desde Instagram.",
-  "next_action_at": "2026-05-22T14:00:00Z"
+  "next_action_at": "2026-05-22T14:00:00Z",
+  "reviewed_ai_analysis": {
+    "analysis_id": "8bc8f2d2-0d16-45e8-a7a0-2be84d211f9f",
+    "intent": "high",
+    "detected_objections": ["precio"],
+    "commercial_summary": "Pregunta por precio y disponibilidad.",
+    "suggested_next_action": "Responder con informacion general y proponer valoracion.",
+    "source": "whatsapp"
+  }
 }
 ```
+
+`reviewed_ai_analysis` is optional and is intended for human-reviewed Inbox AI output. It stores commercial metadata only; the raw pasted conversation and full AI response body are not stored.
 
 Response: `201 Created`, lead list item shape.
 
@@ -508,6 +518,18 @@ Response:
       "created_at": "2026-05-20T15:30:00Z"
     }
   ],
+  "ai_insights": [
+    {
+      "id": "f4c03e94-2fdc-4f57-92f0-1a252b52a3e7",
+      "analysis_id": "8bc8f2d2-0d16-45e8-a7a0-2be84d211f9f",
+      "intent": "high",
+      "detected_objections": ["precio"],
+      "commercial_summary": "Pregunta por precio y disponibilidad.",
+      "suggested_next_action": "Responder con informacion general y proponer valoracion.",
+      "source": "whatsapp",
+      "created_at": "2026-05-20T15:35:00Z"
+    }
+  ],
   "next_action_at": "2026-05-22T14:00:00Z",
   "created_at": "2026-05-20T15:30:00Z"
 }
@@ -523,7 +545,15 @@ Request:
 {
   "status": "Interesado",
   "note": "Quiere agendar valoracion esta semana.",
-  "next_action_at": "2026-05-22T14:00:00Z"
+  "next_action_at": "2026-05-22T14:00:00Z",
+  "reviewed_ai_analysis": {
+    "analysis_id": "8bc8f2d2-0d16-45e8-a7a0-2be84d211f9f",
+    "intent": "high",
+    "detected_objections": ["precio"],
+    "commercial_summary": "Pregunta por precio y disponibilidad.",
+    "suggested_next_action": "Responder con informacion general y proponer valoracion.",
+    "source": "whatsapp"
+  }
 }
 ```
 
@@ -768,6 +798,46 @@ Response:
 }
 ```
 
+### GET /api/dashboard/actions
+
+Returns a backend-prioritized daily action queue for the authenticated clinic. This endpoint only recommends manual staff actions; it does not send messages or automate patient contact.
+
+Optional query params:
+
+- `limit`: number from 1 to 20. Defaults to 4.
+
+Priority rules:
+
+- `overdue_followup`: leads with `next_action_at` before now.
+- `today_followup`: leads with `next_action_at` from now until the end of the current day.
+- `high_intent`: active leads with latest reviewed Inbox AI insight marked as high intent.
+- `detected_objection`: active leads with latest reviewed Inbox AI insight containing objections.
+- `new_lead`: leads in `Nuevo` status.
+
+Response:
+
+```json
+{
+  "data": [
+    {
+      "type": "overdue_followup",
+      "tone": "urgent",
+      "priority": 100,
+      "lead_id": "lead-id",
+      "full_name": "Maria Perez",
+      "phone": "+573009998877",
+      "service_id": "33333333-3333-4333-8333-333333333331",
+      "service_name": "Blanqueamiento dental",
+      "status": "Interesado",
+      "source": "whatsapp",
+      "reason": "Seguimiento vencido",
+      "next_action_at": "2026-05-27T14:30:00Z",
+      "created_at": "2026-05-26T10:00:00Z"
+    }
+  ]
+}
+```
+
 ## Local Smoke Coverage
 
 `./e2e_test.sh` currently validates these flows against the local Go API and PostgreSQL demo data:
@@ -777,8 +847,62 @@ Response:
 - Service create/update/list/delete cleanup.
 - Lead create/update/detail.
 - Follow-up list/reschedule/complete.
-- AI reply, objection, and follow-up message generation with `AI_PROVIDER=mock`.
+- AI reply, objection, follow-up message generation, and conversation analysis with `AI_PROVIDER=mock`.
+- Reviewed Inbox AI metadata persisted with lead updates and exposed in lead detail.
 - Dashboard summary.
+- Dashboard priority actions, including reviewed AI insight signals.
+
+## AI Generation Metadata
+
+Status: Implemented for backend audit/cost-control metadata. No raw prompts, patient messages, full pasted conversations, or AI response bodies are stored in this table.
+
+AI-assisted endpoints persist one metadata row per provider attempt in `ai_generations`:
+
+- `clinic_id`
+- `user_id`
+- `feature`
+- `provider`
+- `model`
+- `status`
+- `safety_status`
+- `error_code`
+- `input_char_count`
+- `output_char_count`
+- `created_at`
+
+Implemented `feature` values:
+
+- `reply_suggestion`
+- `objection_handler`
+- `follow_up_message`
+- `analyze_conversation`
+
+Implemented `status` values:
+
+- `success`
+- `provider_error`
+- `response_error`
+- `safety_blocked`
+
+`generation_id` and `analysis_id` response fields now reference the persisted `ai_generations.id` when metadata persistence succeeds. If metadata persistence fails, the AI endpoint still returns the generated safe response and logs a sanitized metadata error.
+
+## Lead AI Insights
+
+Status: Implemented for human-reviewed Inbox AI metadata.
+
+`POST /api/leads` and `PUT /api/leads/:id` can persist optional `reviewed_ai_analysis` metadata in `lead_ai_insights`:
+
+- `clinic_id`
+- `lead_id`
+- `ai_generation_id`
+- `intent`
+- `detected_objections`
+- `commercial_summary`
+- `suggested_next_action`
+- `source`
+- `created_at`
+
+This table stores reviewed commercial metadata only. It does not store raw pasted conversations, complete AI replies, diagnoses, prescriptions, or medical records.
 
 ## Proposed Smart Lead Inbox API Contracts
 

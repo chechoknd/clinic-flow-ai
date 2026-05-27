@@ -15,6 +15,10 @@ func (p *MockProvider) Name() string {
 	return "mock"
 }
 
+func (p *MockProvider) Model() string {
+	return "mock"
+}
+
 func (p *MockProvider) Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
 	select {
 	case <-ctx.Done():

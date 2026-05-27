@@ -18,15 +18,16 @@ type LeadResponse struct {
 }
 
 type LeadDetailResponse struct {
-	ID           string             `json:"id"`
-	FullName     string             `json:"full_name"`
-	Phone        string             `json:"phone"`
-	Service      *LeadServiceDTO    `json:"service,omitempty"`
-	Status       string             `json:"status"`
-	Source       string             `json:"source"`
-	Notes        []LeadNoteResponse `json:"notes"`
-	NextActionAt *time.Time         `json:"next_action_at,omitempty"`
-	CreatedAt    time.Time          `json:"created_at"`
+	ID           string              `json:"id"`
+	FullName     string              `json:"full_name"`
+	Phone        string              `json:"phone"`
+	Service      *LeadServiceDTO     `json:"service,omitempty"`
+	Status       string              `json:"status"`
+	Source       string              `json:"source"`
+	Notes        []LeadNoteResponse  `json:"notes"`
+	AIInsights   []AIInsightResponse `json:"ai_insights,omitempty"`
+	NextActionAt *time.Time          `json:"next_action_at,omitempty"`
+	CreatedAt    time.Time           `json:"created_at"`
 }
 
 type LeadServiceDTO struct {
@@ -40,20 +41,42 @@ type LeadNoteResponse struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type AIInsightResponse struct {
+	ID                  string    `json:"id"`
+	AnalysisID          *string   `json:"analysis_id,omitempty"`
+	Intent              string    `json:"intent"`
+	DetectedObjections  []string  `json:"detected_objections"`
+	CommercialSummary   string    `json:"commercial_summary,omitempty"`
+	SuggestedNextAction string    `json:"suggested_next_action,omitempty"`
+	Source              string    `json:"source,omitempty"`
+	CreatedAt           time.Time `json:"created_at"`
+}
+
+type ReviewedAIAnalysisRequest struct {
+	AnalysisID          string   `json:"analysis_id,omitempty"`
+	Intent              string   `json:"intent"`
+	DetectedObjections  []string `json:"detected_objections,omitempty"`
+	CommercialSummary   string   `json:"commercial_summary,omitempty"`
+	SuggestedNextAction string   `json:"suggested_next_action,omitempty"`
+	Source              string   `json:"source,omitempty"`
+}
+
 type CreateLeadRequest struct {
-	FullName     string     `json:"full_name"`
-	Phone        string     `json:"phone"`
-	ServiceID    *string    `json:"service_id,omitempty"`
-	Status       string     `json:"status"`
-	Source       string     `json:"source"`
-	Notes        string     `json:"notes,omitempty"`
-	NextActionAt *time.Time `json:"next_action_at,omitempty"`
+	FullName           string                     `json:"full_name"`
+	Phone              string                     `json:"phone"`
+	ServiceID          *string                    `json:"service_id,omitempty"`
+	Status             string                     `json:"status"`
+	Source             string                     `json:"source"`
+	Notes              string                     `json:"notes,omitempty"`
+	NextActionAt       *time.Time                 `json:"next_action_at,omitempty"`
+	ReviewedAIAnalysis *ReviewedAIAnalysisRequest `json:"reviewed_ai_analysis,omitempty"`
 }
 
 type UpdateLeadRequest struct {
-	Status       string     `json:"status"`
-	Note         string     `json:"note,omitempty"`
-	NextActionAt *time.Time `json:"next_action_at,omitempty"`
+	Status             string                     `json:"status"`
+	Note               string                     `json:"note,omitempty"`
+	NextActionAt       *time.Time                 `json:"next_action_at,omitempty"`
+	ReviewedAIAnalysis *ReviewedAIAnalysisRequest `json:"reviewed_ai_analysis,omitempty"`
 }
 
 type FollowUpFilterResponse struct {

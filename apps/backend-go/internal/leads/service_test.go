@@ -8,9 +8,10 @@ import (
 )
 
 type fakeRepository struct {
-	leads []Lead
-	notes []LeadNote
-	err   error
+	leads    []Lead
+	notes    []LeadNote
+	insights []AIInsight
+	err      error
 }
 
 func (r *fakeRepository) List(ctx context.Context, clinicID string, filter ListFilter) ([]Lead, int, error) {
@@ -33,9 +34,9 @@ func (r *fakeRepository) ListFollowUps(ctx context.Context, clinicID string, fil
 	return filtered, len(filtered), nil
 }
 
-func (r *fakeRepository) FindByID(ctx context.Context, clinicID, leadID string) (Lead, []LeadNote, error) {
+func (r *fakeRepository) FindByID(ctx context.Context, clinicID, leadID string) (Lead, []LeadNote, []AIInsight, error) {
 	if r.err != nil {
-		return Lead{}, nil, r.err
+		return Lead{}, nil, nil, r.err
 	}
 	for _, l := range r.leads {
 		if l.ID == leadID && l.ClinicID == clinicID {
@@ -45,13 +46,19 @@ func (r *fakeRepository) FindByID(ctx context.Context, clinicID, leadID string) 
 					leadNotes = append(leadNotes, n)
 				}
 			}
-			return l, leadNotes, nil
+			var leadInsights []AIInsight
+			for _, insight := range r.insights {
+				if insight.LeadID == leadID && insight.ClinicID == clinicID {
+					leadInsights = append(leadInsights, insight)
+				}
+			}
+			return l, leadNotes, leadInsights, nil
 		}
 	}
-	return Lead{}, nil, ErrLeadNotFound
+	return Lead{}, nil, nil, ErrLeadNotFound
 }
 
-func (r *fakeRepository) Create(ctx context.Context, l Lead, initialNote string) (Lead, error) {
+func (r *fakeRepository) Create(ctx context.Context, l Lead, initialNote string, insight *AIInsight) (Lead, error) {
 	if r.err != nil {
 		return Lead{}, r.err
 	}
@@ -62,10 +69,17 @@ func (r *fakeRepository) Create(ctx context.Context, l Lead, initialNote string)
 	if initialNote != "" {
 		r.notes = append(r.notes, LeadNote{ID: "note-id", LeadID: l.ID, Body: initialNote})
 	}
+	if insight != nil {
+		insight.ID = "insight-id"
+		insight.ClinicID = l.ClinicID
+		insight.LeadID = l.ID
+		insight.CreatedAt = l.CreatedAt
+		r.insights = append(r.insights, *insight)
+	}
 	return l, nil
 }
 
-func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string) error {
+func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string, insight *AIInsight) error {
 	if r.err != nil {
 		return r.err
 	}
@@ -77,6 +91,13 @@ func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, st
 			}
 			if note != "" {
 				r.notes = append(r.notes, LeadNote{ID: "note-id", LeadID: leadID, Body: note})
+			}
+			if insight != nil {
+				insight.ID = "insight-id"
+				insight.ClinicID = clinicID
+				insight.LeadID = leadID
+				insight.CreatedAt = time.Date(2026, 5, 21, 10, 0, 0, 0, time.UTC)
+				r.insights = append(r.insights, *insight)
 			}
 			return nil
 		}
@@ -141,6 +162,65 @@ func TestLeadServiceCreate(t *testing.T) {
 	}
 	if res.CreatedAt.IsZero() || res.UpdatedAt.IsZero() {
 		t.Fatalf("create response omitted timestamps: %#v", res)
+	}
+}
+
+func TestLeadServiceCreatePersistsReviewedAIAnalysis(t *testing.T) {
+	repo := &fakeRepository{}
+	s := NewService(repo)
+	analysisID := "11111111-1111-4111-8111-111111111111"
+
+	_, err := s.Create(context.Background(), "clinic-1", CreateLeadRequest{
+		FullName: "Maria Perez",
+		Phone:    "+573001112233",
+		Source:   "whatsapp",
+		ReviewedAIAnalysis: &ReviewedAIAnalysisRequest{
+			AnalysisID:          analysisID,
+			Intent:              "high",
+			DetectedObjections:  []string{"precio", "precio", "agenda"},
+			CommercialSummary:   "Quiere aclarar precio.",
+			SuggestedNextAction: "Enviar opciones y agendar seguimiento.",
+		},
+	})
+	if err != nil {
+		t.Fatalf("create lead with reviewed analysis: %v", err)
+	}
+	if len(repo.insights) != 1 {
+		t.Fatalf("expected one insight, got %d", len(repo.insights))
+	}
+	insight := repo.insights[0]
+	if insight.Intent != "high" || insight.AIGenerationID == nil || *insight.AIGenerationID != analysisID {
+		t.Fatalf("unexpected insight metadata: %#v", insight)
+	}
+	if len(insight.DetectedObjections) != 2 {
+		t.Fatalf("expected deduplicated objections: %#v", insight.DetectedObjections)
+	}
+}
+
+func TestLeadServiceGetReturnsAIInsights(t *testing.T) {
+	createdAt := time.Date(2026, 5, 21, 10, 0, 0, 0, time.UTC)
+	repo := &fakeRepository{
+		leads: []Lead{{ID: "lead-1", ClinicID: "clinic-1", FullName: "Maria Perez", Phone: "+573001112233", Status: "Interesado", Source: "whatsapp"}},
+		insights: []AIInsight{{
+			ID:                  "insight-1",
+			ClinicID:            "clinic-1",
+			LeadID:              "lead-1",
+			Intent:              "high",
+			DetectedObjections:  []string{"precio"},
+			CommercialSummary:   "Interes comercial alto.",
+			SuggestedNextAction: "Enviar propuesta.",
+			Source:              "whatsapp",
+			CreatedAt:           createdAt,
+		}},
+	}
+	s := NewService(repo)
+
+	res, err := s.Get(context.Background(), "clinic-1", "lead-1")
+	if err != nil {
+		t.Fatalf("get lead: %v", err)
+	}
+	if len(res.AIInsights) != 1 || res.AIInsights[0].Intent != "high" {
+		t.Fatalf("unexpected insight response: %#v", res.AIInsights)
 	}
 }
 

@@ -43,6 +43,12 @@
             [class.border-teal-200]="action.tone === 'new'"
             [class.bg-teal-50]="action.tone === 'new'"
             [class.text-teal-800]="action.tone === 'new'"
+            [class.border-emerald-200]="action.tone === 'intent'"
+            [class.bg-emerald-50]="action.tone === 'intent'"
+            [class.text-emerald-800]="action.tone === 'intent'"
+            [class.border-indigo-200]="action.tone === 'objection'"
+            [class.bg-indigo-50]="action.tone === 'objection'"
+            [class.text-indigo-800]="action.tone === 'objection'"
           >
             <div>
               <p class="text-xs font-semibold uppercase">{{ action.meta }}</p>

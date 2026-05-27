@@ -31,6 +31,10 @@ func (p *GeminiProvider) Name() string {
 	return "gemini"
 }
 
+func (p *GeminiProvider) Model() string {
+	return p.model
+}
+
 func (p *GeminiProvider) Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
 	// Gemini uses a different URL structure: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", p.model, p.apiKey)

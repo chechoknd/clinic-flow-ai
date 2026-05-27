@@ -7,6 +7,7 @@ import {
   ClinicServiceItem,
   Lead,
   LeadStatus,
+  ReviewedAIAnalysisPayload,
 } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 
@@ -185,6 +186,7 @@ export class InboxAiPage {
         source: value.source,
         notes: value.notes.trim() || undefined,
         next_action_at: this.toApiDateTime(value.next_action_at),
+        reviewed_ai_analysis: this.reviewedAIAnalysisPayload(),
       })
       .subscribe({
         next: (lead) => {
@@ -217,6 +219,7 @@ export class InboxAiPage {
         status: value.status,
         note: value.notes.trim() || undefined,
         next_action_at: this.toApiDateTime(value.next_action_at),
+        reviewed_ai_analysis: this.reviewedAIAnalysisPayload(),
       })
       .subscribe({
         next: () => {
@@ -273,6 +276,22 @@ export class InboxAiPage {
       notes: analysis.commercial_summary || '',
       next_action_at: this.toLocalDateTimeValue(analysis.suggested_follow_up_at),
     });
+  }
+
+  private reviewedAIAnalysisPayload(): ReviewedAIAnalysisPayload | undefined {
+    const analysis = this.analysis();
+    if (!analysis) {
+      return undefined;
+    }
+
+    return {
+      analysis_id: analysis.analysis_id,
+      intent: analysis.intent || 'medium',
+      detected_objections: analysis.detected_objections,
+      commercial_summary: analysis.commercial_summary,
+      suggested_next_action: analysis.suggested_next_action,
+      source: this.analyzeForm.controls.source.value,
+    };
   }
 
 

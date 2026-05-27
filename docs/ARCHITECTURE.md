@@ -169,6 +169,8 @@ Implemented tables:
 - `clinic_services`
 - `leads`
 - `lead_notes`
+- `ai_generations`
+- `lead_ai_insights`
 - `schema_migrations`
 
 Current migration files live in `database/migrations/`. Demo data lives in `database/seeds/`.
@@ -202,7 +204,8 @@ Forbidden data:
 Notes:
 
 - Follow-ups are implemented through `leads.next_action_at`; there is no separate `followups` table.
-- AI generation metadata is not persisted yet; there is no `ai_generations` table.
+- AI generation metadata is persisted in `ai_generations` for audit and cost-control visibility. It stores clinic, user, feature, provider, model, status, safety status, error code, and character counts. It does not store raw prompts, patient messages, full pasted conversations, or AI response bodies.
+- Reviewed Inbox AI commercial metadata is persisted in `lead_ai_insights` and linked to leads for dashboard prioritization. It stores intent, detected objections, commercial summary, suggested next action, source, and optional `ai_generations` reference; it does not store raw conversations or complete AI reply bodies.
 - `pgvector` may be prepared for future phases, but it is not required for MVP functionality.
 
 ## Currency Architecture
@@ -309,6 +312,7 @@ Current MVP strategy:
 - Inject concise clinic, service, lead, and objection context into prompt templates.
 - Validate AI output before returning it.
 - Return structured JSON DTOs to the frontend.
+- Persist AI generation metadata after provider attempts without storing sensitive prompt or conversation content.
 - Planned Smart Lead Inbox conversation analysis will continue using backend-owned prompts, direct context injection, and structured JSON output. It must not require RAG/vector search for the immediate MVP extension.
 
 Prompt context may include:

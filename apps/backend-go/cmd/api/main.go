@@ -72,7 +72,8 @@ func main() {
 				if err != nil {
 					log.Printf("ai module disabled: %v", err)
 				} else {
-					aiService := ai.NewService(aiProvider, clinicService, serviceService, leadService)
+					aiGenerationRepository := ai.NewPostgresGenerationRepository(db)
+					aiService := ai.NewService(aiProvider, aiGenerationRepository, clinicService, serviceService, leadService)
 					ai.RegisterRoutes(mux, ai.NewHandler(aiService), tokenManager)
 				}
 			}

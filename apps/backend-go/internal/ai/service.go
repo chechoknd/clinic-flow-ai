@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
@@ -14,21 +15,23 @@ import (
 
 type Service struct {
 	provider       Provider
+	generations    GenerationRepository
 	clinicService  *clinics.Service
 	serviceService *services.Service
 	leadService    *leads.Service
 }
 
-func NewService(provider Provider, cs *clinics.Service, ss *services.Service, ls *leads.Service) *Service {
+func NewService(provider Provider, generations GenerationRepository, cs *clinics.Service, ss *services.Service, ls *leads.Service) *Service {
 	return &Service{
 		provider:       provider,
+		generations:    generations,
 		clinicService:  cs,
 		serviceService: ss,
 		leadService:    ls,
 	}
 }
 
-func (s *Service) ReplySuggestion(ctx context.Context, clinicID string, req ReplySuggestionRequest) (ReplySuggestionResponse, error) {
+func (s *Service) ReplySuggestion(ctx context.Context, clinicID, userID string, req ReplySuggestionRequest) (ReplySuggestionResponse, error) {
 	if err := validateReplySuggestionRequest(req); err != nil {
 		return ReplySuggestionResponse{}, err
 	}
@@ -43,27 +46,65 @@ func (s *Service) ReplySuggestion(ctx context.Context, clinicID string, req Repl
 
 	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
 	if err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "reply_suggestion",
+			Status:          "provider_error",
+			ErrorCode:       "AI_PROVIDER_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return ReplySuggestionResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
 	}
 
 	var variants ReplyVariants
 	if err := json.Unmarshal([]byte(rawRes), &variants); err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "reply_suggestion",
+			Status:          "response_error",
+			ErrorCode:       "AI_RESPONSE_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return ReplySuggestionResponse{}, ResponseError{Err: err}
 	}
 
 	safetyStatus, safe := ValidateSafety(rawRes)
 	if !safe {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "reply_suggestion",
+			Status:          "safety_blocked",
+			SafetyStatus:    safetyStatus,
+			ErrorCode:       "AI_SAFETY_BLOCKED",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return ReplySuggestionResponse{}, SafetyBlockedError{Status: safetyStatus}
 	}
 
+	generationID := s.recordGeneration(ctx, generationRecordInput{
+		ClinicID:        clinicID,
+		UserID:          userID,
+		Feature:         "reply_suggestion",
+		Status:          "success",
+		SafetyStatus:    safetyStatus,
+		InputCharCount:  len(systemPrompt) + len(userPrompt),
+		OutputCharCount: len(rawRes),
+	})
+
 	return ReplySuggestionResponse{
-		GenerationID: "gen-" + clinicID, // Future: UUID
+		GenerationID: generationID,
 		Variants:     variants,
 		SafetyStatus: safetyStatus,
 	}, nil
 }
 
-func (s *Service) ObjectionHandler(ctx context.Context, clinicID string, req ObjectionHandlerRequest) (ObjectionHandlerResponse, error) {
+func (s *Service) ObjectionHandler(ctx context.Context, clinicID, userID string, req ObjectionHandlerRequest) (ObjectionHandlerResponse, error) {
 	if err := validateObjectionHandlerRequest(req); err != nil {
 		return ObjectionHandlerResponse{}, err
 	}
@@ -78,25 +119,61 @@ func (s *Service) ObjectionHandler(ctx context.Context, clinicID string, req Obj
 
 	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
 	if err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "objection_handler",
+			Status:          "provider_error",
+			ErrorCode:       "AI_PROVIDER_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return ObjectionHandlerResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
 	}
 
 	var res ObjectionHandlerResponse
 	if err := json.Unmarshal([]byte(rawRes), &res); err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "objection_handler",
+			Status:          "response_error",
+			ErrorCode:       "AI_RESPONSE_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return ObjectionHandlerResponse{}, ResponseError{Err: err}
 	}
 
 	safetyStatus, safe := ValidateSafety(rawRes)
 	if !safe {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "objection_handler",
+			Status:          "safety_blocked",
+			SafetyStatus:    safetyStatus,
+			ErrorCode:       "AI_SAFETY_BLOCKED",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return ObjectionHandlerResponse{}, SafetyBlockedError{Status: safetyStatus}
 	}
-	res.GenerationID = "gen-" + clinicID
+	res.GenerationID = s.recordGeneration(ctx, generationRecordInput{
+		ClinicID:        clinicID,
+		UserID:          userID,
+		Feature:         "objection_handler",
+		Status:          "success",
+		SafetyStatus:    safetyStatus,
+		InputCharCount:  len(systemPrompt) + len(userPrompt),
+		OutputCharCount: len(rawRes),
+	})
 	res.SafetyStatus = safetyStatus
 
 	return res, nil
 }
 
-func (s *Service) FollowUpMessage(ctx context.Context, clinicID string, req FollowUpMessageRequest) (FollowUpMessageResponse, error) {
+func (s *Service) FollowUpMessage(ctx context.Context, clinicID, userID string, req FollowUpMessageRequest) (FollowUpMessageResponse, error) {
 	if err := validateFollowUpMessageRequest(req); err != nil {
 		return FollowUpMessageResponse{}, err
 	}
@@ -111,19 +188,55 @@ func (s *Service) FollowUpMessage(ctx context.Context, clinicID string, req Foll
 
 	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
 	if err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "follow_up_message",
+			Status:          "provider_error",
+			ErrorCode:       "AI_PROVIDER_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return FollowUpMessageResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
 	}
 
 	var res FollowUpMessageResponse
 	if err := json.Unmarshal([]byte(rawRes), &res); err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "follow_up_message",
+			Status:          "response_error",
+			ErrorCode:       "AI_RESPONSE_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return FollowUpMessageResponse{}, ResponseError{Err: err}
 	}
 
 	safetyStatus, safe := ValidateSafety(rawRes)
 	if !safe {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "follow_up_message",
+			Status:          "safety_blocked",
+			SafetyStatus:    safetyStatus,
+			ErrorCode:       "AI_SAFETY_BLOCKED",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return FollowUpMessageResponse{}, SafetyBlockedError{Status: safetyStatus}
 	}
-	res.GenerationID = "gen-" + clinicID
+	res.GenerationID = s.recordGeneration(ctx, generationRecordInput{
+		ClinicID:        clinicID,
+		UserID:          userID,
+		Feature:         "follow_up_message",
+		Status:          "success",
+		SafetyStatus:    safetyStatus,
+		InputCharCount:  len(systemPrompt) + len(userPrompt),
+		OutputCharCount: len(rawRes),
+	})
 	res.SafetyStatus = safetyStatus
 
 	return res, nil
@@ -245,7 +358,7 @@ func validateFollowUpMessageRequest(req FollowUpMessageRequest) error {
 	return nil
 }
 
-func (s *Service) AnalyzeConversation(ctx context.Context, clinicID string, req AnalyzeConversationRequest) (AnalyzeConversationResponse, error) {
+func (s *Service) AnalyzeConversation(ctx context.Context, clinicID, userID string, req AnalyzeConversationRequest) (AnalyzeConversationResponse, error) {
 	if err := validateAnalyzeConversationRequest(req); err != nil {
 		return AnalyzeConversationResponse{}, err
 	}
@@ -260,25 +373,102 @@ func (s *Service) AnalyzeConversation(ctx context.Context, clinicID string, req 
 
 	rawRes, err := s.provider.Generate(ctx, systemPrompt, userPrompt)
 	if err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "analyze_conversation",
+			Status:          "provider_error",
+			ErrorCode:       "AI_PROVIDER_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return AnalyzeConversationResponse{}, ProviderError{Provider: s.provider.Name(), Err: err}
 	}
 
 	var res AnalyzeConversationResponse
 	if err := json.Unmarshal([]byte(rawRes), &res); err != nil {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "analyze_conversation",
+			Status:          "response_error",
+			ErrorCode:       "AI_RESPONSE_ERROR",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return AnalyzeConversationResponse{}, ResponseError{Err: err}
 	}
 
 	safetyStatus, safe := ValidateSafety(rawRes)
 	if !safe {
+		s.recordGeneration(ctx, generationRecordInput{
+			ClinicID:        clinicID,
+			UserID:          userID,
+			Feature:         "analyze_conversation",
+			Status:          "safety_blocked",
+			SafetyStatus:    safetyStatus,
+			ErrorCode:       "AI_SAFETY_BLOCKED",
+			InputCharCount:  len(systemPrompt) + len(userPrompt),
+			OutputCharCount: len(rawRes),
+		})
 		return AnalyzeConversationResponse{}, SafetyBlockedError{Status: safetyStatus}
 	}
-	res.AnalysisID = "analysis-" + clinicID
+	res.AnalysisID = s.recordGeneration(ctx, generationRecordInput{
+		ClinicID:        clinicID,
+		UserID:          userID,
+		Feature:         "analyze_conversation",
+		Status:          "success",
+		SafetyStatus:    safetyStatus,
+		InputCharCount:  len(systemPrompt) + len(userPrompt),
+		OutputCharCount: len(rawRes),
+	})
 	res.SafetyStatus = safetyStatus
 	res.SuggestedStatus = normalizeSuggestedStatus(res.SuggestedStatus)
 	res.Intent = normalizeConfidence(res.Intent)
 	res.DetectedService.Confidence = normalizeConfidence(res.DetectedService.Confidence)
 
 	return res, nil
+}
+
+type generationRecordInput struct {
+	ClinicID        string
+	UserID          string
+	Feature         string
+	Status          string
+	SafetyStatus    string
+	ErrorCode       string
+	InputCharCount  int
+	OutputCharCount int
+}
+
+func (s *Service) recordGeneration(ctx context.Context, input generationRecordInput) string {
+	fallbackID := "gen-" + input.ClinicID
+	if s.generations == nil {
+		return fallbackID
+	}
+
+	model := strings.TrimSpace(s.provider.Model())
+	if model == "" {
+		model = "unknown"
+	}
+
+	id, err := s.generations.CreateGeneration(ctx, GenerationRecord{
+		ClinicID:        input.ClinicID,
+		UserID:          input.UserID,
+		Feature:         input.Feature,
+		Provider:        s.provider.Name(),
+		Model:           model,
+		Status:          input.Status,
+		SafetyStatus:    input.SafetyStatus,
+		ErrorCode:       input.ErrorCode,
+		InputCharCount:  input.InputCharCount,
+		OutputCharCount: input.OutputCharCount,
+	})
+	if err != nil {
+		log.Printf("ai generation metadata record failed: clinic_id=%s feature=%s provider=%s status=%s: %v", input.ClinicID, input.Feature, s.provider.Name(), input.Status, err)
+		return fallbackID
+	}
+	return id
 }
 
 func validateAnalyzeConversationRequest(req AnalyzeConversationRequest) error {

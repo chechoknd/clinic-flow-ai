@@ -1,9 +1,19 @@
 package ai
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
+
+type fakeGenerationRepository struct {
+	record GenerationRecord
+}
+
+func (r *fakeGenerationRepository) CreateGeneration(ctx context.Context, record GenerationRecord) (string, error) {
+	r.record = record
+	return "generation-1", nil
+}
 
 func TestBuildSystemPrompt(t *testing.T) {
 	ctx := Context{
@@ -71,5 +81,39 @@ func TestAnalyzeConversationValidation(t *testing.T) {
 	err := validateAnalyzeConversationRequest(AnalyzeConversationRequest{ConversationText: ""})
 	if err == nil || !strings.Contains(err.Error(), "conversation_text") {
 		t.Fatalf("expected conversation_text validation error, got %v", err)
+	}
+}
+
+func TestRecordGenerationStoresMetadataOnly(t *testing.T) {
+	repo := &fakeGenerationRepository{}
+	service := &Service{
+		provider:    NewMockProvider(),
+		generations: repo,
+	}
+
+	id := service.recordGeneration(context.Background(), generationRecordInput{
+		ClinicID:        "clinic-1",
+		UserID:          "user-1",
+		Feature:         "reply_suggestion",
+		Status:          "success",
+		SafetyStatus:    "passed",
+		InputCharCount:  120,
+		OutputCharCount: 80,
+	})
+
+	if id != "generation-1" {
+		t.Fatalf("unexpected generation id: %s", id)
+	}
+	if repo.record.ClinicID != "clinic-1" || repo.record.UserID != "user-1" {
+		t.Fatalf("unexpected tenant/user metadata: %#v", repo.record)
+	}
+	if repo.record.Provider != "mock" || repo.record.Model != "mock" {
+		t.Fatalf("unexpected provider metadata: %#v", repo.record)
+	}
+	if repo.record.Feature != "reply_suggestion" || repo.record.Status != "success" || repo.record.SafetyStatus != "passed" {
+		t.Fatalf("unexpected generation status metadata: %#v", repo.record)
+	}
+	if repo.record.InputCharCount != 120 || repo.record.OutputCharCount != 80 {
+		t.Fatalf("unexpected char count metadata: %#v", repo.record)
 	}
 }

@@ -12,7 +12,7 @@ describe('InboxAiPage', () => {
   let writeText: ReturnType<typeof vi.fn>;
 
   const analysisResponse = {
-    analysis_id: 'analysis-1',
+    analysis_id: '11111111-1111-4111-8111-111111111111',
     detected_lead: { full_name: 'Lead Demo Inbox', phone: '+573001234567' },
     detected_service: { service_id: 'service-1', service_name: 'Blanqueamiento dental', confidence: 'medium' },
     intent: 'high',
@@ -125,6 +125,14 @@ describe('InboxAiPage', () => {
       source: 'whatsapp',
       notes: 'Pregunta por precio y quiere informacion.',
       next_action_at: undefined,
+      reviewed_ai_analysis: {
+        analysis_id: '11111111-1111-4111-8111-111111111111',
+        intent: 'high',
+        detected_objections: ['precio'],
+        commercial_summary: 'Pregunta por precio y quiere informacion.',
+        suggested_next_action: 'Responder y proponer valoracion',
+        source: 'whatsapp',
+      },
     });
     expect(fixture.componentInstance.success()).toBe('Lead creado desde el analisis revisado.');
   });
@@ -142,6 +150,14 @@ describe('InboxAiPage', () => {
       status: 'Interesado',
       note: 'Pregunta por precio y quiere informacion.',
       next_action_at: undefined,
+      reviewed_ai_analysis: {
+        analysis_id: '11111111-1111-4111-8111-111111111111',
+        intent: 'high',
+        detected_objections: ['precio'],
+        commercial_summary: 'Pregunta por precio y quiere informacion.',
+        suggested_next_action: 'Responder y proponer valoracion',
+        source: 'whatsapp',
+      },
     });
     expect(fixture.componentInstance.success()).toBe('Lead actualizado con el analisis revisado.');
   });

@@ -12,8 +12,8 @@ import {
   CompleteFollowUpPayload,
   CreateLeadPayload,
   CreateServicePayload,
+  DashboardActionsResponse,
   DashboardSummary,
-  FollowUp,
   FollowUpMessagePayload,
   FollowUpMessageResponse,
   Lead,
@@ -35,6 +35,10 @@ export class ApiService {
     return this.http
       .get<DashboardSummaryApiResponse>(`${this.baseUrl}/api/dashboard/summary`)
       .pipe(map((response) => this.mapDashboardSummary(response)));
+  }
+
+  dashboardActions(limit = 4) {
+    return this.http.get<DashboardActionsResponse>(`${this.baseUrl}/api/dashboard/actions`, { params: { limit } });
   }
 
   clinicCurrent() {
@@ -76,7 +80,7 @@ export class ApiService {
   }
 
   followups() {
-    return this.http.get<PaginatedResponse<FollowUp>>(`${this.baseUrl}/api/followups`);
+    return this.http.get<PaginatedResponse<Lead>>(`${this.baseUrl}/api/followups`);
   }
 
   completeFollowUp(id: string, payload: CompleteFollowUpPayload) {

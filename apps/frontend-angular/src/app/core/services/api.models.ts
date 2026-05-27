@@ -66,12 +66,23 @@ export interface CreateLeadPayload {
   source: string;
   notes?: string;
   next_action_at?: string;
+  reviewed_ai_analysis?: ReviewedAIAnalysisPayload;
 }
 
 export interface UpdateLeadPayload {
   status: LeadStatus;
   note?: string;
   next_action_at?: string;
+  reviewed_ai_analysis?: ReviewedAIAnalysisPayload;
+}
+
+export interface ReviewedAIAnalysisPayload {
+  analysis_id?: string;
+  intent: string;
+  detected_objections?: string[];
+  commercial_summary?: string;
+  suggested_next_action?: string;
+  source?: string;
 }
 
 export type FollowUp = Lead;
@@ -163,6 +174,29 @@ export interface DashboardSummary {
   conversion_rate: number;
   status_counts: Record<string, number>;
   top_services: Array<{ service_name: string; total: number }>;
+}
+
+export type DashboardActionType = 'overdue_followup' | 'today_followup' | 'new_lead' | 'high_intent' | 'detected_objection';
+export type DashboardActionTone = 'urgent' | 'today' | 'new' | 'intent' | 'objection';
+
+export interface DashboardAction {
+  type: DashboardActionType;
+  tone: DashboardActionTone;
+  priority: number;
+  lead_id: string;
+  full_name: string;
+  phone: string;
+  service_id?: string;
+  service_name?: string;
+  status: LeadStatus;
+  source: string;
+  reason: string;
+  next_action_at?: string;
+  created_at: string;
+}
+
+export interface DashboardActionsResponse {
+  data: DashboardAction[];
 }
 
 export interface AnalyzeConversationPayload {

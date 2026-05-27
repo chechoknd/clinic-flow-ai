@@ -24,3 +24,16 @@ type LeadNote struct {
 	Body      string
 	CreatedAt time.Time
 }
+
+type AIInsight struct {
+	ID                  string
+	ClinicID            string
+	LeadID              string
+	AIGenerationID      *string
+	Intent              string
+	DetectedObjections  []string
+	CommercialSummary   string
+	SuggestedNextAction string
+	Source              string
+	CreatedAt           time.Time
+}

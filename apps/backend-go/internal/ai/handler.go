@@ -33,7 +33,7 @@ func (h *Handler) ReplySuggestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.service.ReplySuggestion(r.Context(), claims.ClinicID, req)
+	res, err := h.service.ReplySuggestion(r.Context(), claims.ClinicID, claims.UserID, req)
 	if err != nil {
 		handleAIError(w, "reply_suggestion", err)
 		return
@@ -55,7 +55,7 @@ func (h *Handler) FollowUpMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.service.FollowUpMessage(r.Context(), claims.ClinicID, req)
+	res, err := h.service.FollowUpMessage(r.Context(), claims.ClinicID, claims.UserID, req)
 	if err != nil {
 		handleAIError(w, "follow_up_message", err)
 		return
@@ -77,7 +77,7 @@ func (h *Handler) ObjectionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.service.ObjectionHandler(r.Context(), claims.ClinicID, req)
+	res, err := h.service.ObjectionHandler(r.Context(), claims.ClinicID, claims.UserID, req)
 	if err != nil {
 		handleAIError(w, "objection_handler", err)
 		return
@@ -99,7 +99,7 @@ func (h *Handler) AnalyzeConversation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.service.AnalyzeConversation(r.Context(), claims.ClinicID, req)
+	res, err := h.service.AnalyzeConversation(r.Context(), claims.ClinicID, claims.UserID, req)
 	if err != nil {
 		handleAIError(w, "analyze_conversation", err)
 		return

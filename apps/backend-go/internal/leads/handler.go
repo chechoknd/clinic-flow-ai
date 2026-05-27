@@ -185,7 +185,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.service.Create(r.Context(), claims.ClinicID, req)
 	if err != nil {
-		if err.Error() == "full name is required" || err.Error() == "phone is required" {
+		if isValidationError(err) {
 			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error())
 			return
 		}
@@ -221,7 +221,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		if err.Error() == "status is required" {
+		if isValidationError(err) {
 			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error())
 			return
 		}
@@ -240,4 +240,20 @@ func writeJSON(w http.ResponseWriter, statusCode int, payload any) {
 
 func writeError(w http.ResponseWriter, statusCode int, code string, message string) {
 	writeJSON(w, statusCode, ErrorResponse{Error: APIError{Code: code, Message: message}})
+}
+
+func isValidationError(err error) bool {
+	switch err.Error() {
+	case "full name is required",
+		"phone is required",
+		"invalid phone format (expected E.164, e.g., +573001234567)",
+		"invalid lead source",
+		"status is required",
+		"invalid status",
+		"invalid reviewed ai analysis intent",
+		"invalid reviewed ai analysis id":
+		return true
+	default:
+		return false
+	}
 }

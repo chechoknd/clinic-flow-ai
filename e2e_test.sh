@@ -295,7 +295,15 @@ if [[ -z "${LEAD_ID}" ]]; then
   exit 1
 fi
 
-echo -e "\n7. PUT /api/leads/${LEAD_ID}"
+echo -e "\n7. GET /api/dashboard/actions"
+DASHBOARD_ACTIONS_RESPONSE=$(api_get "/api/dashboard/actions?limit=20")
+echo "${DASHBOARD_ACTIONS_RESPONSE}" | jq .
+if ! jq -e --arg id "${LEAD_ID}" 'any(.data[]; .lead_id == $id and .type == "new_lead")' <<<"${DASHBOARD_ACTIONS_RESPONSE}" >/dev/null; then
+  echo "Assertion failed: dashboard actions should include newly created lead" >&2
+  exit 1
+fi
+
+echo -e "\n8. PUT /api/leads/${LEAD_ID}"
 UPDATED_NEXT_ACTION_AT=$(date -u -d '+2 days' '+%Y-%m-%dT%H:%M:%SZ')
 LEAD_UPDATE_PAYLOAD=$(jq -n --arg next_action_at "${UPDATED_NEXT_ACTION_AT}" '{
   status: "Contactado",
@@ -306,12 +314,12 @@ LEAD_UPDATE_RESPONSE=$(api_put "/api/leads/${LEAD_ID}" "${LEAD_UPDATE_PAYLOAD}")
 echo "${LEAD_UPDATE_RESPONSE}" | jq .
 assert_jq "${LEAD_UPDATE_RESPONSE}" '.status == "Contactado"' "lead update should return Contactado status"
 
-echo -e "\n8. GET /api/leads/${LEAD_ID}"
+echo -e "\n9. GET /api/leads/${LEAD_ID}"
 LEAD_DETAIL_RESPONSE=$(api_get "/api/leads/${LEAD_ID}")
 echo "${LEAD_DETAIL_RESPONSE}" | jq .
 assert_jq "${LEAD_DETAIL_RESPONSE}" '.notes | length >= 1' "lead detail should include notes"
 
-echo -e "\n9. GET /api/followups"
+echo -e "\n10. GET /api/followups"
 FOLLOWUPS_RESPONSE=$(api_get "/api/followups")
 echo "${FOLLOWUPS_RESPONSE}" | jq .
 if ! jq -e --arg id "${LEAD_ID}" 'any(.data[]; .id == $id)' <<<"${FOLLOWUPS_RESPONSE}" >/dev/null; then
@@ -319,7 +327,7 @@ if ! jq -e --arg id "${LEAD_ID}" 'any(.data[]; .id == $id)' <<<"${FOLLOWUPS_RESP
   exit 1
 fi
 
-echo -e "\n10. POST /api/followups/${LEAD_ID}/reschedule"
+echo -e "\n11. POST /api/followups/${LEAD_ID}/reschedule"
 RESCHEDULE_AT=$(date -u -d '+3 days' '+%Y-%m-%dT%H:%M:%SZ')
 RESCHEDULE_PAYLOAD=$(jq -n --arg next_action_at "${RESCHEDULE_AT}" '{
   next_action_at: $next_action_at,
@@ -329,7 +337,7 @@ RESCHEDULE_RESPONSE=$(api_post "/api/followups/${LEAD_ID}/reschedule" "${RESCHED
 echo "${RESCHEDULE_RESPONSE}" | jq .
 assert_jq "${RESCHEDULE_RESPONSE}" '.status == "rescheduled"' "follow-up reschedule should return rescheduled status"
 
-echo -e "\n11. POST /api/ai/reply-suggestion"
+echo -e "\n12. POST /api/ai/reply-suggestion"
 AI_REPLY_PAYLOAD=$(jq -n --arg lead_id "${LEAD_ID}" --arg service_id "${SMOKE_SERVICE_ID}" '{
   lead_id: $lead_id,
   service_id: $service_id,
@@ -340,7 +348,7 @@ AI_REPLY_RESPONSE=$(api_post "/api/ai/reply-suggestion" "${AI_REPLY_PAYLOAD}")
 echo "${AI_REPLY_RESPONSE}" | jq .
 assert_jq "${AI_REPLY_RESPONSE}" '.variants.short and .safety_status' "AI reply should include variants and safety status"
 
-echo -e "\n12. POST /api/ai/objection-handler"
+echo -e "\n13. POST /api/ai/objection-handler"
 AI_OBJECTION_PAYLOAD=$(jq -n --arg lead_id "${LEAD_ID}" --arg service_id "${SMOKE_SERVICE_ID}" '{
   lead_id: $lead_id,
   service_id: $service_id,
@@ -350,7 +358,7 @@ AI_OBJECTION_RESPONSE=$(api_post "/api/ai/objection-handler" "${AI_OBJECTION_PAY
 echo "${AI_OBJECTION_RESPONSE}" | jq .
 assert_jq "${AI_OBJECTION_RESPONSE}" '.suggested_message and .safety_status' "AI objection handler should include suggested message"
 
-echo -e "\n13. POST /api/ai/follow-up-message"
+echo -e "\n14. POST /api/ai/follow-up-message"
 AI_FOLLOWUP_PAYLOAD=$(jq -n --arg lead_id "${LEAD_ID}" --arg service_id "${SMOKE_SERVICE_ID}" '{
   lead_id: $lead_id,
   service_id: $service_id,
@@ -360,7 +368,48 @@ AI_FOLLOWUP_RESPONSE=$(api_post "/api/ai/follow-up-message" "${AI_FOLLOWUP_PAYLO
 echo "${AI_FOLLOWUP_RESPONSE}" | jq .
 assert_jq "${AI_FOLLOWUP_RESPONSE}" '.suggested_message and .next_step and .safety_status' "AI follow-up should include suggested message and next step"
 
-echo -e "\n14. POST /api/followups/${LEAD_ID}/complete"
+echo -e "\n15. POST /api/ai/analyze-conversation"
+AI_ANALYZE_PAYLOAD=$(jq -n --arg lead_id "${LEAD_ID}" --arg service_id "${SMOKE_SERVICE_ID}" '{
+  lead_id: $lead_id,
+  service_id: $service_id,
+  source: "whatsapp",
+  conversation_text: "Paciente: Hola, quiero saber precio y disponibilidad para una valoracion. Clinica: Con gusto te ayudamos con informacion general."
+}')
+AI_ANALYZE_RESPONSE=$(api_post "/api/ai/analyze-conversation" "${AI_ANALYZE_PAYLOAD}")
+echo "${AI_ANALYZE_RESPONSE}" | jq .
+assert_jq "${AI_ANALYZE_RESPONSE}" '.analysis_id and .suggested_reply and .safety_status' "AI conversation analysis should include analysis id, suggested reply, and safety status"
+
+echo -e "\n16. PUT /api/leads/${LEAD_ID} with reviewed AI analysis"
+REVIEWED_ANALYSIS_UPDATE_PAYLOAD=$(jq -n --argjson analysis "${AI_ANALYZE_RESPONSE}" '{
+  status: "Interesado",
+  note: "Analisis AI revisado por humano en smoke e2e.",
+  reviewed_ai_analysis: {
+    analysis_id: $analysis.analysis_id,
+    intent: $analysis.intent,
+    detected_objections: $analysis.detected_objections,
+    commercial_summary: $analysis.commercial_summary,
+    suggested_next_action: $analysis.suggested_next_action,
+    source: "whatsapp"
+  }
+}')
+REVIEWED_ANALYSIS_UPDATE_RESPONSE=$(api_put "/api/leads/${LEAD_ID}" "${REVIEWED_ANALYSIS_UPDATE_PAYLOAD}")
+echo "${REVIEWED_ANALYSIS_UPDATE_RESPONSE}" | jq .
+assert_jq "${REVIEWED_ANALYSIS_UPDATE_RESPONSE}" '.status == "Interesado"' "reviewed AI analysis update should keep lead interested"
+
+echo -e "\n17. GET /api/leads/${LEAD_ID} with AI insights"
+LEAD_AI_DETAIL_RESPONSE=$(api_get "/api/leads/${LEAD_ID}")
+echo "${LEAD_AI_DETAIL_RESPONSE}" | jq .
+assert_jq "${LEAD_AI_DETAIL_RESPONSE}" '.ai_insights | length >= 1' "lead detail should include reviewed AI insights"
+
+echo -e "\n18. GET /api/dashboard/actions with AI insight priority"
+DASHBOARD_AI_ACTIONS_RESPONSE=$(api_get "/api/dashboard/actions?limit=20")
+echo "${DASHBOARD_AI_ACTIONS_RESPONSE}" | jq .
+if ! jq -e --arg id "${LEAD_ID}" 'any(.data[]; .lead_id == $id and (.type == "high_intent" or .type == "detected_objection"))' <<<"${DASHBOARD_AI_ACTIONS_RESPONSE}" >/dev/null; then
+  echo "Assertion failed: dashboard actions should include reviewed AI insight priority" >&2
+  exit 1
+fi
+
+echo -e "\n19. POST /api/followups/${LEAD_ID}/complete"
 COMPLETE_PAYLOAD=$(jq -n '{
   status: "Interesado",
   note: "Seguimiento completado por smoke e2e."
@@ -369,7 +418,7 @@ COMPLETE_RESPONSE=$(api_post "/api/followups/${LEAD_ID}/complete" "${COMPLETE_PA
 echo "${COMPLETE_RESPONSE}" | jq .
 assert_jq "${COMPLETE_RESPONSE}" '.status == "completed"' "follow-up complete should return completed status"
 
-echo -e "\n15. GET /api/dashboard/summary"
+echo -e "\n20. GET /api/dashboard/summary"
 DASHBOARD_RESPONSE=$(api_get "/api/dashboard/summary")
 echo "${DASHBOARD_RESPONSE}" | jq .
 assert_jq "${DASHBOARD_RESPONSE}" '.leads_total >= 1' "dashboard should report at least one lead"

@@ -5,12 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"math"
+	"regexp"
 	"strings"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 )
 
 var ErrMissingClinicID = errors.New("clinic id is required")
+
+var uuidPattern = regexp.MustCompile(`(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
 
 type Service struct {
 	repository Repository
@@ -62,7 +65,7 @@ func (s *Service) Get(ctx context.Context, clinicID, leadID string) (LeadDetailR
 		return LeadDetailResponse{}, ErrMissingClinicID
 	}
 
-	lead, notes, err := s.repository.FindByID(ctx, clinicID, leadID)
+	lead, notes, insights, err := s.repository.FindByID(ctx, clinicID, leadID)
 	if err != nil {
 		return LeadDetailResponse{}, err
 	}
@@ -84,6 +87,11 @@ func (s *Service) Get(ctx context.Context, clinicID, leadID string) (LeadDetailR
 		}
 	}
 
+	insightResponses := make([]AIInsightResponse, len(insights))
+	for i, insight := range insights {
+		insightResponses[i] = aiInsightToResponse(insight)
+	}
+
 	return LeadDetailResponse{
 		ID:           lead.ID,
 		FullName:     lead.FullName,
@@ -92,6 +100,7 @@ func (s *Service) Get(ctx context.Context, clinicID, leadID string) (LeadDetailR
 		Status:       lead.Status,
 		Source:       lead.Source,
 		Notes:        noteResponses,
+		AIInsights:   insightResponses,
 		NextActionAt: lead.NextActionAt,
 		CreatedAt:    lead.CreatedAt,
 	}, nil
@@ -198,6 +207,9 @@ func (s *Service) Create(ctx context.Context, clinicID string, req CreateLeadReq
 	if req.Status == "" {
 		req.Status = "Nuevo"
 	}
+	if !isAllowedStatus(req.Status) {
+		return LeadResponse{}, errors.New("invalid status")
+	}
 
 	req.Source = strings.TrimSpace(req.Source)
 	if req.Source == "" {
@@ -226,7 +238,12 @@ func (s *Service) Create(ctx context.Context, clinicID string, req CreateLeadReq
 		NextActionAt: req.NextActionAt,
 	}
 
-	created, err := s.repository.Create(ctx, model, req.Notes)
+	insight, err := aiInsightFromRequest(req.ReviewedAIAnalysis, req.Source)
+	if err != nil {
+		return LeadResponse{}, err
+	}
+
+	created, err := s.repository.Create(ctx, model, strings.TrimSpace(req.Notes), insight)
 	if err != nil {
 		return LeadResponse{}, err
 	}
@@ -264,7 +281,12 @@ func (s *Service) Update(ctx context.Context, clinicID, leadID string, req Updat
 		nextActionAt = &sql.NullTime{Time: *req.NextActionAt, Valid: true}
 	}
 
-	return s.repository.Update(ctx, clinicID, leadID, req.Status, nextActionAt, req.Note)
+	insight, err := aiInsightFromRequest(req.ReviewedAIAnalysis, "")
+	if err != nil {
+		return err
+	}
+
+	return s.repository.Update(ctx, clinicID, leadID, req.Status, nextActionAt, strings.TrimSpace(req.Note), insight)
 }
 
 func leadToResponse(l Lead) LeadResponse {
@@ -280,6 +302,78 @@ func leadToResponse(l Lead) LeadResponse {
 		CreatedAt:    l.CreatedAt,
 		UpdatedAt:    l.UpdatedAt,
 	}
+}
+
+func aiInsightFromRequest(req *ReviewedAIAnalysisRequest, defaultSource string) (*AIInsight, error) {
+	if req == nil {
+		return nil, nil
+	}
+
+	intent := strings.ToLower(strings.TrimSpace(req.Intent))
+	if intent == "" {
+		intent = "medium"
+	}
+	if intent != "low" && intent != "medium" && intent != "high" {
+		return nil, errors.New("invalid reviewed ai analysis intent")
+	}
+
+	var generationID *string
+	analysisID := strings.TrimSpace(req.AnalysisID)
+	if analysisID != "" {
+		if !uuidPattern.MatchString(analysisID) {
+			return nil, errors.New("invalid reviewed ai analysis id")
+		}
+		generationID = &analysisID
+	}
+
+	source := truncate(strings.TrimSpace(req.Source), 50)
+	if source == "" {
+		source = truncate(strings.TrimSpace(defaultSource), 50)
+	}
+
+	objections := make([]string, 0, len(req.DetectedObjections))
+	seen := map[string]bool{}
+	for _, objection := range req.DetectedObjections {
+		value := truncate(strings.TrimSpace(objection), 80)
+		if value == "" || seen[value] {
+			continue
+		}
+		seen[value] = true
+		objections = append(objections, value)
+		if len(objections) == 10 {
+			break
+		}
+	}
+
+	return &AIInsight{
+		AIGenerationID:      generationID,
+		Intent:              intent,
+		DetectedObjections:  objections,
+		CommercialSummary:   truncate(strings.TrimSpace(req.CommercialSummary), 1000),
+		SuggestedNextAction: truncate(strings.TrimSpace(req.SuggestedNextAction), 500),
+		Source:              source,
+	}, nil
+}
+
+func aiInsightToResponse(insight AIInsight) AIInsightResponse {
+	return AIInsightResponse{
+		ID:                  insight.ID,
+		AnalysisID:          insight.AIGenerationID,
+		Intent:              insight.Intent,
+		DetectedObjections:  insight.DetectedObjections,
+		CommercialSummary:   insight.CommercialSummary,
+		SuggestedNextAction: insight.SuggestedNextAction,
+		Source:              insight.Source,
+		CreatedAt:           insight.CreatedAt,
+	}
+}
+
+func truncate(value string, maxLen int) string {
+	runes := []rune(value)
+	if len(runes) <= maxLen {
+		return value
+	}
+	return string(runes[:maxLen])
 }
 
 func isAllowedStatus(status string) bool {

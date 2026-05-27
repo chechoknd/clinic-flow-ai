@@ -42,6 +42,10 @@ func (p *OpenAIProvider) Name() string {
 	return p.providerName
 }
 
+func (p *OpenAIProvider) Model() string {
+	return p.model
+}
+
 func (p *OpenAIProvider) Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
 	url := p.baseURL + "/chat/completions"
 

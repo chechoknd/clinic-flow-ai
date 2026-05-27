@@ -2,13 +2,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
-import { DashboardSummary, FollowUp, Lead } from '../../core/services/api.models';
+import { DashboardAction, DashboardSummary } from '../../core/services/api.models';
 
 interface ActionCard {
   title: string;
   detail: string;
   meta: string;
-  tone: 'urgent' | 'today' | 'new';
+  tone: 'urgent' | 'today' | 'new' | 'intent' | 'objection';
   primaryLabel: string;
   primaryPath: string;
   primaryQueryParams?: Record<string, string>;
@@ -27,29 +27,20 @@ export class DashboardPage {
   private readonly api = inject(ApiService);
 
   readonly summary = signal<DashboardSummary | null>(null);
-  readonly leads = signal<Lead[]>([]);
-  readonly followups = signal<FollowUp[]>([]);
+  readonly actions = signal<DashboardAction[]>([]);
   readonly loadingActions = signal(false);
   readonly actionError = signal<string | null>(null);
 
   readonly actionCards = computed<ActionCard[]>(() => {
-    const overdue = this.followups()
-      .filter((followup) => this.isOverdue(followup.next_action_at))
-      .slice(0, 2)
-      .map((followup) => this.followUpAction(followup, 'urgent'));
-
-    const today = this.followups()
-      .filter((followup) => this.isToday(followup.next_action_at))
-      .filter((followup) => !this.isOverdue(followup.next_action_at))
-      .slice(0, 2)
-      .map((followup) => this.followUpAction(followup, 'today'));
-
-    const newLeads = this.leads()
-      .filter((lead) => lead.status === 'Nuevo')
-      .slice(0, 2)
-      .map((lead) => this.newLeadAction(lead));
-
-    return [...overdue, ...today, ...newLeads].slice(0, 4);
+    return this.actions().map((action) => {
+      if (action.type === 'new_lead') {
+        return this.newLeadAction(action);
+      }
+      if (action.type === 'high_intent' || action.type === 'detected_objection') {
+        return this.insightAction(action);
+      }
+      return this.followUpAction(action);
+    });
   });
 
   constructor() {
@@ -73,13 +64,13 @@ export class DashboardPage {
     return Object.entries(counts).map(([status, count]) => ({ status, count, width: (count / max) * 100 }));
   }
 
-
   private loadActionData(): void {
     this.loadingActions.set(true);
+    this.actionError.set(null);
 
-    this.api.followups().subscribe({
+    this.api.dashboardActions(4).subscribe({
       next: (response) => {
-        this.followups.set(response.data);
+        this.actions.set(response.data);
         this.loadingActions.set(false);
       },
       error: () => {
@@ -87,19 +78,17 @@ export class DashboardPage {
         this.loadingActions.set(false);
       },
     });
-
-    this.api.leads().subscribe({
-      next: (response) => this.leads.set(response.data),
-      error: () => this.actionError.set('No fue posible cargar los leads recientes.'),
-    });
   }
 
-  private followUpAction(followup: FollowUp, tone: 'urgent' | 'today'): ActionCard {
+  private followUpAction(followup: DashboardAction): ActionCard {
     return {
       title: followup.full_name,
       detail: followup.service_name || 'Servicio por confirmar',
-      meta: tone === 'urgent' ? `Vencido: ${this.formatDate(followup.next_action_at)}` : `Hoy: ${this.formatDate(followup.next_action_at)}`,
-      tone,
+      meta:
+        followup.type === 'overdue_followup'
+          ? `Vencido: ${this.formatDate(followup.next_action_at)}`
+          : `Hoy: ${this.formatDate(followup.next_action_at)}`,
+      tone: followup.tone,
       primaryLabel: 'Gestionar',
       primaryPath: '/followups',
       secondaryLabel: 'Responder con AI',
@@ -108,7 +97,7 @@ export class DashboardPage {
     };
   }
 
-  private newLeadAction(lead: Lead): ActionCard {
+  private newLeadAction(lead: DashboardAction): ActionCard {
     return {
       title: lead.full_name,
       detail: lead.service_name || 'Sin servicio definido',
@@ -122,26 +111,26 @@ export class DashboardPage {
     };
   }
 
-  private contextQueryParams(lead: Lead): Record<string, string> | undefined {
-    const params: Record<string, string> = { lead_id: lead.id };
+  private insightAction(action: DashboardAction): ActionCard {
+    return {
+      title: action.full_name,
+      detail: action.service_name || 'Servicio por confirmar',
+      meta: `${action.reason} - ${action.phone}`,
+      tone: action.tone,
+      primaryLabel: 'Abrir lead',
+      primaryPath: '/leads',
+      secondaryLabel: 'Responder con AI',
+      secondaryPath: '/ai-assistant',
+      secondaryQueryParams: this.contextQueryParams(action),
+    };
+  }
+
+  private contextQueryParams(lead: DashboardAction): Record<string, string> | undefined {
+    const params: Record<string, string> = { lead_id: lead.lead_id };
     if (lead.service_id) {
       params['service_id'] = lead.service_id;
     }
     return params;
-  }
-
-  private isOverdue(value: string | undefined): boolean {
-    const date = this.parseDate(value);
-    return Boolean(date && date.getTime() < Date.now());
-  }
-
-  private isToday(value: string | undefined): boolean {
-    const date = this.parseDate(value);
-    if (!date) {
-      return false;
-    }
-    const now = new Date();
-    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
   }
 
   private parseDate(value: string | undefined): Date | null {

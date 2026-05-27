@@ -57,6 +57,36 @@ describe('ApiService', () => {
     });
   });
 
+  it('requests dashboard priority actions', () => {
+    service.dashboardActions(6).subscribe((response) => {
+      expect(response.data[0].type).toBe('overdue_followup');
+      expect(response.data[0].lead_id).toBe('lead-1');
+    });
+
+    const request = http.expectOne(`${baseUrl}/api/dashboard/actions?limit=6`);
+
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      data: [
+        {
+          type: 'overdue_followup',
+          tone: 'urgent',
+          priority: 100,
+          lead_id: 'lead-1',
+          full_name: 'Lead Demo',
+          phone: '+573001234567',
+          service_id: 'service-1',
+          service_name: 'Blanqueamiento dental',
+          status: 'Interesado',
+          source: 'whatsapp',
+          reason: 'Seguimiento vencido',
+          next_action_at: '2026-05-27T14:30:00Z',
+          created_at: '2026-05-26T10:00:00Z',
+        },
+      ],
+    });
+  });
+
   it('requests the current clinic endpoint', () => {
     service.clinicCurrent().subscribe();
 

@@ -3,6 +3,7 @@ package dashboard
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/auth"
 )
@@ -23,6 +24,32 @@ func (h *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := h.service.Summary(r.Context(), claims.ClinicID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, res)
+}
+
+func (h *Handler) PriorityActions(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication is required.")
+		return
+	}
+
+	limit := 4
+	if rawLimit := r.URL.Query().Get("limit"); rawLimit != "" {
+		parsed, err := strconv.Atoi(rawLimit)
+		if err != nil || parsed <= 0 || parsed > 20 {
+			writeError(w, http.StatusBadRequest, "VALIDATION_ERROR", "limit must be between 1 and 20.")
+			return
+		}
+		limit = parsed
+	}
+
+	res, err := h.service.PriorityActions(r.Context(), claims.ClinicID, limit)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
 		return
