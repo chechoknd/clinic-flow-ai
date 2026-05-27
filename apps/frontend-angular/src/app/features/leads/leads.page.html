@@ -220,14 +220,33 @@
             </p>
           </div>
           @if (selectedLead(); as lead) {
-            <a
-              data-testid="leads-detail-inbox-ai-link"
-              routerLink="/inbox-ai"
-              [queryParams]="{ lead_id: lead.id, service_id: lead.service_id }"
-              class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Analizar conversacion
-            </a>
+            <div class="flex flex-wrap gap-2">
+              <a
+                data-testid="leads-detail-whatsapp-link"
+                [href]="whatsappLink(lead.phone)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-fit rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700"
+              >
+                Abrir WhatsApp
+              </a>
+              <button
+                type="button"
+                data-testid="leads-detail-copy-phone-button"
+                class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                (click)="copySelectedLeadPhone()"
+              >
+                {{ phoneCopied() ? 'Telefono copiado' : 'Copiar telefono' }}
+              </button>
+              <a
+                data-testid="leads-detail-inbox-ai-link"
+                routerLink="/inbox-ai"
+                [queryParams]="{ lead_id: lead.id, service_id: lead.service_id }"
+                class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Analizar conversacion
+              </a>
+            </div>
           }
         </div>
 

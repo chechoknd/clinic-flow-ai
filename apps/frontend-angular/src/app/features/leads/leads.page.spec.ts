@@ -56,8 +56,15 @@ describe('LeadsPage', () => {
     createLead: ReturnType<typeof vi.fn>;
     updateLead: ReturnType<typeof vi.fn>;
   };
+  let writeText: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
+    writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+
     api = {
       leads: vi.fn(() => of(response)),
       lead: vi.fn((id: string) =>
@@ -185,6 +192,21 @@ describe('LeadsPage', () => {
     expect(text).toContain('Alta intencion');
     expect(text).toContain('Pregunta por precio y quiere avanzar.');
     expect(text).toContain('Pidio informacion por WhatsApp.');
+  });
+
+  it('opens manual WhatsApp and copies selected lead phone', async () => {
+    fixture.componentInstance.selectLead(leads[0]);
+    fixture.detectChanges();
+
+    const whatsappLink = fixture.nativeElement.querySelector('[data-testid="leads-detail-whatsapp-link"]') as HTMLAnchorElement;
+
+    expect(whatsappLink.href).toBe('https://wa.me/573001112222');
+
+    fixture.componentInstance.copySelectedLeadPhone();
+    await fixture.whenStable();
+
+    expect(writeText).toHaveBeenCalledWith('+573001112222');
+    expect(fixture.componentInstance.phoneCopied()).toBe(true);
   });
 
   it('updates the selected lead status, note, and next action', () => {

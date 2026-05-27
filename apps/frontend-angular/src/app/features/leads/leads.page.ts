@@ -35,6 +35,7 @@ export class LeadsPage {
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+  readonly phoneCopied = signal(false);
 
   readonly filteredLeads = computed(() =>
     this.leads().filter((lead) => lead.status === this.selectedStatus()),
@@ -88,6 +89,7 @@ export class LeadsPage {
   selectLead(lead: Lead): void {
     this.selectedLead.set(lead);
     this.selectedLeadDetail.set(null);
+    this.phoneCopied.set(false);
     this.success.set(null);
     this.error.set(null);
     this.updateForm.reset({
@@ -181,8 +183,22 @@ export class LeadsPage {
         error: () => {
           this.error.set('No fue posible actualizar el lead. Intenta de nuevo.');
           this.saving.set(false);
-      },
-    });
+        },
+      });
+  }
+
+  whatsappLink(phone: string | undefined): string {
+    const digits = (phone || '').replace(/\D/g, '');
+    return digits ? `https://wa.me/${digits}` : '';
+  }
+
+  copySelectedLeadPhone(): void {
+    const phone = this.selectedLeadDetail()?.phone || this.selectedLead()?.phone;
+    if (!phone) {
+      return;
+    }
+
+    void navigator.clipboard.writeText(phone).then(() => this.phoneCopied.set(true));
   }
 
   insightIntentLabel(insight: LeadAIInsight): string {
