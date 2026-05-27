@@ -17,6 +17,7 @@ import {
   FollowUpMessagePayload,
   FollowUpMessageResponse,
   Lead,
+  LeadDetail,
   PaginatedResponse,
   DashboardSummaryApiResponse,
   ServicesApiResponse,
@@ -69,6 +70,10 @@ export class ApiService {
 
   leads() {
     return this.http.get<PaginatedResponse<Lead>>(`${this.baseUrl}/api/leads`);
+  }
+
+  lead(id: string) {
+    return this.http.get<LeadDetail>(`${this.baseUrl}/api/leads/${id}`);
   }
 
   createLead(payload: CreateLeadPayload) {

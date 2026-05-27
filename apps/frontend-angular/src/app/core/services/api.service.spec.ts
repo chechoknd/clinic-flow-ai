@@ -144,18 +144,30 @@ describe('ApiService', () => {
       expect(response).toEqual({ data: [] });
     });
     service.leads().subscribe();
+    service.lead('lead-1').subscribe();
     service.followups().subscribe();
 
     const servicesRequest = http.expectOne(`${baseUrl}/api/services`);
     const leadsRequest = http.expectOne(`${baseUrl}/api/leads`);
+    const leadDetailRequest = http.expectOne(`${baseUrl}/api/leads/lead-1`);
     const followupsRequest = http.expectOne(`${baseUrl}/api/followups`);
 
     expect(servicesRequest.request.method).toBe('GET');
     expect(leadsRequest.request.method).toBe('GET');
+    expect(leadDetailRequest.request.method).toBe('GET');
     expect(followupsRequest.request.method).toBe('GET');
 
     servicesRequest.flush([]);
     leadsRequest.flush({ data: [], pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 } });
+    leadDetailRequest.flush({
+      id: 'lead-1',
+      full_name: 'Lead Demo',
+      phone: '+573001112222',
+      status: 'Nuevo',
+      source: 'whatsapp',
+      notes: [],
+      created_at: '2026-05-23T12:00:00Z',
+    });
     followupsRequest.flush({ data: [], pagination: { page: 1, page_size: 20, total: 0, total_pages: 0 } });
   });
 

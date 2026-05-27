@@ -1,8 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { ClinicServiceItem, Lead, LeadStatus } from '../../core/services/api.models';
+import { ClinicServiceItem, Lead, LeadAIInsight, LeadDetail, LeadStatus } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -14,6 +14,7 @@ import { ApiService } from '../../core/services/api.service';
 export class LeadsPage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute, { optional: true });
 
   readonly statuses: LeadStatus[] = [
     'Nuevo',
@@ -28,7 +29,9 @@ export class LeadsPage {
   readonly leads = signal<Lead[]>([]);
   readonly services = signal<ClinicServiceItem[]>([]);
   readonly selectedLead = signal<Lead | null>(null);
+  readonly selectedLeadDetail = signal<LeadDetail | null>(null);
   readonly loading = signal(false);
+  readonly loadingDetail = signal(false);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
@@ -36,6 +39,7 @@ export class LeadsPage {
   readonly filteredLeads = computed(() =>
     this.leads().filter((lead) => lead.status === this.selectedStatus()),
   );
+  readonly latestAIInsight = computed(() => this.selectedLeadDetail()?.ai_insights?.[0] ?? null);
 
   statusCount(status: LeadStatus): number {
     return this.leads().filter((lead) => lead.status === status).length;
@@ -77,11 +81,13 @@ export class LeadsPage {
     const current = this.selectedLead();
     if (current && current.status !== status) {
       this.selectedLead.set(null);
+      this.selectedLeadDetail.set(null);
     }
   }
 
   selectLead(lead: Lead): void {
     this.selectedLead.set(lead);
+    this.selectedLeadDetail.set(null);
     this.success.set(null);
     this.error.set(null);
     this.updateForm.reset({
@@ -89,6 +95,7 @@ export class LeadsPage {
       next_action_at: this.toLocalDateTimeValue(lead.next_action_at),
       note: '',
     });
+    this.loadLeadDetail(lead.id);
   }
 
   createLead(): void {
@@ -159,10 +166,11 @@ export class LeadsPage {
       })
       .subscribe({
         next: () => {
+          const nextActionAt = this.toApiDateTime(value.next_action_at);
           const updated: Lead = {
             ...lead,
             status: value.status,
-            next_action_at: this.toApiDateTime(value.next_action_at),
+            next_action_at: nextActionAt,
           };
           this.leads.update((items) => items.map((item) => (item.id === lead.id ? updated : item)));
           this.selectedStatus.set(value.status);
@@ -173,8 +181,25 @@ export class LeadsPage {
         error: () => {
           this.error.set('No fue posible actualizar el lead. Intenta de nuevo.');
           this.saving.set(false);
-        },
-      });
+      },
+    });
+  }
+
+  insightIntentLabel(insight: LeadAIInsight): string {
+    const labels: Record<string, string> = {
+      high: 'Alta intencion',
+      medium: 'Intencion media',
+      low: 'Baja intencion',
+    };
+    return labels[insight.intent] ?? insight.intent;
+  }
+
+  selectedLeadServiceName(): string {
+    const detail = this.selectedLeadDetail();
+    if (detail?.service?.name) {
+      return detail.service.name;
+    }
+    return this.selectedLead()?.service_name || 'Sin servicio definido';
   }
 
   private loadInitialData(): void {
@@ -187,6 +212,7 @@ export class LeadsPage {
     this.api.leads().subscribe({
       next: (response) => {
         this.leads.set(response.data);
+        this.selectRouteLead(response.data);
         this.loading.set(false);
       },
       error: () => {
@@ -196,6 +222,32 @@ export class LeadsPage {
     });
   }
 
+  private selectRouteLead(leads: Lead[]): void {
+    const leadID = this.route?.snapshot.queryParamMap.get('lead_id');
+    if (!leadID) {
+      return;
+    }
+    const lead = leads.find((item) => item.id === leadID);
+    if (!lead) {
+      return;
+    }
+    this.selectedStatus.set(lead.status);
+    this.selectLead(lead);
+  }
+
+  private loadLeadDetail(leadID: string): void {
+    this.loadingDetail.set(true);
+    this.api.lead(leadID).subscribe({
+      next: (detail) => {
+        this.selectedLeadDetail.set(detail);
+        this.loadingDetail.set(false);
+      },
+      error: () => {
+        this.error.set('No fue posible cargar el detalle del lead.');
+        this.loadingDetail.set(false);
+      },
+    });
+  }
 
   formatDate(value: string | null | undefined): string {
     if (!value) {

@@ -51,10 +51,11 @@ Phase B — Manual Conversation Analysis
 - Implemented backend-prioritized dashboard action queue endpoint and connected the Angular dashboard to it.
 - Implemented backend AI generation metadata persistence for provider/model/feature/status/safety audit without storing raw prompts or conversations.
 - Implemented reviewed Inbox AI metadata persistence on lead create/update and connected high-intent/objection signals to dashboard priority actions.
+- Improved the Leads screen with a commercial detail panel that loads notes, follow-up context, and reviewed AI insights from `GET /api/leads/:id`.
 
 ## In-Progress Items
 
-- Review the actionable dashboard and Inbox AI workflow with real local usage.
+- Review the actionable dashboard, Inbox AI workflow, and lead detail panel with real local usage.
 
 ## Pending Items
 
@@ -79,7 +80,7 @@ Phase B — Manual Conversation Analysis
 
 - Backend has implemented MVP modules and AI usage metadata, but content generation and richer AI error handling remain pending.
 - Frontend screens currently cover first navigation, lead workflows, AI reply generation, follow-up actions, service catalog CRUD, and clinic profile editing.
-- Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, frontend actions to create or update leads from reviewed analysis, and reviewed AI metadata persistence. Dashboard now consumes a backend-prioritized action queue for follow-up, new-lead, high-intent, and objection signals; remaining proposed API endpoints are not implemented.
+- Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, frontend actions to create or update leads from reviewed analysis, and reviewed AI metadata persistence. Dashboard now consumes a backend-prioritized action queue for follow-up, new-lead, high-intent, and objection signals. The Leads screen can show notes and reviewed AI insights in a commercial detail panel; remaining proposed API endpoints are not implemented.
 - API contracts now reflect implemented MVP endpoints, but should continue to be updated when response shapes change.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation and basic usage metadata exist, but provider error taxonomy still needs improvement.
@@ -88,7 +89,7 @@ Phase B — Manual Conversation Analysis
 
 ## Next Recommended Step
 
-Review the updated Inbox AI to dashboard workflow locally and tune priority wording/order from real receptionist usage.
+Review the updated Inbox AI to dashboard to lead-detail workflow locally and tune priority wording/order from real receptionist usage.
 
 ## Change Log
 
@@ -99,6 +100,7 @@ Review the updated Inbox AI to dashboard workflow locally and tune priority word
 - Expanded API service tests and smoke coverage for dashboard priority actions.
 - Added `ai_generations` metadata persistence for AI feature, provider, model, status, safety status, user, clinic, and character counts without storing raw prompt or conversation content.
 - Added `lead_ai_insights` metadata persistence for reviewed Inbox AI analysis and dashboard prioritization of high-intent leads and detected objections.
+- Added a Leads commercial detail panel for selected lead notes, follow-up context, and reviewed AI insights.
 
 ### 2026-05-25
 

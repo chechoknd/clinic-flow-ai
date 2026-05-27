@@ -58,6 +58,39 @@ export interface Lead {
   created_at?: string;
 }
 
+export interface LeadDetail {
+  id: string;
+  full_name: string;
+  phone: string;
+  service?: {
+    id: string;
+    name: string;
+  };
+  status: LeadStatus;
+  source: string;
+  notes: LeadNote[];
+  ai_insights?: LeadAIInsight[];
+  next_action_at?: string;
+  created_at: string;
+}
+
+export interface LeadNote {
+  id: string;
+  body: string;
+  created_at: string;
+}
+
+export interface LeadAIInsight {
+  id: string;
+  analysis_id?: string;
+  intent: 'low' | 'medium' | 'high' | string;
+  detected_objections: string[];
+  commercial_summary?: string;
+  suggested_next_action?: string;
+  source?: string;
+  created_at: string;
+}
+
 export interface CreateLeadPayload {
   full_name: string;
   phone: string;

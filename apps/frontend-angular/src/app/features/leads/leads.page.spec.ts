@@ -51,6 +51,7 @@ describe('LeadsPage', () => {
   let fixture: ComponentFixture<LeadsPage>;
   let api: {
     leads: ReturnType<typeof vi.fn>;
+    lead: ReturnType<typeof vi.fn>;
     services: ReturnType<typeof vi.fn>;
     createLead: ReturnType<typeof vi.fn>;
     updateLead: ReturnType<typeof vi.fn>;
@@ -59,6 +60,36 @@ describe('LeadsPage', () => {
   beforeEach(async () => {
     api = {
       leads: vi.fn(() => of(response)),
+      lead: vi.fn((id: string) =>
+        of({
+          id,
+          full_name: 'Paciente Nuevo',
+          phone: '+573001112222',
+          service: { id: 'service-1', name: 'Blanqueamiento dental' },
+          status: 'Nuevo',
+          source: 'whatsapp',
+          notes: [
+            {
+              id: 'note-1',
+              body: 'Pidio informacion por WhatsApp.',
+              created_at: '2026-05-23T12:00:00Z',
+            },
+          ],
+          ai_insights: [
+            {
+              id: 'insight-1',
+              intent: 'high',
+              detected_objections: ['precio'],
+              commercial_summary: 'Pregunta por precio y quiere avanzar.',
+              suggested_next_action: 'Enviar opciones y proponer valoracion.',
+              source: 'whatsapp',
+              created_at: '2026-05-23T12:05:00Z',
+            },
+          ],
+          next_action_at: '2026-05-24T14:30:00Z',
+          created_at: '2026-05-23T12:00:00Z',
+        }),
+      ),
       services: vi.fn(() => of({ data: services })),
       createLead: vi.fn((lead: Omit<Lead, 'id'>) => of({ ...lead, id: 'lead-3', created_at: '2026-05-23T12:00:00Z' })),
       updateLead: vi.fn(() => of({ id: 'lead-1', status: 'Contactado' })),
@@ -141,6 +172,19 @@ describe('LeadsPage', () => {
 
     expect(contextualLink?.href).toContain('lead_id=lead-1');
     expect(contextualLink?.href).toContain('service_id=service-1');
+  });
+
+  it('loads selected lead detail with notes and reviewed AI insight', () => {
+    fixture.componentInstance.selectLead(leads[0]);
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+
+    expect(api.lead).toHaveBeenCalledWith('lead-1');
+    expect(text).toContain('Detalle comercial');
+    expect(text).toContain('Alta intencion');
+    expect(text).toContain('Pregunta por precio y quiere avanzar.');
+    expect(text).toContain('Pidio informacion por WhatsApp.');
   });
 
   it('updates the selected lead status, note, and next action', () => {
