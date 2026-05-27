@@ -69,6 +69,14 @@
                     >
                       Responder con AI
                     </a>
+                    <a
+                      [attr.data-testid]="'followups-lead-detail-link-' + followup.id"
+                      routerLink="/leads"
+                      [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
+                      class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Ver detalle
+                    </a>
                   </div>
                 </article>
               } @empty {
@@ -93,6 +101,17 @@
           }
         </p>
       </div>
+
+      @if (selectedFollowUp(); as followup) {
+        <a
+          data-testid="followups-selected-lead-detail-link"
+          routerLink="/leads"
+          [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
+          class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Ver detalle comercial
+        </a>
+      }
 
       <form data-testid="followups-action-form" class="grid gap-4" [formGroup]="actionForm">
         <label class="grid gap-2 text-sm font-medium text-slate-700">

@@ -83,6 +83,18 @@ describe('FollowupsPage', () => {
     expect(fixture.componentInstance.canGenerateMessage()).toBe(true);
   });
 
+  it('links follow-ups to the lead commercial detail', () => {
+    fixture.componentInstance.selectFollowUp(followups[0]);
+    fixture.detectChanges();
+
+    const links = Array.from(fixture.nativeElement.querySelectorAll('a[href*="leads"]')) as HTMLAnchorElement[];
+    const detailLink = links.find((link) => link.href.includes('lead_id=lead-1'));
+
+    expect(detailLink?.href).toContain('/leads');
+    expect(detailLink?.href).toContain('lead_id=lead-1');
+    expect(detailLink?.href).toContain('service_id=service-1');
+  });
+
   it('completes the selected follow-up and removes it from the list', () => {
     fixture.componentInstance.selectFollowUp(followups[0]);
     fixture.componentInstance.actionForm.controls.note.setValue('Se envio informacion.');
