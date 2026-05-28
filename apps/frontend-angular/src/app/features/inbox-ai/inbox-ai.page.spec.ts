@@ -106,6 +106,29 @@ describe('InboxAiPage', () => {
     expect(fixture.componentInstance.leadForm.getRawValue().status).toBe('Interesado');
   });
 
+  it('shows a human review preview before saving the analyzed lead action', () => {
+    fixture.componentInstance.analyzeForm.setValue({
+      source: 'whatsapp',
+      lead_id: '',
+      service_id: 'service-1',
+      conversation_text: 'Paciente: Hola, quiero saber cuanto cuesta el blanqueamiento dental.',
+    });
+
+    fixture.componentInstance.analyze();
+    fixture.detectChanges();
+
+    const preview = fixture.nativeElement.querySelector('[data-testid="inbox-ai-review-preview"]') as HTMLElement;
+    const lead = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-lead"]') as HTMLElement;
+    const action = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-action"]') as HTMLElement;
+    const nextStep = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-next-step"]') as HTMLElement;
+
+    expect(preview.textContent).toContain('Vista previa antes de guardar');
+    expect(lead.textContent).toContain('Lead Demo Inbox');
+    expect(action.textContent).toContain('Crear lead nuevo');
+    expect(preview.textContent).toContain('Interesado - Blanqueamiento dental');
+    expect(nextStep.textContent).toContain('Responder y proponer valoracion');
+  });
+
   it('creates a lead only after analysis and human-reviewed fields', () => {
     fixture.componentInstance.analyzeForm.setValue({
       source: 'whatsapp',

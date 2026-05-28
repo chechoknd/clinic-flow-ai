@@ -185,6 +185,31 @@
           }
         </div>
 
+        @if (analysis()) {
+          <div data-testid="inbox-ai-review-preview" class="grid gap-3 rounded-md border border-teal-200 bg-teal-50 p-4">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-950">Vista previa antes de guardar</h3>
+              <p class="mt-1 text-sm text-slate-600">Confirma que estos datos coinciden con la conversacion revisada.</p>
+            </div>
+            <div class="grid gap-3 md:grid-cols-3">
+              <div class="rounded-md bg-white p-3">
+                <p class="text-xs font-semibold uppercase text-slate-500">Lead</p>
+                <p data-testid="inbox-ai-preview-lead" class="mt-1 text-sm font-semibold text-slate-950">{{ leadForm.controls.full_name.value || 'Sin nombre' }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ leadForm.controls.phone.value || 'Sin WhatsApp' }}</p>
+              </div>
+              <div class="rounded-md bg-white p-3">
+                <p class="text-xs font-semibold uppercase text-slate-500">Accion</p>
+                <p data-testid="inbox-ai-preview-action" class="mt-1 text-sm font-semibold text-slate-950">{{ reviewedActionModeLabel() }}</p>
+                <p class="mt-1 text-xs text-slate-500">{{ leadForm.controls.status.value }} - {{ reviewedServiceName() }}</p>
+              </div>
+              <div class="rounded-md bg-white p-3">
+                <p class="text-xs font-semibold uppercase text-slate-500">Proximo paso</p>
+                <p data-testid="inbox-ai-preview-next-step" class="mt-1 text-sm font-semibold text-slate-950">{{ reviewedNextStep() }}</p>
+              </div>
+            </div>
+          </div>
+        }
+
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm font-medium text-slate-700">
             Nombre

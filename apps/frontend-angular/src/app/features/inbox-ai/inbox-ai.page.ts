@@ -153,6 +153,24 @@ export class InboxAiPage {
     return this.hasExistingLead() ? 'Actualizar lead revisado' : 'Crear lead revisado';
   }
 
+  reviewedActionModeLabel(): string {
+    return this.hasExistingLead() ? 'Actualizar lead existente' : 'Crear lead nuevo';
+  }
+
+  reviewedServiceName(): string {
+    const serviceID = this.leadForm.controls.service_id.value;
+    const service = this.services().find((item) => item.id === serviceID);
+    return service?.name || this.analysis()?.detected_service.service_name || 'Sin servicio definido';
+  }
+
+  reviewedNextStep(): string {
+    const nextActionAt = this.leadForm.controls.next_action_at.value;
+    if (nextActionAt) {
+      return `Seguimiento: ${this.formatDate(nextActionAt)}`;
+    }
+    return this.analysis()?.suggested_next_action || 'Sin accion sugerida';
+  }
+
   saveReviewedLead(): void {
     if (this.hasExistingLead()) {
       this.updateExistingLead();
@@ -317,6 +335,22 @@ export class InboxAiPage {
     } else {
       control.setValue(`${dateVal}T${timeVal}`);
     }
+  }
+
+  private formatDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
+
+    return date.toLocaleString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
   }
 
   private toApiDateTime(value: string | undefined): string | undefined {
