@@ -32,9 +32,10 @@
     } @else {
       <div class="mt-4 grid gap-2 sm:grid-cols-5">
         @for (item of queueSummary(); track item.label) {
-          <div
+          <button
+            type="button"
             [attr.data-testid]="'dashboard-queue-summary-' + item.label"
-            class="rounded-md border px-3 py-2"
+            class="rounded-md border px-3 py-2 text-left"
             [class.border-red-200]="item.tone === 'urgent'"
             [class.bg-red-50]="item.tone === 'urgent'"
             [class.border-amber-200]="item.tone === 'today'"
@@ -45,12 +46,26 @@
             [class.bg-indigo-50]="item.tone === 'objection'"
             [class.border-teal-200]="item.tone === 'new'"
             [class.bg-teal-50]="item.tone === 'new'"
+            [class.ring-2]="selectedActionFilter() === item.filter"
+            [class.ring-slate-900]="selectedActionFilter() === item.filter"
+            (click)="selectActionFilter(item.filter)"
           >
             <p class="text-xs font-semibold uppercase text-slate-500">{{ item.label }}</p>
             <strong class="mt-1 block text-xl font-semibold text-slate-950">{{ item.count }}</strong>
-          </div>
+          </button>
         }
       </div>
+
+      @if (selectedActionFilter() !== 'all') {
+        <button
+          type="button"
+          data-testid="dashboard-clear-action-filter"
+          class="mt-3 w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          (click)="selectActionFilter(selectedActionFilter())"
+        >
+          Ver toda la cola
+        </button>
+      }
 
       <div class="mt-4 grid gap-3 lg:grid-cols-2">
         @for (action of actionCards(); track action.title + action.meta) {

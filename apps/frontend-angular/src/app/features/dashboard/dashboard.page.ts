@@ -19,9 +19,12 @@ interface ActionCard {
 
 interface QueueSummaryItem {
   label: string;
+  filter: ActionFilter;
   count: number;
   tone: 'urgent' | 'today' | 'intent' | 'objection' | 'new';
 }
+
+type ActionFilter = 'all' | 'overdue_followup' | 'today_followup' | 'high_intent' | 'detected_objection' | 'new_lead';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -34,11 +37,16 @@ export class DashboardPage {
 
   readonly summary = signal<DashboardSummary | null>(null);
   readonly actions = signal<DashboardAction[]>([]);
+  readonly selectedActionFilter = signal<ActionFilter>('all');
   readonly loadingActions = signal(false);
   readonly actionError = signal<string | null>(null);
 
+  readonly visibleActions = computed<DashboardAction[]>(() => {
+    const filter = this.selectedActionFilter();
+    return filter === 'all' ? this.actions() : this.actions().filter((action) => action.type === filter);
+  });
   readonly actionCards = computed<ActionCard[]>(() => {
-    return this.actions().map((action) => {
+    return this.visibleActions().map((action) => {
       if (action.type === 'new_lead') {
         return this.newLeadAction(action);
       }
@@ -58,11 +66,11 @@ export class DashboardPage {
     );
 
     return [
-      { label: 'Vencidos', count: counts['overdue_followup'] ?? 0, tone: 'urgent' },
-      { label: 'Hoy', count: counts['today_followup'] ?? 0, tone: 'today' },
-      { label: 'Alta intencion', count: counts['high_intent'] ?? 0, tone: 'intent' },
-      { label: 'Objeciones', count: counts['detected_objection'] ?? 0, tone: 'objection' },
-      { label: 'Nuevos', count: counts['new_lead'] ?? 0, tone: 'new' },
+      { label: 'Vencidos', filter: 'overdue_followup', count: counts['overdue_followup'] ?? 0, tone: 'urgent' },
+      { label: 'Hoy', filter: 'today_followup', count: counts['today_followup'] ?? 0, tone: 'today' },
+      { label: 'Alta intencion', filter: 'high_intent', count: counts['high_intent'] ?? 0, tone: 'intent' },
+      { label: 'Objeciones', filter: 'detected_objection', count: counts['detected_objection'] ?? 0, tone: 'objection' },
+      { label: 'Nuevos', filter: 'new_lead', count: counts['new_lead'] ?? 0, tone: 'new' },
     ];
   });
 
@@ -85,6 +93,10 @@ export class DashboardPage {
     const counts = this.summary()?.status_counts ?? {};
     const max = Math.max(...Object.values(counts), 1);
     return Object.entries(counts).map(([status, count]) => ({ status, count, width: (count / max) * 100 }));
+  }
+
+  selectActionFilter(filter: ActionFilter): void {
+    this.selectedActionFilter.set(this.selectedActionFilter() === filter ? 'all' : filter);
   }
 
   private loadActionData(): void {

@@ -88,4 +88,20 @@ describe('DashboardPage', () => {
     expect(text).toContain('Alta intencion');
     expect(text).toContain('Objeciones');
   });
+
+  it('filters visible action cards from the queue summary', () => {
+    fixture.componentInstance.selectActionFilter('high_intent');
+    fixture.detectChanges();
+
+    let text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Lead Alta Intencion');
+    expect(text).not.toContain('Lead Vencido');
+
+    fixture.componentInstance.selectActionFilter('high_intent');
+    fixture.detectChanges();
+
+    text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Lead Alta Intencion');
+    expect(text).toContain('Lead Vencido');
+  });
 });
