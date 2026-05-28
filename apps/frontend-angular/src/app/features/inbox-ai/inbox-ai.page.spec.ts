@@ -122,9 +122,11 @@ describe('InboxAiPage', () => {
     const action = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-action"]') as HTMLElement;
     const nextStep = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-next-step"]') as HTMLElement;
     const completion = fixture.nativeElement.querySelector('[data-testid="inbox-ai-review-completion"]') as HTMLElement;
+    const missingFields = fixture.nativeElement.querySelector('[data-testid="inbox-ai-review-missing-fields"]');
 
     expect(preview.textContent).toContain('Vista previa antes de guardar');
     expect(completion.textContent).toContain('Revision completa');
+    expect(missingFields).toBeNull();
     expect(lead.textContent).toContain('Lead Demo Inbox');
     expect(action.textContent).toContain('Crear lead nuevo');
     expect(preview.textContent).toContain('Interesado - Blanqueamiento dental');
@@ -135,15 +137,18 @@ describe('InboxAiPage', () => {
     fixture.componentInstance.analysis.set(analysisResponse);
     fixture.componentInstance.leadForm.patchValue({
       full_name: '',
-      phone: '+573001234567',
+      phone: '3001234567',
       status: 'Interesado',
     });
     fixture.detectChanges();
 
     const completion = fixture.nativeElement.querySelector('[data-testid="inbox-ai-review-completion"]') as HTMLElement;
+    const missingFields = fixture.nativeElement.querySelector('[data-testid="inbox-ai-review-missing-fields"]') as HTMLElement;
 
     expect(fixture.componentInstance.isReviewComplete()).toBe(false);
     expect(completion.textContent).toContain('Revisa nombre, WhatsApp y estado');
+    expect(missingFields.textContent).toContain('Nombre');
+    expect(missingFields.textContent).toContain('WhatsApp');
   });
 
   it('creates a lead only after analysis and human-reviewed fields', () => {

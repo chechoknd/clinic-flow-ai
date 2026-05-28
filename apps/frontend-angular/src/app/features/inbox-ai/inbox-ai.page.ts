@@ -192,6 +192,21 @@ export class InboxAiPage {
     return this.isReviewComplete() ? 'Revision completa' : 'Revisa nombre, WhatsApp y estado';
   }
 
+  reviewMissingFields(): string[] {
+    const fields: string[] = [];
+    const value = this.leadForm.getRawValue();
+    if (!value.full_name.trim()) {
+      fields.push('Nombre');
+    }
+    if (!value.phone.trim() || this.leadForm.controls.phone.invalid) {
+      fields.push('WhatsApp');
+    }
+    if (!value.status) {
+      fields.push('Estado');
+    }
+    return fields;
+  }
+
   createLead(): void {
     if (this.leadForm.invalid || !this.analysis()) {
       this.leadForm.markAllAsTouched();

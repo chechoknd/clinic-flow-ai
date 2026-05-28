@@ -219,6 +219,14 @@
                 <p data-testid="inbox-ai-preview-next-step" class="mt-1 text-sm font-semibold text-slate-950">{{ reviewedNextStep() }}</p>
               </div>
             </div>
+            @if (!isReviewComplete() && reviewMissingFields().length) {
+              <div data-testid="inbox-ai-review-missing-fields" class="flex flex-wrap gap-2 rounded-md bg-white p-3">
+                <span class="text-xs font-semibold uppercase text-slate-500">Falta revisar</span>
+                @for (field of reviewMissingFields(); track field) {
+                  <span [attr.data-testid]="'inbox-ai-missing-field-' + field" class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">{{ field }}</span>
+                }
+              </div>
+            }
           </div>
         }
 
