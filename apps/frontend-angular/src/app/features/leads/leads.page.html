@@ -259,6 +259,12 @@
           }
         </div>
 
+        @if (openedFromInboxAI() && selectedLead()) {
+          <p data-testid="leads-inbox-ai-context-message" class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm font-medium text-teal-700">
+            Lead revisado desde Inbox AI. Revisa notas e insights antes de continuar el seguimiento comercial.
+          </p>
+        }
+
         @if (loadingDetail()) {
           <div class="rounded-md bg-slate-50 p-6 text-center text-sm text-slate-500">Cargando detalle...</div>
         } @else if (selectedLeadDetail(); as detail) {

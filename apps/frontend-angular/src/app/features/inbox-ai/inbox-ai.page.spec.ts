@@ -202,6 +202,7 @@ describe('InboxAiPage', () => {
     expect(detailLink.href).toContain('/leads');
     expect(detailLink.href).toContain('lead_id=lead-1');
     expect(detailLink.href).toContain('service_id=service-1');
+    expect(detailLink.href).toContain('from=inbox_ai');
   });
 
   it('updates an existing lead with the reviewed analysis action', () => {

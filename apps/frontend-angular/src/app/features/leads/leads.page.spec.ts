@@ -215,6 +215,20 @@ describe('LeadsPage', () => {
     expect(text).not.toContain('Pidio informacion por WhatsApp.');
   });
 
+  it('highlights lead detail when opened from Inbox AI context', () => {
+    fixture.componentInstance.selectLead(leads[0], { fromInboxAI: true });
+    fixture.detectChanges();
+
+    const contextMessage = fixture.nativeElement.querySelector('[data-testid="leads-inbox-ai-context-message"]') as HTMLElement;
+
+    expect(contextMessage.textContent).toContain('Lead revisado desde Inbox AI');
+
+    fixture.componentInstance.selectLead(leads[1]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="leads-inbox-ai-context-message"]')).toBeNull();
+  });
+
   it('opens manual WhatsApp and copies selected lead phone', async () => {
     fixture.componentInstance.selectLead(leads[0]);
     fixture.detectChanges();

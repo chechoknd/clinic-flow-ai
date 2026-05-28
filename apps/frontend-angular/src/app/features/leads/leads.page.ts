@@ -47,6 +47,7 @@ export class LeadsPage {
   readonly success = signal<string | null>(null);
   readonly phoneCopied = signal(false);
   readonly summaryCopied = signal(false);
+  readonly openedFromInboxAI = signal(false);
   readonly quickActions: QuickLeadAction[] = [
     {
       id: 'retry_tomorrow',
@@ -134,9 +135,10 @@ export class LeadsPage {
     }
   }
 
-  selectLead(lead: Lead): void {
+  selectLead(lead: Lead, context?: { fromInboxAI?: boolean }): void {
     this.selectedLead.set(lead);
     this.selectedLeadDetail.set(null);
+    this.openedFromInboxAI.set(Boolean(context?.fromInboxAI));
     this.phoneCopied.set(false);
     this.summaryCopied.set(false);
     this.success.set(null);
@@ -350,7 +352,7 @@ export class LeadsPage {
       return;
     }
     this.selectedStatus.set(lead.status);
-    this.selectLead(lead);
+    this.selectLead(lead, { fromInboxAI: this.route?.snapshot.queryParamMap.get('from') === 'inbox_ai' });
   }
 
   private loadLeadDetail(leadID: string): void {

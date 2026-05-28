@@ -219,6 +219,7 @@ export class InboxAiPage {
     if (serviceID) {
       params['service_id'] = serviceID;
     }
+    params['from'] = 'inbox_ai';
     return params;
   }
 

@@ -49,6 +49,7 @@ Phase B — Manual Conversation Analysis
 - Added Inbox AI review-completion feedback before saving reviewed lead actions.
 - Added visible Inbox AI missing-field chips for reviewed lead name, WhatsApp, and status.
 - Added a post-save Inbox AI link to open the reviewed lead detail directly.
+- Added contextual lead detail feedback when a reviewed lead is opened from Inbox AI.
 - Improved frontend UX around the receptionist daily workflow: actionable dashboard queue, clearer navigation, lead status counts, follow-up urgency groups, and a primary reviewed action in Inbox AI.
 - Added optional UX demo seed data with five extra services and two fictional leads per commercial status, plus a Docker Compose seed helper script.
 - Implemented MVP multi-currency baseline with clinic-level country/currency configuration, backend validation, service currency metadata, frontend formatting, and updated docs.
@@ -137,6 +138,7 @@ Review the updated Inbox AI to dashboard to lead-detail workflow locally and tun
 - Added a review-completion indicator in Inbox AI based on the reviewed lead form validity.
 - Added field-level review hints in Inbox AI when required reviewed lead data is missing or invalid.
 - Added direct navigation from Inbox AI to the reviewed lead detail after create or update.
+- Added an Inbox AI context message in the lead detail panel for reviewed lead handoff.
 - Documented planned Dashboard Inteligente action layer.
 - Added proposed API contracts for conversation analysis, lead creation from conversation, optional inbound messages, and follow-up suggestions.
 - Recorded human-review requirement: AI suggests, human reviews, human replies.
