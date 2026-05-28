@@ -30,6 +30,28 @@
     @if (loadingActions()) {
       <div class="mt-4 rounded-md bg-slate-50 p-8 text-center text-sm text-slate-500">Cargando acciones prioritarias...</div>
     } @else {
+      <div class="mt-4 grid gap-2 sm:grid-cols-5">
+        @for (item of queueSummary(); track item.label) {
+          <div
+            [attr.data-testid]="'dashboard-queue-summary-' + item.label"
+            class="rounded-md border px-3 py-2"
+            [class.border-red-200]="item.tone === 'urgent'"
+            [class.bg-red-50]="item.tone === 'urgent'"
+            [class.border-amber-200]="item.tone === 'today'"
+            [class.bg-amber-50]="item.tone === 'today'"
+            [class.border-emerald-200]="item.tone === 'intent'"
+            [class.bg-emerald-50]="item.tone === 'intent'"
+            [class.border-indigo-200]="item.tone === 'objection'"
+            [class.bg-indigo-50]="item.tone === 'objection'"
+            [class.border-teal-200]="item.tone === 'new'"
+            [class.bg-teal-50]="item.tone === 'new'"
+          >
+            <p class="text-xs font-semibold uppercase text-slate-500">{{ item.label }}</p>
+            <strong class="mt-1 block text-xl font-semibold text-slate-950">{{ item.count }}</strong>
+          </div>
+        }
+      </div>
+
       <div class="mt-4 grid gap-3 lg:grid-cols-2">
         @for (action of actionCards(); track action.title + action.meta) {
           <article

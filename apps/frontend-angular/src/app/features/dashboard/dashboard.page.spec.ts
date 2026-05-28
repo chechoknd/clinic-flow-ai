@@ -31,6 +31,21 @@ describe('DashboardPage', () => {
               of({
                 data: [
                   {
+                    type: 'overdue_followup',
+                    tone: 'urgent',
+                    priority: 100,
+                    lead_id: 'lead-2',
+                    full_name: 'Lead Vencido',
+                    phone: '+573001112223',
+                    service_id: 'service-1',
+                    service_name: 'Blanqueamiento dental',
+                    status: 'Interesado',
+                    source: 'whatsapp',
+                    reason: 'Seguimiento vencido',
+                    next_action_at: '2026-05-26T14:30:00Z',
+                    created_at: '2026-05-25T12:00:00Z',
+                  },
+                  {
                     type: 'high_intent',
                     tone: 'intent',
                     priority: 70,
@@ -64,5 +79,13 @@ describe('DashboardPage', () => {
     expect(detailLink?.href).toContain('/leads');
     expect(detailLink?.href).toContain('lead_id=lead-1');
     expect(detailLink?.href).toContain('service_id=service-1');
+  });
+
+  it('shows queue summary counts by action type', () => {
+    const text = fixture.nativeElement.textContent as string;
+
+    expect(text).toContain('Vencidos');
+    expect(text).toContain('Alta intencion');
+    expect(text).toContain('Objeciones');
   });
 });

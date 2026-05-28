@@ -17,6 +17,12 @@ interface ActionCard {
   secondaryQueryParams?: Record<string, string>;
 }
 
+interface QueueSummaryItem {
+  label: string;
+  count: number;
+  tone: 'urgent' | 'today' | 'intent' | 'objection' | 'new';
+}
+
 @Component({
   selector: 'app-dashboard-page',
   templateUrl: './dashboard.page.html',
@@ -41,6 +47,23 @@ export class DashboardPage {
       }
       return this.followUpAction(action);
     });
+  });
+  readonly queueSummary = computed<QueueSummaryItem[]>(() => {
+    const counts = this.actions().reduce(
+      (acc, action) => {
+        acc[action.type] = (acc[action.type] ?? 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+    return [
+      { label: 'Vencidos', count: counts['overdue_followup'] ?? 0, tone: 'urgent' },
+      { label: 'Hoy', count: counts['today_followup'] ?? 0, tone: 'today' },
+      { label: 'Alta intencion', count: counts['high_intent'] ?? 0, tone: 'intent' },
+      { label: 'Objeciones', count: counts['detected_objection'] ?? 0, tone: 'objection' },
+      { label: 'Nuevos', count: counts['new_lead'] ?? 0, tone: 'new' },
+    ];
   });
 
   constructor() {
