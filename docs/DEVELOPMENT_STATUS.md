@@ -104,7 +104,7 @@ Review the updated Inbox AI to dashboard to lead-detail workflow locally and tun
 - Added `lead_ai_insights` metadata persistence for reviewed Inbox AI analysis and dashboard prioritization of high-intent leads and detected objections.
 - Added a Leads commercial detail panel for selected lead notes, follow-up context, and reviewed AI insights.
 - Added manual WhatsApp and phone copy actions to the lead detail panel without introducing WhatsApp API automation.
-- Added post-contact quick actions to update lead status, notes, and follow-up dates from the commercial detail panel.
+- Added post-contact quick actions to update lead status, notes, follow-up dates, and closed outcomes from the commercial detail panel.
 
 ### 2026-05-25
 

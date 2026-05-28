@@ -243,6 +243,21 @@ describe('LeadsPage', () => {
     expect(fixture.componentInstance.selectedLead()?.next_action_at).toBeUndefined();
   });
 
+  it('clears next action when marking a lead as converted', () => {
+    fixture.componentInstance.selectLead({ ...leads[0], next_action_at: '2026-05-29T15:00:00.000Z' });
+
+    fixture.componentInstance.applyQuickAction(fixture.componentInstance.quickActions[4]);
+
+    expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
+      status: 'Convertido',
+      note: 'Lead convertido. Cerrar seguimiento comercial.',
+      next_action_at: undefined,
+      clear_next_action_at: true,
+    });
+    expect(fixture.componentInstance.selectedStatus()).toBe('Convertido');
+    expect(fixture.componentInstance.selectedLead()?.next_action_at).toBeUndefined();
+  });
+
   it('updates the selected lead status, note, and next action', () => {
     fixture.componentInstance.selectLead(leads[0]);
     fixture.componentInstance.updateForm.setValue({

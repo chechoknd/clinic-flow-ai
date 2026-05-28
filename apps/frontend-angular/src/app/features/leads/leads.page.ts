@@ -75,6 +75,13 @@ export class LeadsPage {
       note: 'Lead marcado como perdido. No requiere seguimiento por ahora.',
       clearNextActionAt: true,
     },
+    {
+      id: 'converted',
+      label: 'Marcar convertido',
+      status: 'Convertido',
+      note: 'Lead convertido. Cerrar seguimiento comercial.',
+      clearNextActionAt: true,
+    },
   ];
 
   readonly filteredLeads = computed(() =>
