@@ -81,6 +81,21 @@ describe('LeadsPage', () => {
               body: 'Pidio informacion por WhatsApp.',
               created_at: '2026-05-23T12:00:00Z',
             },
+            {
+              id: 'note-2',
+              body: 'Se envio propuesta y beneficios.',
+              created_at: '2026-05-24T12:00:00Z',
+            },
+            {
+              id: 'note-3',
+              body: 'Pregunto por disponibilidad de agenda.',
+              created_at: '2026-05-25T12:00:00Z',
+            },
+            {
+              id: 'note-4',
+              body: 'Se dejo mensaje de seguimiento.',
+              created_at: '2026-05-26T12:00:00Z',
+            },
           ],
           ai_insights: [
             {
@@ -186,12 +201,18 @@ describe('LeadsPage', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
+    const noteItems = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="leads-note-item"]')) as HTMLElement[];
 
     expect(api.lead).toHaveBeenCalledWith('lead-1');
     expect(text).toContain('Detalle comercial');
     expect(text).toContain('Alta intencion');
     expect(text).toContain('Pregunta por precio y quiere avanzar.');
-    expect(text).toContain('Pidio informacion por WhatsApp.');
+    expect(text).toContain('Notas comerciales recientes');
+    expect(text).toContain('Mostrando 3 de 4');
+    expect(noteItems).toHaveLength(3);
+    expect(noteItems[0].textContent).toContain('Se dejo mensaje de seguimiento.');
+    expect(noteItems[2].textContent).toContain('Se envio propuesta y beneficios.');
+    expect(text).not.toContain('Pidio informacion por WhatsApp.');
   });
 
   it('opens manual WhatsApp and copies selected lead phone', async () => {

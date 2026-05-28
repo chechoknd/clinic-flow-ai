@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { ClinicServiceItem, Lead, LeadAIInsight, LeadDetail, LeadStatus } from '../../core/services/api.models';
+import { ClinicServiceItem, Lead, LeadAIInsight, LeadDetail, LeadNote, LeadStatus } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 
 interface QuickLeadAction {
@@ -303,6 +303,12 @@ export class LeadsPage {
     return this.selectedLead()?.service_name || 'Sin servicio definido';
   }
 
+  recentLeadNotes(detail: LeadDetail): LeadNote[] {
+    return [...detail.notes]
+      .sort((first, second) => this.noteTimestamp(second) - this.noteTimestamp(first))
+      .slice(0, 3);
+  }
+
   private loadInitialData(): void {
     this.loading.set(true);
     this.api.services().subscribe({
@@ -446,5 +452,10 @@ export class LeadsPage {
 
     const offsetMs = date.getTimezoneOffset() * 60_000;
     return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+  }
+
+  private noteTimestamp(note: LeadNote): number {
+    const date = new Date(note.created_at);
+    return Number.isNaN(date.getTime()) ? 0 : date.getTime();
   }
 }
