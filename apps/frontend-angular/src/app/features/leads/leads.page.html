@@ -17,8 +17,8 @@
     <p data-testid="leads-success-message" class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
   }
 
-  <div class="grid gap-6 xl:grid-cols-[380px_1fr]">
-    <form data-testid="leads-create-form" class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="createForm" (ngSubmit)="createLead()">
+  <div class="grid items-start gap-6 xl:grid-cols-[380px_1fr]">
+    <form data-testid="leads-create-form" class="grid h-auto self-start gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="createForm" (ngSubmit)="createLead()">
       <div>
         <h2 class="text-base font-semibold text-slate-950">Nuevo lead</h2>
         <p class="mt-1 text-sm text-slate-500">Registra consultas comerciales para seguimiento manual.</p>
