@@ -59,15 +59,17 @@ Phase B — Manual Conversation Analysis
 - Improved the Leads screen with a commercial detail panel that loads notes, follow-up context, and reviewed AI insights from `GET /api/leads/:id`.
 - Added manual contact shortcuts in lead detail for opening WhatsApp and copying the lead phone number.
 - Added quick post-contact actions in lead detail for common outcomes and support for clearing `next_action_at` when a lead leaves the follow-up queue.
+- Added controlled commercial contact outcomes on lead notes and follow-up completion for better lead traceability without storing clinical data.
 
 ## In-Progress Items
 
 - Review the actionable dashboard, Inbox AI workflow, and lead detail panel with real local usage.
+- Use contact outcome metadata to tune commercial reporting and dashboard prioritization.
 
 ## Pending Items
 
 - Define retention rules before storing full inbound conversations.
-- Expand dashboard action scoring later with aging, follow-up history, and conversion outcome signals.
+- Expand dashboard action scoring later with aging, follow-up history, contact outcomes, and conversion outcome signals.
 - Keep seed data fictional and update the demo seed helper if new demo datasets are added.
 - Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
@@ -115,6 +117,7 @@ Review the updated Inbox AI to dashboard to lead-detail workflow locally and tun
 - Added dashboard queue summary counters for overdue, today, high-intent, objection, and new-lead actions.
 - Added dashboard queue filters so staff can focus the visible action list by urgency or AI signal.
 - Added quick commercial notes from dashboard action cards using the existing lead update endpoint.
+- Added lead note `contact_outcome` metadata for controlled commercial results such as asked price, scheduled, lost by price, converted, or follow-up requested.
 - Added in-session saved-note indicators on dashboard action cards after a quick commercial note is stored.
 - Added direct Dashboard links from AI insight actions to Inbox AI with lead context.
 

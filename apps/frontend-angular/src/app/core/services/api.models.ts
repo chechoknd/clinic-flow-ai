@@ -45,6 +45,18 @@ export type LeadStatus =
   | 'Perdido'
   | 'Convertido';
 
+export type ContactOutcome =
+  | 'attempted_no_answer'
+  | 'asked_price'
+  | 'interested'
+  | 'scheduled'
+  | 'lost_price'
+  | 'lost_timing'
+  | 'lost_trust'
+  | 'converted'
+  | 'follow_up_requested'
+  | 'other';
+
 export interface Lead {
   id: string;
   full_name: string;
@@ -77,6 +89,7 @@ export interface LeadDetail {
 export interface LeadNote {
   id: string;
   body: string;
+  contact_outcome?: ContactOutcome;
   created_at: string;
 }
 
@@ -105,6 +118,7 @@ export interface CreateLeadPayload {
 export interface UpdateLeadPayload {
   status: LeadStatus;
   note?: string;
+  contact_outcome?: ContactOutcome;
   next_action_at?: string;
   clear_next_action_at?: boolean;
   reviewed_ai_analysis?: ReviewedAIAnalysisPayload;
@@ -124,6 +138,7 @@ export type FollowUp = Lead;
 export interface CompleteFollowUpPayload {
   status?: LeadStatus;
   note?: string;
+  contact_outcome?: ContactOutcome;
 }
 
 export interface RescheduleFollowUpPayload {

@@ -424,6 +424,23 @@ Perdido
 Convertido
 ```
 
+Allowed contact outcomes for commercial notes and completed follow-ups:
+
+```txt
+attempted_no_answer
+asked_price
+interested
+scheduled
+lost_price
+lost_timing
+lost_trust
+converted
+follow_up_requested
+other
+```
+
+`contact_outcome` stores commercial result metadata only. It must not be used for diagnosis, treatment decisions, prescriptions, or clinical history.
+
 ### GET /api/leads
 
 Lists leads with pagination and optional filters.
@@ -515,6 +532,7 @@ Response:
     {
       "id": "0d9319a3-9b65-4ca6-9f4d-b38f5e4bce78",
       "body": "Solicito informacion de precio.",
+      "contact_outcome": "asked_price",
       "created_at": "2026-05-20T15:30:00Z"
     }
   ],
@@ -537,7 +555,7 @@ Response:
 
 ### PUT /api/leads/:id
 
-Updates lead status, optionally appends a note, optionally sets the next action date, or clears the next action date.
+Updates lead status, optionally appends a note with a controlled commercial `contact_outcome`, optionally sets the next action date, or clears the next action date.
 
 Request:
 
@@ -545,6 +563,7 @@ Request:
 {
   "status": "Interesado",
   "note": "Quiere agendar valoracion esta semana.",
+  "contact_outcome": "interested",
   "next_action_at": "2026-05-22T14:00:00Z",
   "clear_next_action_at": false,
   "reviewed_ai_analysis": {
@@ -589,14 +608,15 @@ Response uses the standard paginated lead list shape from `GET /api/leads`.
 
 ### POST /api/followups/:id/complete
 
-Marks a manual follow-up as completed, clears `next_action_at`, optionally updates status, and optionally appends a lead note.
+Marks a manual follow-up as completed, clears `next_action_at`, optionally updates status, and optionally appends a lead note with a controlled commercial `contact_outcome`.
 
 Request:
 
 ```json
 {
   "status": "Contactado",
-  "note": "Se envio mensaje de seguimiento por WhatsApp."
+  "note": "Se envio mensaje de seguimiento por WhatsApp.",
+  "contact_outcome": "follow_up_requested"
 }
 ```
 

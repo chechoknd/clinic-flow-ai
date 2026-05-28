@@ -308,6 +308,7 @@ UPDATED_NEXT_ACTION_AT=$(date -u -d '+2 days' '+%Y-%m-%dT%H:%M:%SZ')
 LEAD_UPDATE_PAYLOAD=$(jq -n --arg next_action_at "${UPDATED_NEXT_ACTION_AT}" '{
   status: "Contactado",
   note: "Nota agregada por smoke e2e.",
+  contact_outcome: "asked_price",
   next_action_at: $next_action_at
 }')
 LEAD_UPDATE_RESPONSE=$(api_put "/api/leads/${LEAD_ID}" "${LEAD_UPDATE_PAYLOAD}")
@@ -318,6 +319,7 @@ echo -e "\n9. GET /api/leads/${LEAD_ID}"
 LEAD_DETAIL_RESPONSE=$(api_get "/api/leads/${LEAD_ID}")
 echo "${LEAD_DETAIL_RESPONSE}" | jq .
 assert_jq "${LEAD_DETAIL_RESPONSE}" '.notes | length >= 1' "lead detail should include notes"
+assert_jq "${LEAD_DETAIL_RESPONSE}" '.notes[0].contact_outcome == "asked_price"' "lead detail should include contact outcome metadata"
 
 echo -e "\n10. GET /api/followups"
 FOLLOWUPS_RESPONSE=$(api_get "/api/followups")
@@ -383,6 +385,7 @@ echo -e "\n16. PUT /api/leads/${LEAD_ID} with reviewed AI analysis"
 REVIEWED_ANALYSIS_UPDATE_PAYLOAD=$(jq -n --argjson analysis "${AI_ANALYZE_RESPONSE}" '{
   status: "Interesado",
   note: "Analisis AI revisado por humano en smoke e2e.",
+  contact_outcome: "interested",
   reviewed_ai_analysis: {
     analysis_id: $analysis.analysis_id,
     intent: $analysis.intent,
@@ -412,7 +415,8 @@ fi
 echo -e "\n19. POST /api/followups/${LEAD_ID}/complete"
 COMPLETE_PAYLOAD=$(jq -n '{
   status: "Interesado",
-  note: "Seguimiento completado por smoke e2e."
+  note: "Seguimiento completado por smoke e2e.",
+  contact_outcome: "follow_up_requested"
 }')
 COMPLETE_RESPONSE=$(api_post "/api/followups/${LEAD_ID}/complete" "${COMPLETE_PAYLOAD}")
 echo "${COMPLETE_RESPONSE}" | jq .

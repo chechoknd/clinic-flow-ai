@@ -36,9 +36,10 @@ type LeadServiceDTO struct {
 }
 
 type LeadNoteResponse struct {
-	ID        string    `json:"id"`
-	Body      string    `json:"body"`
-	CreatedAt time.Time `json:"created_at"`
+	ID             string    `json:"id"`
+	Body           string    `json:"body"`
+	ContactOutcome *string   `json:"contact_outcome,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type AIInsightResponse struct {
@@ -75,6 +76,7 @@ type CreateLeadRequest struct {
 type UpdateLeadRequest struct {
 	Status             string                     `json:"status"`
 	Note               string                     `json:"note,omitempty"`
+	ContactOutcome     string                     `json:"contact_outcome,omitempty"`
 	NextActionAt       *time.Time                 `json:"next_action_at,omitempty"`
 	ClearNextActionAt  bool                       `json:"clear_next_action_at,omitempty"`
 	ReviewedAIAnalysis *ReviewedAIAnalysisRequest `json:"reviewed_ai_analysis,omitempty"`
@@ -86,8 +88,9 @@ type FollowUpFilterResponse struct {
 }
 
 type CompleteFollowUpRequest struct {
-	Status string `json:"status,omitempty"`
-	Note   string `json:"note,omitempty"`
+	Status         string `json:"status,omitempty"`
+	Note           string `json:"note,omitempty"`
+	ContactOutcome string `json:"contact_outcome,omitempty"`
 }
 
 type RescheduleFollowUpRequest struct {

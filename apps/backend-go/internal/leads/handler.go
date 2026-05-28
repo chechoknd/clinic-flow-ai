@@ -70,7 +70,7 @@ func (h *Handler) CompleteFollowUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		if err.Error() == "invalid status" {
+		if err.Error() == "invalid status" || err.Error() == "invalid contact outcome" {
 			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", err.Error())
 			return
 		}
@@ -250,6 +250,7 @@ func isValidationError(err error) bool {
 		"invalid lead source",
 		"status is required",
 		"invalid status",
+		"invalid contact outcome",
 		"invalid reviewed ai analysis intent",
 		"invalid reviewed ai analysis id":
 		return true

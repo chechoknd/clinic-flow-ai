@@ -19,10 +19,11 @@ type Lead struct {
 }
 
 type LeadNote struct {
-	ID        string
-	LeadID    string
-	Body      string
-	CreatedAt time.Time
+	ID             string
+	LeadID         string
+	Body           string
+	ContactOutcome *string
+	CreatedAt      time.Time
 }
 
 type AIInsight struct {

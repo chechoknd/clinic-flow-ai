@@ -81,9 +81,10 @@ func (s *Service) Get(ctx context.Context, clinicID, leadID string) (LeadDetailR
 	noteResponses := make([]LeadNoteResponse, len(notes))
 	for i, n := range notes {
 		noteResponses[i] = LeadNoteResponse{
-			ID:        n.ID,
-			Body:      n.Body,
-			CreatedAt: n.CreatedAt,
+			ID:             n.ID,
+			Body:           n.Body,
+			ContactOutcome: n.ContactOutcome,
+			CreatedAt:      n.CreatedAt,
 		}
 	}
 
@@ -166,7 +167,12 @@ func (s *Service) CompleteFollowUp(ctx context.Context, clinicID, leadID string,
 		return errors.New("invalid status")
 	}
 
-	return s.repository.CompleteFollowUp(ctx, clinicID, leadID, req.Status, strings.TrimSpace(req.Note))
+	contactOutcome, err := normalizeContactOutcome(req.ContactOutcome)
+	if err != nil {
+		return err
+	}
+
+	return s.repository.CompleteFollowUp(ctx, clinicID, leadID, req.Status, strings.TrimSpace(req.Note), contactOutcome)
 }
 
 func (s *Service) RescheduleFollowUp(ctx context.Context, clinicID, leadID string, req RescheduleFollowUpRequest) error {
@@ -288,7 +294,12 @@ func (s *Service) Update(ctx context.Context, clinicID, leadID string, req Updat
 		return err
 	}
 
-	return s.repository.Update(ctx, clinicID, leadID, req.Status, nextActionAt, strings.TrimSpace(req.Note), insight)
+	contactOutcome, err := normalizeContactOutcome(req.ContactOutcome)
+	if err != nil {
+		return err
+	}
+
+	return s.repository.Update(ctx, clinicID, leadID, req.Status, nextActionAt, strings.TrimSpace(req.Note), contactOutcome, insight)
 }
 
 func leadToResponse(l Lead) LeadResponse {
@@ -389,4 +400,27 @@ func isAllowedStatus(status string) bool {
 		"Convertido":   true,
 	}
 	return allowedStatuses[status]
+}
+
+func normalizeContactOutcome(outcome string) (string, error) {
+	outcome = strings.TrimSpace(outcome)
+	if outcome == "" {
+		return "", nil
+	}
+	allowedOutcomes := map[string]bool{
+		"attempted_no_answer": true,
+		"asked_price":         true,
+		"interested":          true,
+		"scheduled":           true,
+		"lost_price":          true,
+		"lost_timing":         true,
+		"lost_trust":          true,
+		"converted":           true,
+		"follow_up_requested": true,
+		"other":               true,
+	}
+	if !allowedOutcomes[outcome] {
+		return "", errors.New("invalid contact outcome")
+	}
+	return outcome, nil
 }

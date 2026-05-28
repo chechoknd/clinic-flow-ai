@@ -94,6 +94,7 @@ describe('LeadsPage', () => {
             {
               id: 'note-4',
               body: 'Se dejo mensaje de seguimiento.',
+              contact_outcome: 'attempted_no_answer',
               created_at: '2026-05-26T12:00:00Z',
             },
           ],
@@ -244,6 +245,14 @@ describe('LeadsPage', () => {
     expect(fixture.componentInstance.phoneCopied()).toBe(true);
   });
 
+
+  it('shows contact outcome labels in recent notes', () => {
+    fixture.componentInstance.selectLead(leads[0]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Intento sin respuesta');
+  });
+
   it('copies a commercial summary from the selected lead detail', async () => {
     fixture.componentInstance.selectLead(leads[0]);
     fixture.detectChanges();
@@ -275,6 +284,7 @@ describe('LeadsPage', () => {
     expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
       status: 'Interesado',
       note: 'Lead interesado. Programar seguimiento comercial en 2 días.',
+      contact_outcome: 'interested',
       next_action_at: '2026-05-29T15:00:00.000Z',
       clear_next_action_at: undefined,
     });
@@ -292,6 +302,7 @@ describe('LeadsPage', () => {
     expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
       status: 'Perdido',
       note: 'Lead marcado como perdido. No requiere seguimiento por ahora.',
+      contact_outcome: 'lost_price',
       next_action_at: undefined,
       clear_next_action_at: true,
     });
@@ -307,6 +318,7 @@ describe('LeadsPage', () => {
     expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
       status: 'Convertido',
       note: 'Lead convertido. Cerrar seguimiento comercial.',
+      contact_outcome: 'converted',
       next_action_at: undefined,
       clear_next_action_at: true,
     });
@@ -318,6 +330,7 @@ describe('LeadsPage', () => {
     fixture.componentInstance.selectLead(leads[0]);
     fixture.componentInstance.updateForm.setValue({
       status: 'Contactado',
+      contact_outcome: 'asked_price',
       next_action_at: '2026-05-24T09:30',
       note: 'Se envio informacion por WhatsApp.',
     });
@@ -327,6 +340,7 @@ describe('LeadsPage', () => {
     expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
       status: 'Contactado',
       note: 'Se envio informacion por WhatsApp.',
+      contact_outcome: 'asked_price',
       next_action_at: '2026-05-24T14:30:00.000Z',
     });
     expect(fixture.componentInstance.selectedStatus()).toBe('Contactado');

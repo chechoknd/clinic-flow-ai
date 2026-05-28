@@ -2,14 +2,20 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { ClinicServiceItem, Lead, LeadAIInsight, LeadDetail, LeadNote, LeadStatus } from '../../core/services/api.models';
+import { ClinicServiceItem, ContactOutcome, Lead, LeadAIInsight, LeadDetail, LeadNote, LeadStatus } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
+
+interface ContactOutcomeOption {
+  value: ContactOutcome;
+  label: string;
+}
 
 interface QuickLeadAction {
   id: string;
   label: string;
   status: LeadStatus;
   note: string;
+  contactOutcome: ContactOutcome;
   followUpDays?: number;
   clearNextActionAt?: boolean;
 }
@@ -34,6 +40,18 @@ export class LeadsPage {
     'Perdido',
     'Convertido',
   ];
+  readonly contactOutcomes: ContactOutcomeOption[] = [
+    { value: 'attempted_no_answer', label: 'Intento sin respuesta' },
+    { value: 'asked_price', label: 'Pidio precio' },
+    { value: 'interested', label: 'Interesado' },
+    { value: 'scheduled', label: 'Agendo valoracion' },
+    { value: 'lost_price', label: 'Perdido por precio' },
+    { value: 'lost_timing', label: 'Perdido por tiempo' },
+    { value: 'lost_trust', label: 'Perdido por confianza' },
+    { value: 'converted', label: 'Convertido' },
+    { value: 'follow_up_requested', label: 'Pidio seguimiento' },
+    { value: 'other', label: 'Otro resultado' },
+  ];
   readonly selectedStatus = signal<LeadStatus>('Nuevo');
   readonly leads = signal<Lead[]>([]);
   readonly services = signal<ClinicServiceItem[]>([]);
@@ -54,6 +72,7 @@ export class LeadsPage {
       label: 'Volver a intentar mañana',
       status: 'Contactado',
       note: 'Contacto realizado. Volver a intentar mañana.',
+      contactOutcome: 'attempted_no_answer',
       followUpDays: 1,
     },
     {
@@ -61,6 +80,7 @@ export class LeadsPage {
       label: 'Interesado, seguimiento en 2 días',
       status: 'Interesado',
       note: 'Lead interesado. Programar seguimiento comercial en 2 días.',
+      contactOutcome: 'interested',
       followUpDays: 2,
     },
     {
@@ -68,6 +88,7 @@ export class LeadsPage {
       label: 'Marcar agendado',
       status: 'Agendado',
       note: 'Lead marcado como agendado. Confirmar asistencia antes de la cita.',
+      contactOutcome: 'scheduled',
       followUpDays: 1,
     },
     {
@@ -75,6 +96,7 @@ export class LeadsPage {
       label: 'Marcar perdido',
       status: 'Perdido',
       note: 'Lead marcado como perdido. No requiere seguimiento por ahora.',
+      contactOutcome: 'lost_price',
       clearNextActionAt: true,
     },
     {
@@ -82,6 +104,7 @@ export class LeadsPage {
       label: 'Marcar convertido',
       status: 'Convertido',
       note: 'Lead convertido. Cerrar seguimiento comercial.',
+      contactOutcome: 'converted',
       clearNextActionAt: true,
     },
   ];
@@ -118,6 +141,7 @@ export class LeadsPage {
 
   readonly updateForm = this.fb.nonNullable.group({
     status: ['Nuevo' as LeadStatus, Validators.required],
+    contact_outcome: [''],
     next_action_at: [''],
     note: [''],
   });
@@ -145,6 +169,7 @@ export class LeadsPage {
     this.error.set(null);
     this.updateForm.reset({
       status: lead.status,
+      contact_outcome: '',
       next_action_at: this.toLocalDateTimeValue(lead.next_action_at),
       note: '',
     });
@@ -215,6 +240,7 @@ export class LeadsPage {
       .updateLead(lead.id, {
         status: value.status,
         note: value.note.trim() || undefined,
+        contact_outcome: this.toContactOutcome(value.contact_outcome),
         next_action_at: this.toApiDateTime(value.next_action_at),
       })
       .subscribe({
@@ -253,6 +279,7 @@ export class LeadsPage {
       .updateLead(lead.id, {
         status: action.status,
         note: action.note,
+        contact_outcome: action.contactOutcome,
         next_action_at: nextActionAt,
         clear_next_action_at: action.clearNextActionAt,
       })
@@ -297,6 +324,13 @@ export class LeadsPage {
     }
 
     void navigator.clipboard.writeText(this.buildLeadSummary(detail)).then(() => this.summaryCopied.set(true));
+  }
+
+  contactOutcomeLabel(outcome: ContactOutcome | undefined): string {
+    if (!outcome) {
+      return '';
+    }
+    return this.contactOutcomes.find((item) => item.value === outcome)?.label ?? outcome;
   }
 
   insightIntentLabel(insight: LeadAIInsight): string {
@@ -442,6 +476,10 @@ export class LeadsPage {
     date.setDate(date.getDate() + days);
     date.setSeconds(0, 0);
     return date;
+  }
+
+  private toContactOutcome(value: string): ContactOutcome | undefined {
+    return this.contactOutcomes.some((item) => item.value === value) ? (value as ContactOutcome) : undefined;
   }
 
   private toApiDateTime(value: string | undefined): string | undefined {

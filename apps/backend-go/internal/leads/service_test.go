@@ -79,7 +79,7 @@ func (r *fakeRepository) Create(ctx context.Context, l Lead, initialNote string,
 	return l, nil
 }
 
-func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string, insight *AIInsight) error {
+func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, status string, nextActionAt *sql.NullTime, note string, contactOutcome string, insight *AIInsight) error {
 	if r.err != nil {
 		return r.err
 	}
@@ -94,7 +94,11 @@ func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, st
 				}
 			}
 			if note != "" {
-				r.notes = append(r.notes, LeadNote{ID: "note-id", LeadID: leadID, Body: note})
+				newNote := LeadNote{ID: "note-id", LeadID: leadID, Body: note}
+				if contactOutcome != "" {
+					newNote.ContactOutcome = &contactOutcome
+				}
+				r.notes = append(r.notes, newNote)
 			}
 			if insight != nil {
 				insight.ID = "insight-id"
@@ -109,7 +113,7 @@ func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, st
 	return ErrLeadNotFound
 }
 
-func (r *fakeRepository) CompleteFollowUp(ctx context.Context, clinicID, leadID, status, note string) error {
+func (r *fakeRepository) CompleteFollowUp(ctx context.Context, clinicID, leadID, status, note, contactOutcome string) error {
 	if r.err != nil {
 		return r.err
 	}
@@ -118,7 +122,11 @@ func (r *fakeRepository) CompleteFollowUp(ctx context.Context, clinicID, leadID,
 			r.leads[i].Status = status
 			r.leads[i].NextActionAt = nil
 			if note != "" {
-				r.notes = append(r.notes, LeadNote{ID: "note-id", LeadID: leadID, Body: note})
+				newNote := LeadNote{ID: "note-id", LeadID: leadID, Body: note}
+				if contactOutcome != "" {
+					newNote.ContactOutcome = &contactOutcome
+				}
+				r.notes = append(r.notes, newNote)
 			}
 			return nil
 		}
@@ -228,6 +236,30 @@ func TestLeadServiceGetReturnsAIInsights(t *testing.T) {
 	}
 }
 
+func TestLeadServiceGetReturnsContactOutcomes(t *testing.T) {
+	createdAt := time.Date(2026, 5, 21, 10, 0, 0, 0, time.UTC)
+	outcome := "asked_price"
+	repo := &fakeRepository{
+		leads: []Lead{{ID: "lead-1", ClinicID: "clinic-1", FullName: "Maria Perez", Phone: "+573001112233", Status: "Interesado", Source: "whatsapp"}},
+		notes: []LeadNote{{
+			ID:             "note-1",
+			LeadID:         "lead-1",
+			Body:           "Pidio precio antes de decidir.",
+			ContactOutcome: &outcome,
+			CreatedAt:      createdAt,
+		}},
+	}
+	s := NewService(repo)
+
+	res, err := s.Get(context.Background(), "clinic-1", "lead-1")
+	if err != nil {
+		t.Fatalf("get lead: %v", err)
+	}
+	if len(res.Notes) != 1 || res.Notes[0].ContactOutcome == nil || *res.Notes[0].ContactOutcome != "asked_price" {
+		t.Fatalf("unexpected contact outcome response: %#v", res.Notes)
+	}
+}
+
 func TestLeadServiceUpdateCanClearNextAction(t *testing.T) {
 	nextActionAt := time.Date(2026, 5, 24, 15, 0, 0, 0, time.UTC)
 	repo := &fakeRepository{leads: []Lead{{
@@ -244,6 +276,7 @@ func TestLeadServiceUpdateCanClearNextAction(t *testing.T) {
 	err := s.Update(context.Background(), "clinic-1", "lead-1", UpdateLeadRequest{
 		Status:            "Perdido",
 		Note:              "No continua por ahora.",
+		ContactOutcome:    "lost_price",
 		ClearNextActionAt: true,
 	})
 	if err != nil {
@@ -251,6 +284,23 @@ func TestLeadServiceUpdateCanClearNextAction(t *testing.T) {
 	}
 	if repo.leads[0].NextActionAt != nil {
 		t.Fatalf("expected next action to be cleared: %#v", repo.leads[0])
+	}
+	if len(repo.notes) != 1 || repo.notes[0].ContactOutcome == nil || *repo.notes[0].ContactOutcome != "lost_price" {
+		t.Fatalf("expected contact outcome note: %#v", repo.notes)
+	}
+}
+
+func TestLeadServiceUpdateRejectsInvalidContactOutcome(t *testing.T) {
+	repo := &fakeRepository{leads: []Lead{{ID: "lead-1", ClinicID: "clinic-1", FullName: "Maria Perez", Phone: "+573001112233", Status: "Interesado", Source: "whatsapp"}}}
+	s := NewService(repo)
+
+	err := s.Update(context.Background(), "clinic-1", "lead-1", UpdateLeadRequest{
+		Status:         "Contactado",
+		Note:           "Seguimiento comercial.",
+		ContactOutcome: "diagnosis_requested",
+	})
+	if err == nil || err.Error() != "invalid contact outcome" {
+		t.Fatalf("expected invalid contact outcome error, got %v", err)
 	}
 }
 
@@ -276,7 +326,7 @@ func TestLeadServiceCompleteFollowUp(t *testing.T) {
 	repo := &fakeRepository{leads: []Lead{{ID: "lead-1", ClinicID: "clinic-1", FullName: "Maria Perez", Phone: "+573001112233", Status: "Interesado", Source: "whatsapp", NextActionAt: &nextActionAt}}}
 	s := NewService(repo)
 
-	err := s.CompleteFollowUp(context.Background(), "clinic-1", "lead-1", CompleteFollowUpRequest{Note: "Se envio seguimiento."})
+	err := s.CompleteFollowUp(context.Background(), "clinic-1", "lead-1", CompleteFollowUpRequest{Note: "Se envio seguimiento.", ContactOutcome: "follow_up_requested"})
 	if err != nil {
 		t.Fatalf("complete follow-up: %v", err)
 	}
@@ -285,6 +335,9 @@ func TestLeadServiceCompleteFollowUp(t *testing.T) {
 	}
 	if len(repo.notes) != 1 {
 		t.Fatalf("expected completion note")
+	}
+	if repo.notes[0].ContactOutcome == nil || *repo.notes[0].ContactOutcome != "follow_up_requested" {
+		t.Fatalf("expected completion contact outcome: %#v", repo.notes)
 	}
 }
 
