@@ -46,6 +46,7 @@ export class LeadsPage {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
   readonly phoneCopied = signal(false);
+  readonly summaryCopied = signal(false);
   readonly quickActions: QuickLeadAction[] = [
     {
       id: 'retry_tomorrow',
@@ -137,6 +138,7 @@ export class LeadsPage {
     this.selectedLead.set(lead);
     this.selectedLeadDetail.set(null);
     this.phoneCopied.set(false);
+    this.summaryCopied.set(false);
     this.success.set(null);
     this.error.set(null);
     this.updateForm.reset({
@@ -284,6 +286,15 @@ export class LeadsPage {
     }
 
     void navigator.clipboard.writeText(phone).then(() => this.phoneCopied.set(true));
+  }
+
+  copySelectedLeadSummary(): void {
+    const detail = this.selectedLeadDetail();
+    if (!detail) {
+      return;
+    }
+
+    void navigator.clipboard.writeText(this.buildLeadSummary(detail)).then(() => this.summaryCopied.set(true));
   }
 
   insightIntentLabel(insight: LeadAIInsight): string {
@@ -457,5 +468,28 @@ export class LeadsPage {
   private noteTimestamp(note: LeadNote): number {
     const date = new Date(note.created_at);
     return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+  }
+
+  private buildLeadSummary(detail: LeadDetail): string {
+    const latestNote = this.recentLeadNotes(detail)[0]?.body || 'Sin notas comerciales registradas';
+    const insight = this.latestAIInsight();
+    const lines = [
+      'Resumen comercial del lead',
+      `Lead: ${detail.full_name}`,
+      `WhatsApp: ${detail.phone}`,
+      `Servicio: ${this.selectedLeadServiceName()}`,
+      `Estado: ${detail.status}`,
+      `Proxima accion: ${this.formatDate(detail.next_action_at)}`,
+      `Ultima nota: ${latestNote}`,
+    ];
+
+    if (insight?.commercial_summary) {
+      lines.push(`Insight AI revisado: ${insight.commercial_summary}`);
+    }
+    if (insight?.suggested_next_action) {
+      lines.push(`Siguiente accion sugerida: ${insight.suggested_next_action}`);
+    }
+
+    return lines.join('\n');
   }
 }

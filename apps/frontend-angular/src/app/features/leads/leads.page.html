@@ -238,6 +238,15 @@
               >
                 {{ phoneCopied() ? 'Telefono copiado' : 'Copiar telefono' }}
               </button>
+              <button
+                type="button"
+                data-testid="leads-detail-copy-summary-button"
+                class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                [disabled]="!selectedLeadDetail()"
+                (click)="copySelectedLeadSummary()"
+              >
+                {{ summaryCopied() ? 'Resumen copiado' : 'Copiar resumen' }}
+              </button>
               <a
                 data-testid="leads-detail-inbox-ai-link"
                 routerLink="/inbox-ai"

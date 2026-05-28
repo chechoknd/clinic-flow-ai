@@ -230,6 +230,27 @@ describe('LeadsPage', () => {
     expect(fixture.componentInstance.phoneCopied()).toBe(true);
   });
 
+  it('copies a commercial summary from the selected lead detail', async () => {
+    fixture.componentInstance.selectLead(leads[0]);
+    fixture.detectChanges();
+
+    const summaryButton = fixture.nativeElement.querySelector('[data-testid="leads-detail-copy-summary-button"]') as HTMLButtonElement;
+    summaryButton.click();
+    await fixture.whenStable();
+
+    const summary = writeText.mock.calls.at(-1)?.[0] as string;
+    expect(summary).toContain('Resumen comercial del lead');
+    expect(summary).toContain('Lead: Paciente Nuevo');
+    expect(summary).toContain('WhatsApp: +573001112222');
+    expect(summary).toContain('Servicio: Blanqueamiento dental');
+    expect(summary).toContain('Estado: Nuevo');
+    expect(summary).toContain('Proxima accion:');
+    expect(summary).toContain('Ultima nota: Se dejo mensaje de seguimiento.');
+    expect(summary).toContain('Insight AI revisado: Pregunta por precio y quiere avanzar.');
+    expect(summary).toContain('Siguiente accion sugerida: Enviar opciones y proponer valoracion.');
+    expect(fixture.componentInstance.summaryCopied()).toBe(true);
+  });
+
   it('applies quick post-contact actions with status, note, and follow-up date', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-27T15:00:00.000Z'));
