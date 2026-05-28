@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import {
   AnalyzeConversationResponse,
@@ -13,7 +13,7 @@ import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-inbox-ai-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './inbox-ai.page.html',
   styleUrl: './inbox-ai.page.css',
 })
@@ -30,6 +30,7 @@ export class InboxAiPage {
   readonly copied = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+  readonly reviewedLeadID = signal<string | null>(null);
 
   readonly analyzeForm = this.fb.nonNullable.group({
     source: ['whatsapp', Validators.required],
@@ -119,6 +120,7 @@ export class InboxAiPage {
     const value = this.analyzeForm.getRawValue();
     this.loading.set(true);
     this.copied.set(false);
+    this.reviewedLeadID.set(null);
     this.error.set(null);
     this.success.set(null);
 
@@ -207,6 +209,19 @@ export class InboxAiPage {
     return fields;
   }
 
+  reviewedLeadQueryParams(): Record<string, string> {
+    const params: Record<string, string> = {};
+    const leadID = this.reviewedLeadID();
+    if (leadID) {
+      params['lead_id'] = leadID;
+    }
+    const serviceID = this.leadForm.controls.service_id.value;
+    if (serviceID) {
+      params['service_id'] = serviceID;
+    }
+    return params;
+  }
+
   createLead(): void {
     if (this.leadForm.invalid || !this.analysis()) {
       this.leadForm.markAllAsTouched();
@@ -215,6 +230,7 @@ export class InboxAiPage {
 
     const value = this.leadForm.getRawValue();
     this.savingLead.set(true);
+    this.reviewedLeadID.set(null);
     this.error.set(null);
     this.success.set(null);
 
@@ -233,6 +249,7 @@ export class InboxAiPage {
         next: (lead) => {
           this.leads.update((items) => [lead, ...items]);
           this.analyzeForm.patchValue({ lead_id: lead.id });
+          this.reviewedLeadID.set(lead.id);
           this.success.set('Lead creado desde el analisis revisado.');
           this.savingLead.set(false);
         },
@@ -252,6 +269,7 @@ export class InboxAiPage {
 
     const value = this.leadForm.getRawValue();
     this.savingLead.set(true);
+    this.reviewedLeadID.set(null);
     this.error.set(null);
     this.success.set(null);
 
@@ -275,6 +293,7 @@ export class InboxAiPage {
                 : lead,
             ),
           );
+          this.reviewedLeadID.set(leadID);
           this.success.set('Lead actualizado con el analisis revisado.');
           this.savingLead.set(false);
         },

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApiService } from '../../core/services/api.service';
@@ -47,6 +48,7 @@ describe('InboxAiPage', () => {
     await TestBed.configureTestingModule({
       imports: [InboxAiPage],
       providers: [
+        provideRouter([]),
         {
           provide: ApiService,
           useValue: {
@@ -180,6 +182,26 @@ describe('InboxAiPage', () => {
       },
     });
     expect(fixture.componentInstance.success()).toBe('Lead creado desde el analisis revisado.');
+    expect(fixture.componentInstance.reviewedLeadID()).toBe('lead-1');
+  });
+
+  it('links to the reviewed lead detail after creating a lead', () => {
+    fixture.componentInstance.analyzeForm.setValue({
+      source: 'whatsapp',
+      lead_id: '',
+      service_id: 'service-1',
+      conversation_text: 'Paciente: Hola, quiero saber cuanto cuesta el blanqueamiento dental.',
+    });
+    fixture.componentInstance.analyze();
+
+    fixture.componentInstance.createLead();
+    fixture.detectChanges();
+
+    const detailLink = fixture.nativeElement.querySelector('[data-testid="inbox-ai-reviewed-lead-detail-link"]') as HTMLAnchorElement;
+
+    expect(detailLink.href).toContain('/leads');
+    expect(detailLink.href).toContain('lead_id=lead-1');
+    expect(detailLink.href).toContain('service_id=service-1');
   });
 
   it('updates an existing lead with the reviewed analysis action', () => {
@@ -205,6 +227,7 @@ describe('InboxAiPage', () => {
       },
     });
     expect(fixture.componentInstance.success()).toBe('Lead actualizado con el analisis revisado.');
+    expect(fixture.componentInstance.reviewedLeadID()).toBe('lead-existing');
   });
 
   it('copies the suggested reply to clipboard', async () => {
