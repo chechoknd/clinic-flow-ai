@@ -40,6 +40,7 @@ export class DashboardPage {
   readonly actions = signal<DashboardAction[]>([]);
   readonly selectedActionFilter = signal<ActionFilter>('all');
   readonly noteDrafts = signal<Record<string, string>>({});
+  readonly savedNoteLeads = signal<Record<string, boolean>>({});
   readonly noteSaving = signal<string | null>(null);
   readonly loadingActions = signal(false);
   readonly actionError = signal<string | null>(null);
@@ -111,6 +112,10 @@ export class DashboardPage {
     this.noteDrafts.update((drafts) => ({ ...drafts, [leadID]: value }));
   }
 
+  hasSavedActionNote(leadID: string): boolean {
+    return Boolean(this.savedNoteLeads()[leadID]);
+  }
+
   saveActionNote(action: DashboardAction): void {
     const note = this.actionNote(action.lead_id).trim();
     if (!note) {
@@ -129,6 +134,7 @@ export class DashboardPage {
       .subscribe({
         next: () => {
           this.noteDrafts.update((drafts) => ({ ...drafts, [action.lead_id]: '' }));
+          this.savedNoteLeads.update((leads) => ({ ...leads, [action.lead_id]: true }));
           this.actionNotice.set('Nota guardada correctamente.');
           this.noteSaving.set(null);
         },

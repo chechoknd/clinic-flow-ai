@@ -101,6 +101,9 @@
               <a [routerLink]="action.secondaryPath" [queryParams]="action.secondaryQueryParams" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">{{ action.secondaryLabel }}</a>
             </div>
             <div class="grid gap-2">
+              @if (hasSavedActionNote(action.leadID)) {
+                <p [attr.data-testid]="'dashboard-action-note-saved-' + action.leadID" class="text-xs font-semibold text-teal-700">Nota guardada en esta sesion</p>
+              }
               <textarea
                 [attr.data-testid]="'dashboard-action-note-' + action.title"
                 rows="2"

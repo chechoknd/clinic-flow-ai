@@ -118,5 +118,10 @@ describe('DashboardPage', () => {
     });
     expect(fixture.componentInstance.actionNote('lead-1')).toBe('');
     expect(fixture.componentInstance.actionNotice()).toBe('Nota guardada correctamente.');
+    expect(fixture.componentInstance.hasSavedActionNote('lead-1')).toBe(true);
+
+    fixture.detectChanges();
+    const savedIndicator = fixture.nativeElement.querySelector('[data-testid="dashboard-action-note-saved-lead-1"]');
+    expect(savedIndicator?.textContent).toContain('Nota guardada en esta sesion');
   });
 });
