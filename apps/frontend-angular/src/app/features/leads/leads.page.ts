@@ -5,6 +5,15 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ClinicServiceItem, Lead, LeadAIInsight, LeadDetail, LeadStatus } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 
+interface QuickLeadAction {
+  id: string;
+  label: string;
+  status: LeadStatus;
+  note: string;
+  followUpDays?: number;
+  clearNextActionAt?: boolean;
+}
+
 @Component({
   selector: 'app-leads-page',
   imports: [ReactiveFormsModule, RouterLink],
@@ -33,9 +42,40 @@ export class LeadsPage {
   readonly loading = signal(false);
   readonly loadingDetail = signal(false);
   readonly saving = signal(false);
+  readonly quickActionSaving = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
   readonly phoneCopied = signal(false);
+  readonly quickActions: QuickLeadAction[] = [
+    {
+      id: 'retry_tomorrow',
+      label: 'Volver a intentar mañana',
+      status: 'Contactado',
+      note: 'Contacto realizado. Volver a intentar mañana.',
+      followUpDays: 1,
+    },
+    {
+      id: 'interested_two_days',
+      label: 'Interesado, seguimiento en 2 días',
+      status: 'Interesado',
+      note: 'Lead interesado. Programar seguimiento comercial en 2 días.',
+      followUpDays: 2,
+    },
+    {
+      id: 'scheduled',
+      label: 'Marcar agendado',
+      status: 'Agendado',
+      note: 'Lead marcado como agendado. Confirmar asistencia antes de la cita.',
+      followUpDays: 1,
+    },
+    {
+      id: 'lost',
+      label: 'Marcar perdido',
+      status: 'Perdido',
+      note: 'Lead marcado como perdido. No requiere seguimiento por ahora.',
+      clearNextActionAt: true,
+    },
+  ];
 
   readonly filteredLeads = computed(() =>
     this.leads().filter((lead) => lead.status === this.selectedStatus()),
@@ -187,6 +227,44 @@ export class LeadsPage {
       });
   }
 
+  applyQuickAction(action: QuickLeadAction): void {
+    const lead = this.selectedLead();
+    if (!lead) {
+      return;
+    }
+
+    const nextActionAt = action.followUpDays ? this.addDays(action.followUpDays).toISOString() : undefined;
+    this.quickActionSaving.set(action.id);
+    this.error.set(null);
+    this.success.set(null);
+
+    this.api
+      .updateLead(lead.id, {
+        status: action.status,
+        note: action.note,
+        next_action_at: nextActionAt,
+        clear_next_action_at: action.clearNextActionAt,
+      })
+      .subscribe({
+        next: () => {
+          const updated: Lead = {
+            ...lead,
+            status: action.status,
+            next_action_at: action.clearNextActionAt ? undefined : nextActionAt,
+          };
+          this.leads.update((items) => items.map((item) => (item.id === lead.id ? updated : item)));
+          this.selectedStatus.set(action.status);
+          this.selectLead(updated);
+          this.success.set('Accion rapida aplicada correctamente.');
+          this.quickActionSaving.set(null);
+        },
+        error: () => {
+          this.error.set('No fue posible aplicar la accion rapida.');
+          this.quickActionSaving.set(null);
+        },
+      });
+  }
+
   whatsappLink(phone: string | undefined): string {
     const digits = (phone || '').replace(/\D/g, '');
     return digits ? `https://wa.me/${digits}` : '';
@@ -331,6 +409,13 @@ export class LeadsPage {
     }
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private addDays(days: number): Date {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    date.setSeconds(0, 0);
+    return date;
   }
 
   private toApiDateTime(value: string | undefined): string | undefined {

@@ -86,8 +86,12 @@ func (r *fakeRepository) Update(ctx context.Context, clinicID, leadID string, st
 	for i, l := range r.leads {
 		if l.ID == leadID && l.ClinicID == clinicID {
 			r.leads[i].Status = status
-			if nextActionAt != nil && nextActionAt.Valid {
-				r.leads[i].NextActionAt = &nextActionAt.Time
+			if nextActionAt != nil {
+				if nextActionAt.Valid {
+					r.leads[i].NextActionAt = &nextActionAt.Time
+				} else {
+					r.leads[i].NextActionAt = nil
+				}
 			}
 			if note != "" {
 				r.notes = append(r.notes, LeadNote{ID: "note-id", LeadID: leadID, Body: note})
@@ -221,6 +225,32 @@ func TestLeadServiceGetReturnsAIInsights(t *testing.T) {
 	}
 	if len(res.AIInsights) != 1 || res.AIInsights[0].Intent != "high" {
 		t.Fatalf("unexpected insight response: %#v", res.AIInsights)
+	}
+}
+
+func TestLeadServiceUpdateCanClearNextAction(t *testing.T) {
+	nextActionAt := time.Date(2026, 5, 24, 15, 0, 0, 0, time.UTC)
+	repo := &fakeRepository{leads: []Lead{{
+		ID:           "lead-1",
+		ClinicID:     "clinic-1",
+		FullName:     "Maria Perez",
+		Phone:        "+573001112233",
+		Status:       "Interesado",
+		Source:       "whatsapp",
+		NextActionAt: &nextActionAt,
+	}}}
+	s := NewService(repo)
+
+	err := s.Update(context.Background(), "clinic-1", "lead-1", UpdateLeadRequest{
+		Status:            "Perdido",
+		Note:              "No continua por ahora.",
+		ClearNextActionAt: true,
+	})
+	if err != nil {
+		t.Fatalf("update lead: %v", err)
+	}
+	if repo.leads[0].NextActionAt != nil {
+		t.Fatalf("expected next action to be cleared: %#v", repo.leads[0])
 	}
 }
 

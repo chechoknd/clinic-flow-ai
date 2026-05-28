@@ -537,7 +537,7 @@ Response:
 
 ### PUT /api/leads/:id
 
-Updates lead status, optionally appends a note, and optionally sets the next action date.
+Updates lead status, optionally appends a note, optionally sets the next action date, or clears the next action date.
 
 Request:
 
@@ -546,6 +546,7 @@ Request:
   "status": "Interesado",
   "note": "Quiere agendar valoracion esta semana.",
   "next_action_at": "2026-05-22T14:00:00Z",
+  "clear_next_action_at": false,
   "reviewed_ai_analysis": {
     "analysis_id": "8bc8f2d2-0d16-45e8-a7a0-2be84d211f9f",
     "intent": "high",
@@ -556,6 +557,8 @@ Request:
   }
 }
 ```
+
+Use `clear_next_action_at: true` for closed commercial states such as `Perdido` when the lead should leave the follow-up queue.
 
 Response:
 

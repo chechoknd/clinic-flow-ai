@@ -53,6 +53,7 @@ Phase B — Manual Conversation Analysis
 - Implemented reviewed Inbox AI metadata persistence on lead create/update and connected high-intent/objection signals to dashboard priority actions.
 - Improved the Leads screen with a commercial detail panel that loads notes, follow-up context, and reviewed AI insights from `GET /api/leads/:id`.
 - Added manual contact shortcuts in lead detail for opening WhatsApp and copying the lead phone number.
+- Added quick post-contact actions in lead detail for common outcomes and support for clearing `next_action_at` when a lead leaves the follow-up queue.
 
 ## In-Progress Items
 
@@ -103,6 +104,7 @@ Review the updated Inbox AI to dashboard to lead-detail workflow locally and tun
 - Added `lead_ai_insights` metadata persistence for reviewed Inbox AI analysis and dashboard prioritization of high-intent leads and detected objections.
 - Added a Leads commercial detail panel for selected lead notes, follow-up context, and reviewed AI insights.
 - Added manual WhatsApp and phone copy actions to the lead detail panel without introducing WhatsApp API automation.
+- Added post-contact quick actions to update lead status, notes, and follow-up dates from the commercial detail panel.
 
 ### 2026-05-25
 

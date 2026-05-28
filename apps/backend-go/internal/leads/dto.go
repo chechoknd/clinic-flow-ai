@@ -76,6 +76,7 @@ type UpdateLeadRequest struct {
 	Status             string                     `json:"status"`
 	Note               string                     `json:"note,omitempty"`
 	NextActionAt       *time.Time                 `json:"next_action_at,omitempty"`
+	ClearNextActionAt  bool                       `json:"clear_next_action_at,omitempty"`
 	ReviewedAIAnalysis *ReviewedAIAnalysisRequest `json:"reviewed_ai_analysis,omitempty"`
 }
 

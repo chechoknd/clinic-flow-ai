@@ -277,7 +277,9 @@ func (s *Service) Update(ctx context.Context, clinicID, leadID string, req Updat
 	}
 
 	var nextActionAt *sql.NullTime
-	if req.NextActionAt != nil {
+	if req.ClearNextActionAt {
+		nextActionAt = &sql.NullTime{Valid: false}
+	} else if req.NextActionAt != nil {
 		nextActionAt = &sql.NullTime{Time: *req.NextActionAt, Valid: true}
 	}
 

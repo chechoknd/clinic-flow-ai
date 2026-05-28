@@ -106,6 +106,7 @@ export interface UpdateLeadPayload {
   status: LeadStatus;
   note?: string;
   next_action_at?: string;
+  clear_next_action_at?: boolean;
   reviewed_ai_analysis?: ReviewedAIAnalysisPayload;
 }
 

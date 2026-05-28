@@ -209,6 +209,40 @@ describe('LeadsPage', () => {
     expect(fixture.componentInstance.phoneCopied()).toBe(true);
   });
 
+  it('applies quick post-contact actions with status, note, and follow-up date', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-27T15:00:00.000Z'));
+    fixture.componentInstance.selectLead(leads[0]);
+
+    fixture.componentInstance.applyQuickAction(fixture.componentInstance.quickActions[1]);
+
+    expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
+      status: 'Interesado',
+      note: 'Lead interesado. Programar seguimiento comercial en 2 días.',
+      next_action_at: '2026-05-29T15:00:00.000Z',
+      clear_next_action_at: undefined,
+    });
+    expect(fixture.componentInstance.selectedStatus()).toBe('Interesado');
+    expect(fixture.componentInstance.selectedLead()?.next_action_at).toBe('2026-05-29T15:00:00.000Z');
+    expect(fixture.componentInstance.success()).toBe('Accion rapida aplicada correctamente.');
+    vi.useRealTimers();
+  });
+
+  it('clears next action when marking a lead as lost', () => {
+    fixture.componentInstance.selectLead({ ...leads[0], next_action_at: '2026-05-29T15:00:00.000Z' });
+
+    fixture.componentInstance.applyQuickAction(fixture.componentInstance.quickActions[3]);
+
+    expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
+      status: 'Perdido',
+      note: 'Lead marcado como perdido. No requiere seguimiento por ahora.',
+      next_action_at: undefined,
+      clear_next_action_at: true,
+    });
+    expect(fixture.componentInstance.selectedStatus()).toBe('Perdido');
+    expect(fixture.componentInstance.selectedLead()?.next_action_at).toBeUndefined();
+  });
+
   it('updates the selected lead status, note, and next action', () => {
     fixture.componentInstance.selectLead(leads[0]);
     fixture.componentInstance.updateForm.setValue({

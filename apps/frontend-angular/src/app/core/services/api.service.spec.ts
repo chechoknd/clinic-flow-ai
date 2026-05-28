@@ -219,6 +219,7 @@ describe('ApiService', () => {
       status: 'Contactado' as const,
       note: 'Se contacto por WhatsApp.',
       next_action_at: '2026-05-24T14:30:00.000Z',
+      clear_next_action_at: false,
     };
 
     service.createLead(createPayload).subscribe();

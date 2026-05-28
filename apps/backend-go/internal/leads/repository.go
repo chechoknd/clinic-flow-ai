@@ -332,7 +332,7 @@ func (r *PostgresRepository) Update(ctx context.Context, clinicID, leadID string
 
 	if nextActionAt != nil {
 		query += fmt.Sprintf(", next_action_at = $%d", argIdx)
-		args = append(args, nextActionAt)
+		args = append(args, *nextActionAt)
 		argIdx++
 	}
 
