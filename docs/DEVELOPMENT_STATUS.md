@@ -46,6 +46,7 @@ Phase B — Manual Conversation Analysis
 - Implemented `POST /api/ai/analyze-conversation` for manual pasted conversation analysis.
 - Added Angular Inbox AI screen for pasted conversation analysis, suggested reply copy, human-reviewed lead creation, and existing lead follow-up updates through the existing leads API.
 - Added an Inbox AI human-review preview showing the detected lead, reviewed action mode, service/status, and next step before saving.
+- Added Inbox AI review-completion feedback before saving reviewed lead actions.
 - Improved frontend UX around the receptionist daily workflow: actionable dashboard queue, clearer navigation, lead status counts, follow-up urgency groups, and a primary reviewed action in Inbox AI.
 - Added optional UX demo seed data with five extra services and two fictional leads per commercial status, plus a Docker Compose seed helper script.
 - Implemented MVP multi-currency baseline with clinic-level country/currency configuration, backend validation, service currency metadata, frontend formatting, and updated docs.
@@ -131,6 +132,7 @@ Review the updated Inbox AI to dashboard to lead-detail workflow locally and tun
 - Implemented first Smart Lead Inbox slice: manual conversation analysis endpoint and Angular Inbox AI screen.
 - Enhanced Inbox AI so reviewed analysis can create a new lead or update an existing lead follow-up from the same screen.
 - Added a human-review preview in Inbox AI before saving analyzed lead actions.
+- Added a review-completion indicator in Inbox AI based on the reviewed lead form validity.
 - Documented planned Dashboard Inteligente action layer.
 - Added proposed API contracts for conversation analysis, lead creation from conversation, optional inbound messages, and follow-up suggestions.
 - Recorded human-review requirement: AI suggests, human reviews, human replies.

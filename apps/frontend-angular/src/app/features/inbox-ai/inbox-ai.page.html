@@ -187,9 +187,21 @@
 
         @if (analysis()) {
           <div data-testid="inbox-ai-review-preview" class="grid gap-3 rounded-md border border-teal-200 bg-teal-50 p-4">
-            <div>
-              <h3 class="text-sm font-semibold text-slate-950">Vista previa antes de guardar</h3>
-              <p class="mt-1 text-sm text-slate-600">Confirma que estos datos coinciden con la conversacion revisada.</p>
+            <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-start">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-950">Vista previa antes de guardar</h3>
+                <p class="mt-1 text-sm text-slate-600">Confirma que estos datos coinciden con la conversacion revisada.</p>
+              </div>
+              <span
+                data-testid="inbox-ai-review-completion"
+                class="w-fit rounded-full px-3 py-1 text-xs font-semibold"
+                [class.bg-white]="isReviewComplete()"
+                [class.text-teal-700]="isReviewComplete()"
+                [class.bg-amber-100]="!isReviewComplete()"
+                [class.text-amber-800]="!isReviewComplete()"
+              >
+                {{ reviewCompletionLabel() }}
+              </span>
             </div>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="rounded-md bg-white p-3">

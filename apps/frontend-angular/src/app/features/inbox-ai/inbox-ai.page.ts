@@ -184,6 +184,14 @@ export class InboxAiPage {
     return Boolean(this.analysis() && value.full_name.trim() && value.phone.trim());
   }
 
+  isReviewComplete(): boolean {
+    return Boolean(this.analysis() && this.leadForm.valid && this.isLeadReady());
+  }
+
+  reviewCompletionLabel(): string {
+    return this.isReviewComplete() ? 'Revision completa' : 'Revisa nombre, WhatsApp y estado';
+  }
+
   createLead(): void {
     if (this.leadForm.invalid || !this.analysis()) {
       this.leadForm.markAllAsTouched();

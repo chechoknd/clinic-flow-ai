@@ -121,12 +121,29 @@ describe('InboxAiPage', () => {
     const lead = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-lead"]') as HTMLElement;
     const action = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-action"]') as HTMLElement;
     const nextStep = fixture.nativeElement.querySelector('[data-testid="inbox-ai-preview-next-step"]') as HTMLElement;
+    const completion = fixture.nativeElement.querySelector('[data-testid="inbox-ai-review-completion"]') as HTMLElement;
 
     expect(preview.textContent).toContain('Vista previa antes de guardar');
+    expect(completion.textContent).toContain('Revision completa');
     expect(lead.textContent).toContain('Lead Demo Inbox');
     expect(action.textContent).toContain('Crear lead nuevo');
     expect(preview.textContent).toContain('Interesado - Blanqueamiento dental');
     expect(nextStep.textContent).toContain('Responder y proponer valoracion');
+  });
+
+  it('shows pending review when required reviewed lead fields are invalid', () => {
+    fixture.componentInstance.analysis.set(analysisResponse);
+    fixture.componentInstance.leadForm.patchValue({
+      full_name: '',
+      phone: '+573001234567',
+      status: 'Interesado',
+    });
+    fixture.detectChanges();
+
+    const completion = fixture.nativeElement.querySelector('[data-testid="inbox-ai-review-completion"]') as HTMLElement;
+
+    expect(fixture.componentInstance.isReviewComplete()).toBe(false);
+    expect(completion.textContent).toContain('Revisa nombre, WhatsApp y estado');
   });
 
   it('creates a lead only after analysis and human-reviewed fields', () => {
