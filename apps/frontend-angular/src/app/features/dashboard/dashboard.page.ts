@@ -5,6 +5,7 @@ import { ApiService } from '../../core/services/api.service';
 import { DashboardAction, DashboardSummary } from '../../core/services/api.models';
 
 interface ActionCard {
+  leadID: string;
   title: string;
   detail: string;
   meta: string;
@@ -38,8 +39,11 @@ export class DashboardPage {
   readonly summary = signal<DashboardSummary | null>(null);
   readonly actions = signal<DashboardAction[]>([]);
   readonly selectedActionFilter = signal<ActionFilter>('all');
+  readonly noteDrafts = signal<Record<string, string>>({});
+  readonly noteSaving = signal<string | null>(null);
   readonly loadingActions = signal(false);
   readonly actionError = signal<string | null>(null);
+  readonly actionNotice = signal<string | null>(null);
 
   readonly visibleActions = computed<DashboardAction[]>(() => {
     const filter = this.selectedActionFilter();
@@ -99,6 +103,42 @@ export class DashboardPage {
     this.selectedActionFilter.set(this.selectedActionFilter() === filter ? 'all' : filter);
   }
 
+  actionNote(leadID: string): string {
+    return this.noteDrafts()[leadID] ?? '';
+  }
+
+  setActionNote(leadID: string, value: string): void {
+    this.noteDrafts.update((drafts) => ({ ...drafts, [leadID]: value }));
+  }
+
+  saveActionNote(action: DashboardAction): void {
+    const note = this.actionNote(action.lead_id).trim();
+    if (!note) {
+      return;
+    }
+
+    this.noteSaving.set(action.lead_id);
+    this.actionError.set(null);
+    this.actionNotice.set(null);
+
+    this.api
+      .updateLead(action.lead_id, {
+        status: action.status,
+        note,
+      })
+      .subscribe({
+        next: () => {
+          this.noteDrafts.update((drafts) => ({ ...drafts, [action.lead_id]: '' }));
+          this.actionNotice.set('Nota guardada correctamente.');
+          this.noteSaving.set(null);
+        },
+        error: () => {
+          this.actionError.set('No fue posible guardar la nota rapida.');
+          this.noteSaving.set(null);
+        },
+      });
+  }
+
   private loadActionData(): void {
     this.loadingActions.set(true);
     this.actionError.set(null);
@@ -117,6 +157,7 @@ export class DashboardPage {
 
   private followUpAction(followup: DashboardAction): ActionCard {
     return {
+      leadID: followup.lead_id,
       title: followup.full_name,
       detail: followup.service_name || 'Servicio por confirmar',
       meta:
@@ -134,6 +175,7 @@ export class DashboardPage {
 
   private newLeadAction(lead: DashboardAction): ActionCard {
     return {
+      leadID: lead.lead_id,
       title: lead.full_name,
       detail: lead.service_name || 'Sin servicio definido',
       meta: `Nuevo lead - ${lead.phone}`,
@@ -149,6 +191,7 @@ export class DashboardPage {
 
   private insightAction(action: DashboardAction): ActionCard {
     return {
+      leadID: action.lead_id,
       title: action.full_name,
       detail: action.service_name || 'Servicio por confirmar',
       meta: `${action.reason} - ${action.phone}`,

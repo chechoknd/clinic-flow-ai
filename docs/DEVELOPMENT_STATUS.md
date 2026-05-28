@@ -107,6 +107,7 @@ Review the updated Inbox AI to dashboard to lead-detail workflow locally and tun
 - Added post-contact quick actions to update lead status, notes, follow-up dates, and closed outcomes from the commercial detail panel.
 - Added dashboard queue summary counters for overdue, today, high-intent, objection, and new-lead actions.
 - Added dashboard queue filters so staff can focus the visible action list by urgency or AI signal.
+- Added quick commercial notes from dashboard action cards using the existing lead update endpoint.
 
 ### 2026-05-25
 

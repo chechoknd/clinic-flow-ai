@@ -63,6 +63,7 @@ describe('DashboardPage', () => {
                 ],
               }),
             ),
+            updateLead: vi.fn(() => of({ id: 'lead-1', status: 'Interesado' })),
           },
         },
       ],
@@ -103,5 +104,19 @@ describe('DashboardPage', () => {
     text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Lead Alta Intencion');
     expect(text).toContain('Lead Vencido');
+  });
+
+  it('saves a quick note for a visible action', () => {
+    const api = TestBed.inject(ApiService) as unknown as { updateLead: ReturnType<typeof vi.fn> };
+
+    fixture.componentInstance.setActionNote('lead-1', 'Se contacto por WhatsApp.');
+    fixture.componentInstance.saveActionNote(fixture.componentInstance.visibleActions()[1]);
+
+    expect(api.updateLead).toHaveBeenCalledWith('lead-1', {
+      status: 'Interesado',
+      note: 'Se contacto por WhatsApp.',
+    });
+    expect(fixture.componentInstance.actionNote('lead-1')).toBe('');
+    expect(fixture.componentInstance.actionNotice()).toBe('Nota guardada correctamente.');
   });
 });
