@@ -116,6 +116,7 @@ Review the updated Inbox AI to dashboard to lead-detail workflow locally and tun
 - Added dashboard queue filters so staff can focus the visible action list by urgency or AI signal.
 - Added quick commercial notes from dashboard action cards using the existing lead update endpoint.
 - Added in-session saved-note indicators on dashboard action cards after a quick commercial note is stored.
+- Added direct Dashboard links from AI insight actions to Inbox AI with lead context.
 
 ### 2026-05-25
 

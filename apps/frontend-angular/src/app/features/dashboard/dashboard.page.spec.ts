@@ -82,6 +82,17 @@ describe('DashboardPage', () => {
     expect(detailLink?.href).toContain('service_id=service-1');
   });
 
+  it('links insight actions to Inbox AI with lead context', () => {
+    const links = Array.from(fixture.nativeElement.querySelectorAll('a[href*="inbox-ai"]')) as HTMLAnchorElement[];
+    const inboxLink = links.find((link) => link.href.includes('lead_id=lead-1'));
+
+    expect(inboxLink?.textContent).toContain('Revisar en Inbox AI');
+    expect(inboxLink?.href).toContain('/inbox-ai');
+    expect(inboxLink?.href).toContain('lead_id=lead-1');
+    expect(inboxLink?.href).toContain('service_id=service-1');
+    expect(inboxLink?.href).toContain('from=dashboard');
+  });
+
   it('shows queue summary counts by action type', () => {
     const text = fixture.nativeElement.textContent as string;
 

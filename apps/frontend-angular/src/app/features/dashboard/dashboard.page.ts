@@ -205,16 +205,19 @@ export class DashboardPage {
       primaryLabel: 'Abrir lead',
       primaryPath: '/leads',
       primaryQueryParams: this.contextQueryParams(action),
-      secondaryLabel: 'Responder con AI',
-      secondaryPath: '/ai-assistant',
-      secondaryQueryParams: this.contextQueryParams(action),
+      secondaryLabel: 'Revisar en Inbox AI',
+      secondaryPath: '/inbox-ai',
+      secondaryQueryParams: this.contextQueryParams(action, { from: 'dashboard' }),
     };
   }
 
-  private contextQueryParams(lead: DashboardAction): Record<string, string> | undefined {
+  private contextQueryParams(lead: DashboardAction, extra?: Record<string, string>): Record<string, string> | undefined {
     const params: Record<string, string> = { lead_id: lead.lead_id };
     if (lead.service_id) {
       params['service_id'] = lead.service_id;
+    }
+    if (extra) {
+      Object.assign(params, extra);
     }
     return params;
   }
