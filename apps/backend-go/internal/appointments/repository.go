@@ -45,12 +45,12 @@ func (r *PostgresRepository) List(ctx context.Context, clinicID string, filters 
 		argIdx++
 	}
 	if filters.DateFrom != "" {
-		where += fmt.Sprintf(" AND a.starts_at >= $%d", argIdx)
+		where += fmt.Sprintf(" AND a.starts_at >= $%d::date", argIdx)
 		args = append(args, filters.DateFrom)
 		argIdx++
 	}
 	if filters.DateTo != "" {
-		where += fmt.Sprintf(" AND a.starts_at <= $%d", argIdx)
+		where += fmt.Sprintf(" AND a.starts_at < $%d::date + interval '1 day'", argIdx)
 		args = append(args, filters.DateTo)
 		argIdx++
 	}
