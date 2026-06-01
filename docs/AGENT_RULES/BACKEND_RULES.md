@@ -14,6 +14,8 @@ apps/backend-go/
 │   ├── clinics/
 │   ├── services/
 │   ├── leads/
+│   ├── professionals/
+│   ├── appointments/
 │   ├── ai/
 │   ├── content/
 │   ├── followups/
@@ -98,6 +100,36 @@ POST /api/ai/objection-handler
 POST /api/content/generate-post
 GET /api/dashboard/summary
 ```
+
+Implemented Smart Schedule professional routes:
+
+```
+GET /api/professionals
+POST /api/professionals
+GET /api/professionals/:id
+PUT /api/professionals/:id
+```
+
+Implemented Smart Schedule appointment routes:
+
+```
+GET /api/appointments
+POST /api/appointments
+GET /api/appointments/:id
+PUT /api/appointments/:id
+POST /api/appointments/:id/status
+POST /api/appointments/:id/reschedule
+POST /api/leads/:id/convert-to-appointment
+```
+
+Remaining planned Smart Schedule routes must stay documented as planned until implemented:
+
+```
+GET /api/schedule/availability
+GET /api/dashboard/schedule-summary
+```
+
+Appointment endpoints must remain operational/commercial. They must not accept clinical histories, diagnosis, prescriptions, treatment plans, clinical images, or clinical notes.
 
 ## Error Handling
 

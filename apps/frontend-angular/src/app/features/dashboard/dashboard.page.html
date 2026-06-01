@@ -1,58 +1,217 @@
 <section class="grid gap-6">
-  <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+  <!-- Header -->
+  <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
-      <h1 class="text-2xl font-semibold text-slate-950">Dashboard comercial</h1>
-      <p class="mt-1 text-sm text-slate-600">Vista rapida de leads, conversion y seguimientos.</p>
+      <h1 class="text-2xl font-bold text-slate-950 tracking-tight">Centro de Control Inteligente</h1>
+      <p class="mt-1 text-sm text-slate-600">Prioridades operativas, agenda de citas y conversión comercial de leads.</p>
     </div>
     <div class="flex flex-wrap gap-2">
-      <a data-testid="dashboard-inbox-ai-link" routerLink="/inbox-ai" class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">
-        Analizar conversacion
+      <a data-testid="dashboard-inbox-ai-link" routerLink="/inbox-ai" class="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 shadow-sm transition duration-150 flex items-center gap-1.5">
+        <span>✨ Analizar Conversación</span>
       </a>
-      <a data-testid="dashboard-leads-link" routerLink="/leads" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-        Ver leads
+      <a data-testid="dashboard-leads-link" routerLink="/leads" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition duration-150">
+        Ver Leads
       </a>
     </div>
   </div>
 
-  <div class="grid gap-4 md:grid-cols-4">
+  <!-- KPI Grid -->
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     @for (metric of metrics(); track metric.label) {
-      <article [attr.data-testid]="'dashboard-metric-card-' + metric.label" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <p class="text-sm text-slate-500">{{ metric.label }}</p>
-        <strong class="mt-2 block text-3xl font-semibold text-slate-950">{{ metric.value }}</strong>
-      </article>
+      <a
+        [routerLink]="metric.route"
+        [attr.data-testid]="'dashboard-metric-card-' + metric.label"
+        class="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-md block"
+      >
+        <div class="absolute -right-4 -bottom-4 h-20 w-20 rounded-full bg-slate-50 opacity-60 transition-all duration-300 group-hover:scale-125"></div>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-500">{{ metric.label }}</p>
+        <div class="mt-4 flex items-baseline gap-2">
+          <strong class="text-3xl font-extrabold text-slate-900 transition-all duration-300 group-hover:text-teal-600">{{ metric.value }}</strong>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">{{ metric.desc }}</p>
+      </a>
     }
   </div>
 
-  <div class="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-    <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 class="text-base font-semibold text-slate-950">Pipeline</h2>
-      <div class="mt-4 grid gap-3">
-        @for (item of statusRows(); track item.status) {
-          <div [attr.data-testid]="'dashboard-pipeline-row-' + item.status">
-            <div class="mb-1 flex justify-between text-sm">
-              <span class="font-medium text-slate-700">{{ item.status }}</span>
-              <span class="text-slate-500">{{ item.count }}</span>
-            </div>
-            <div class="h-2 rounded-full bg-slate-100">
-              <div class="h-2 rounded-full bg-teal-600" [style.width.%]="item.width"></div>
-            </div>
-          </div>
-        }
-      </div>
-    </section>
-
-    <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 class="text-base font-semibold text-slate-950">Servicios mas consultados</h2>
-      <div class="mt-4 grid gap-3">
-        @for (service of summary()?.top_services ?? []; track service.service_name) {
-          <div [attr.data-testid]="'dashboard-top-service-row-' + service.service_name" class="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm">
-            <span class="font-medium text-slate-700">{{ service.service_name }}</span>
-            <span class="text-slate-500">{{ service.total }}</span>
-          </div>
-        } @empty {
-          <p class="text-sm text-slate-500">Aun no hay datos de servicios.</p>
-        }
-      </div>
-    </section>
+  <!-- Tab Switcher -->
+  <div class="flex border-b border-slate-200 mt-2">
+    <button
+      type="button"
+      class="border-b-2 px-6 py-3.5 text-sm font-semibold transition"
+      [class.border-teal-600]="activeTab() === 'schedule'"
+      [class.text-teal-600]="activeTab() === 'schedule'"
+      [class.border-transparent]="activeTab() !== 'schedule'"
+      [class.text-slate-500]="activeTab() !== 'schedule'"
+      [class.hover:text-slate-700]="activeTab() !== 'schedule'"
+      (click)="changeTab('schedule')"
+    >
+      📆 Agenda Inteligente (Prioridades)
+    </button>
+    <button
+      type="button"
+      class="border-b-2 px-6 py-3.5 text-sm font-semibold transition"
+      [class.border-teal-600]="activeTab() === 'crm'"
+      [class.text-teal-600]="activeTab() === 'crm'"
+      [class.border-transparent]="activeTab() !== 'crm'"
+      [class.text-slate-500]="activeTab() !== 'crm'"
+      [class.hover:text-slate-700]="activeTab() !== 'crm'"
+      (click)="changeTab('crm')"
+    >
+      🎯 Embudo de Ventas (CRM)
+    </button>
   </div>
+
+  <!-- Tab Contents -->
+  @if (activeTab() === 'schedule') {
+    <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <!-- Prioridades de Atención -->
+      <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col">
+        <div>
+          <h2 class="text-lg font-bold text-slate-950">Prioridades Operativas de Hoy</h2>
+          <p class="mt-1 text-xs text-slate-500">Tareas sugeridas asistidas por inteligencia para maximizar la conversión en agenda.</p>
+          
+          <div class="mt-6 grid gap-4">
+            <!-- Priority 1: Agenda del Día -->
+            <div class="flex items-start gap-4 rounded-lg border border-blue-100 bg-blue-50/30 p-4 transition hover:bg-blue-50/50">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700 font-bold text-lg">
+                📅
+              </div>
+              <div class="grid gap-1">
+                <h3 class="font-bold text-slate-900 text-sm">Agenda del Día</h3>
+                <p class="text-xs text-slate-600">Tienes <strong class="text-blue-700 font-semibold">{{ schedSummary()?.todays_appointments ?? 0 }} citas</strong> programadas para hoy.</p>
+                <a routerLink="/schedule" class="mt-1 text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                  Ver agenda del día &rarr;
+                </a>
+              </div>
+            </div>
+
+            <!-- Priority 2: Confirmación de Citas -->
+            <div class="flex items-start gap-4 rounded-lg border border-amber-100 bg-amber-50/30 p-4 transition hover:bg-amber-50/50">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 font-bold text-lg">
+                🔔
+              </div>
+              <div class="grid gap-1">
+                <h3 class="font-bold text-slate-900 text-sm">Citas Pendientes de Confirmar</h3>
+                <p class="text-xs text-slate-600">Tienes <strong class="text-amber-700 font-semibold">{{ schedSummary()?.appointments_pending_confirmation ?? 0 }} citas</strong> esperando confirmación.</p>
+                <a routerLink="/schedule" class="mt-1 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1">
+                  Enviar mensajes de confirmación AI &rarr;
+                </a>
+              </div>
+            </div>
+
+            <!-- Priority 3: Leads sin Cita -->
+            <div class="flex items-start gap-4 rounded-lg border border-rose-100 bg-rose-50/30 p-4 transition hover:bg-rose-50/50">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100 text-rose-700 font-bold text-lg">
+                🔥
+              </div>
+              <div class="grid gap-1">
+                <h3 class="font-bold text-slate-900 text-sm">Leads Calientes sin Cita</h3>
+                <p class="text-xs text-slate-600">Hay <strong class="text-rose-700 font-semibold">{{ schedSummary()?.hot_leads_without_appointment ?? 0 }} pacientes interesados</strong> listos para agendar.</p>
+                <a routerLink="/leads" class="mt-1 text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1">
+                  Ver leads interesados para agendar cita &rarr;
+                </a>
+              </div>
+            </div>
+
+            <!-- Priority 4: Seguimientos Vencidos -->
+            <div class="flex items-start gap-4 rounded-lg border border-purple-100 bg-purple-50/30 p-4 transition hover:bg-purple-50/50">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-700 font-bold text-lg">
+                ⚠️
+              </div>
+              <div class="grid gap-1">
+                <h3 class="font-bold text-slate-900 text-sm">Seguimientos Comerciales Vencidos</h3>
+                <p class="text-xs text-slate-600">Tienes <strong class="text-purple-700 font-semibold">{{ schedSummary()?.overdue_followups ?? 0 }} contactos</strong> con seguimiento atrasado hoy.</p>
+                <a routerLink="/leads" class="mt-1 text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                  Iniciar seguimiento manual por WhatsApp &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profesionales y Demandas -->
+      <div class="grid gap-6">
+        <!-- Agenda por Profesional -->
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Agenda por Profesional</h2>
+          <p class="text-xs text-slate-500 mt-1">Distribución de citas agendadas para hoy.</p>
+          
+          <div class="mt-6 grid gap-4">
+            @for (prof of professionalRows(); track prof.name) {
+              <div [attr.data-testid]="'dashboard-professional-demand-' + prof.name">
+                <div class="mb-1 flex justify-between text-xs font-semibold">
+                  <span class="text-slate-700">{{ prof.name }}</span>
+                  <span class="text-slate-900">{{ prof.count }} {{ prof.count === 1 ? 'cita' : 'citas' }}</span>
+                </div>
+                <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div class="h-full rounded-full bg-teal-600 transition-all duration-500" [style.width.%]="prof.width"></div>
+                </div>
+              </div>
+            } @empty {
+              <p class="text-xs text-slate-500 py-6 text-center">No hay profesionales registrados o con citas para hoy.</p>
+            }
+          </div>
+        </section>
+
+        <!-- Demanda por Servicio -->
+        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 class="text-base font-bold text-slate-950">Demanda por Tratamiento / Servicio</h2>
+          <p class="text-xs text-slate-500 mt-1">Especialidades con mayor volumen de citas agendadas.</p>
+          
+          <div class="mt-4 grid gap-3">
+            @for (service of topServicesByDemand(); track service.service_id) {
+              <div [attr.data-testid]="'dashboard-schedule-service-row-' + service.service_name" class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3.5 text-xs font-bold">
+                <span class="text-slate-700">{{ service.service_name }}</span>
+                <span class="rounded-full bg-teal-100 px-3 py-1 text-teal-800">{{ service.appointment_count }} citas</span>
+              </div>
+            } @empty {
+              <p class="text-xs text-slate-500 py-6 text-center font-medium">Aún no hay citas registradas para servicios.</p>
+            }
+          </div>
+        </section>
+      </div>
+    </div>
+  }
+
+  @if (activeTab() === 'crm') {
+    <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <!-- Pipeline -->
+      <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-base font-bold text-slate-950">Pipeline del Embudo</h2>
+        <p class="text-xs text-slate-500 mt-1">Distribución de leads en sus respectivos estados comerciales.</p>
+        
+        <div class="mt-6 grid gap-4">
+          @for (item of statusRows(); track item.status) {
+            <div [attr.data-testid]="'dashboard-pipeline-row-' + item.status">
+              <div class="mb-1 flex justify-between text-xs font-semibold">
+                <span class="text-slate-700">{{ item.status }}</span>
+                <span class="text-slate-900">{{ item.count }} leads</span>
+              </div>
+              <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full rounded-full bg-teal-600 transition-all duration-500" [style.width.%]="item.width"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Servicios consultados -->
+      <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-base font-bold text-slate-950">Servicios más Consultados (Leads)</h2>
+        <p class="text-xs text-slate-500 mt-1">Interés comercial expresado en las consultas analizadas.</p>
+        
+        <div class="mt-4 grid gap-3">
+          @for (service of summary()?.top_services ?? []; track service.service_name) {
+            <div [attr.data-testid]="'dashboard-top-service-row-' + service.service_name" class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3.5 text-xs font-bold">
+              <span class="text-slate-700">{{ service.service_name }}</span>
+              <span class="rounded-full bg-teal-100 px-3 py-1 text-teal-800">{{ service.total }} consultas</span>
+            </div>
+          } @empty {
+            <p class="text-xs text-slate-500 py-6 text-center font-medium">Aún no hay datos de servicios.</p>
+          }
+        </div>
+      </section>
+    </div>
+  }
 </section>

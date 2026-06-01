@@ -24,6 +24,16 @@ import {
   UpdateClinicPayload,
   UpdateLeadPayload,
   UpdateServicePayload,
+  Professional,
+  CreateProfessionalPayload,
+  UpdateProfessionalPayload,
+  Appointment,
+  CreateAppointmentPayload,
+  UpdateAppointmentPayload,
+  RescheduleAppointmentPayload,
+  ConvertLeadPayload,
+  AvailabilityResponse,
+  ScheduleSummary,
 } from './api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -116,5 +126,80 @@ export class ApiService {
         total: service.lead_count,
       })),
     };
+  }
+
+  professionals() {
+    return this.http.get<Professional[]>(`${this.baseUrl}/api/professionals`);
+  }
+
+  professional(id: string) {
+    return this.http.get<Professional>(`${this.baseUrl}/api/professionals/${id}`);
+  }
+
+  createProfessional(payload: CreateProfessionalPayload) {
+    return this.http.post<Professional>(`${this.baseUrl}/api/professionals`, payload);
+  }
+
+  updateProfessional(id: string, payload: UpdateProfessionalPayload) {
+    return this.http.put<Professional>(`${this.baseUrl}/api/professionals/${id}`, payload);
+  }
+
+  appointments(params?: { date?: string; date_from?: string; date_to?: string; professional_id?: string; service_id?: string; status?: string }) {
+    const httpParams: Record<string, string> = {};
+    if (params) {
+      Object.entries(params).forEach(([key, val]) => {
+        if (val) {
+          httpParams[key] = val;
+        }
+      });
+    }
+    return this.http.get<PaginatedResponse<Appointment>>(`${this.baseUrl}/api/appointments`, { params: httpParams });
+  }
+
+  appointment(id: string) {
+    return this.http.get<Appointment>(`${this.baseUrl}/api/appointments/${id}`);
+  }
+
+  createAppointment(payload: CreateAppointmentPayload) {
+    return this.http.post<Appointment>(`${this.baseUrl}/api/appointments`, payload);
+  }
+
+  updateAppointment(id: string, payload: UpdateAppointmentPayload) {
+    return this.http.put<Appointment>(`${this.baseUrl}/api/appointments/${id}`, payload);
+  }
+
+  updateAppointmentStatus(id: string, status: string, adminNote?: string) {
+    return this.http.post<Appointment>(`${this.baseUrl}/api/appointments/${id}/status`, { status, admin_note: adminNote });
+  }
+
+  rescheduleAppointment(id: string, payload: RescheduleAppointmentPayload) {
+    return this.http.post<Appointment>(`${this.baseUrl}/api/appointments/${id}/reschedule`, payload);
+  }
+
+  convertLeadToAppointment(leadId: string, payload: ConvertLeadPayload) {
+    return this.http.post<{ appointment_id: string; lead_status: string }>(`${this.baseUrl}/api/leads/${leadId}/convert-to-appointment`, payload);
+  }
+
+  availability(professionalId: string, dateFrom: string, dateTo: string, serviceId?: string, durationMinutes?: number) {
+    const params: Record<string, string> = {
+      professional_id: professionalId,
+      date_from: dateFrom,
+      date_to: dateTo,
+    };
+    if (serviceId) {
+      params['service_id'] = serviceId;
+    }
+    if (durationMinutes) {
+      params['duration_minutes'] = durationMinutes.toString();
+    }
+    return this.http.get<AvailabilityResponse>(`${this.baseUrl}/api/schedule/availability`, { params });
+  }
+
+  scheduleSummary(date?: string) {
+    const params: Record<string, string> = {};
+    if (date) {
+      params['date'] = date;
+    }
+    return this.http.get<ScheduleSummary>(`${this.baseUrl}/api/dashboard/schedule-summary`, { params });
   }
 }

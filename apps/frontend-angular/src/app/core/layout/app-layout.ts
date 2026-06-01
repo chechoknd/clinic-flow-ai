@@ -23,6 +23,8 @@ export class AppLayout {
   readonly userLabel = computed(() => this.auth.user()?.full_name ?? 'Equipo comercial');
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', path: '/dashboard' },
+    { label: 'Agenda', path: '/schedule' },
+    { label: 'Profesionales', path: '/professionals' },
     { label: 'Leads', path: '/leads' },
     { label: 'Inbox AI', path: '/inbox-ai' },
     { label: 'Seguimientos', path: '/followups' },

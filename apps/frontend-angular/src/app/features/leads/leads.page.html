@@ -135,19 +135,19 @@
       </div>
 
       <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div class="hidden grid-cols-[1.2fr_1fr_1fr_1fr_150px] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase text-slate-500 md:grid">
+        <div class="hidden grid-cols-[1.2fr_1fr_1fr_1fr_220px] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase text-slate-500 md:grid">
           <span>Paciente</span>
           <span>Servicio</span>
           <span>Estado</span>
           <span>Proxima accion</span>
-          <span>Accion</span>
+          <span>Acciones</span>
         </div>
 
         @if (loading()) {
           <div data-testid="leads-loading-state" class="px-4 py-10 text-center text-sm text-slate-500">Cargando leads...</div>
         } @else {
           @for (lead of filteredLeads(); track lead.id) {
-            <article [attr.data-testid]="'leads-row-' + lead.id" class="grid gap-3 border-b border-slate-100 px-4 py-4 last:border-0 md:grid-cols-[1.2fr_1fr_1fr_1fr_150px] md:items-center">
+            <article [attr.data-testid]="'leads-row-' + lead.id" class="grid gap-3 border-b border-slate-100 px-4 py-4 last:border-0 md:grid-cols-[1.2fr_1fr_1fr_1fr_220px] md:items-center">
               <div>
                 <h2 class="font-semibold text-slate-950">{{ lead.full_name }}</h2>
                 <p class="text-sm text-slate-500">{{ lead.phone }}</p>
@@ -155,14 +155,29 @@
               <p class="text-sm text-slate-700">{{ lead.service_name || 'Sin servicio' }}</p>
               <span class="w-fit rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">{{ lead.status }}</span>
               <p class="text-sm text-slate-600">{{ lead.next_action_at || 'Sin fecha' }}</p>
-              <button
-                type="button"
-                [attr.data-testid]="'leads-edit-button-' + lead.id"
-                class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                (click)="selectLead(lead)"
-              >
-                Editar
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  [attr.data-testid]="'leads-edit-button-' + lead.id"
+                  class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+                  (click)="selectLead(lead)"
+                >
+                  Editar
+                </button>
+                <a
+                  [attr.data-testid]="'leads-schedule-button-' + lead.id"
+                  routerLink="/schedule"
+                  [queryParams]="{
+                    contact_name: lead.full_name,
+                    contact_phone: lead.phone,
+                    service_id: lead.service_id || '',
+                    lead_id: lead.id
+                  }"
+                  class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700 text-center transition whitespace-nowrap"
+                >
+                  Agendar
+                </a>
+              </div>
             </article>
           } @empty {
             <div class="px-4 py-10 text-center text-sm text-slate-500">
@@ -185,14 +200,29 @@
             </p>
           </div>
           @if (selectedLead(); as lead) {
-            <a
-              data-testid="leads-selected-ai-reply-link"
-              routerLink="/ai-assistant"
-              [queryParams]="{ lead_id: lead.id, service_id: lead.service_id }"
-              class="w-fit rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700"
-            >
-              Responder
-            </a>
+            <div class="flex items-center gap-2">
+              <a
+                data-testid="leads-selected-ai-reply-link"
+                routerLink="/ai-assistant"
+                [queryParams]="{ lead_id: lead.id, service_id: lead.service_id }"
+                class="w-fit rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+              >
+                Responder
+              </a>
+              <a
+                data-testid="leads-selected-schedule-link"
+                routerLink="/schedule"
+                [queryParams]="{
+                  contact_name: lead.full_name,
+                  contact_phone: lead.phone,
+                  service_id: lead.service_id || '',
+                  lead_id: lead.id
+                }"
+                class="w-fit rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition"
+              >
+                Agendar Cita
+              </a>
+            </div>
           }
         </div>
 

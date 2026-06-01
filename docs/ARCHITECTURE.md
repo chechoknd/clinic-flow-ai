@@ -6,6 +6,8 @@ ClinicFlow AI is a monorepo SaaS application with an Angular frontend, Go backen
 
 The current MVP architecture supports commercial clinic workflows: clinic configuration, service catalog management, lead CRM, AI-assisted WhatsApp replies, objection handling, manual follow-ups, and basic dashboard metrics.
 
+The planned product architecture is evolving toward a Smart Schedule-centered workflow. The Smart Schedule should connect appointments, dentists/professionals, leads, services, follow-ups, and AI assistance while keeping all schedule data operational and commercial rather than clinical.
+
 The backend is the authority for authentication, authorization, tenant isolation, prompt safety, provider selection, and API contracts. The frontend is responsible for fast, simple operator workflows, but it must not own security or AI safety rules.
 
 ## Monorepo Structure
@@ -61,6 +63,7 @@ apps/frontend-angular/src/app/
 │   ├── clinics/
 │   ├── dashboard/
 │   ├── followups/
+│   ├── inbox-ai/
 │   ├── leads/
 │   └── services/
 ├── shared/
@@ -91,6 +94,7 @@ Frontend non-responsibilities:
 Notes:
 
 - The planned `content` feature is not implemented yet.
+- The planned `schedule` and `professionals` features are not implemented yet.
 - `shared/` is intentionally light until repeated UI components justify more structure.
 
 ## Backend Architecture
@@ -115,6 +119,8 @@ apps/backend-go/
 │   ├── health/
 │   ├── leads/
 │   ├── migrations/
+│   ├── professionals/
+│   ├── appointments/
 │   ├── services/
 │   └── shared/
 └── pkg/
@@ -137,6 +143,8 @@ Current intentional deviations:
 - Follow-up endpoints are implemented in `internal/leads` because follow-ups are modeled as leads with `next_action_at`.
 - SQL migration execution support lives in `internal/migrations`; migration files live in `database/migrations`.
 - `internal/content` is not implemented yet.
+- `internal/professionals` is implemented for clinic-scoped CRUD.
+- `internal/appointments` is implemented for operational appointment CRUD, status changes, rescheduling, overlap validation, and lead conversion.
 - `pkg/logger` is not present; logging currently uses standard Go logging.
 
 Layer responsibilities:
@@ -170,6 +178,15 @@ Implemented tables:
 - `lead_notes`
 - `schema_migrations`
 
+Smart Schedule tables:
+
+- `clinic_professionals` — migration and backend module created.
+- `professional_services` — migration and backend module support created.
+- `appointments` — migration and backend module created.
+- Optional later: `appointment_events`
+
+Detailed schema planning is documented in `docs/SMART_SCHEDULE_DATABASE_PLAN.md`.
+
 Current migration files live in `database/migrations/`. Demo data lives in `database/seeds/`.
 
 Core tenant model:
@@ -201,14 +218,88 @@ Forbidden data:
 Notes:
 
 - Follow-ups are implemented through `leads.next_action_at`; there is no separate `followups` table.
+- Professionals/dentists and appointments now have schema and backend endpoints. Frontend screens, schedule availability endpoint, and schedule dashboard summary are still pending.
 - AI generation metadata is not persisted yet; there is no `ai_generations` table.
 - `pgvector` may be prepared for future phases, but it is not required for MVP functionality.
+
+## Smart Schedule Architecture
+
+Status: Planned.
+
+Smart Schedule / Agenda Inteligente is the planned architecture center for the next product direction. It should connect operational appointments with professionals, services, leads, follow-ups, and AI-assisted communication.
+
+Smart Schedule backend modules:
+
+- `internal/professionals` for clinic-scoped dentists/professionals. Status: Implemented.
+- `internal/appointments` for operational appointments, status updates, rescheduling, overlap validation, and lead-to-appointment conversion. Status: Implemented.
+- Extensions to `internal/leads` for lead-to-appointment conversion.
+- Extensions to `internal/dashboard` for schedule-centered priorities.
+- Extensions to `internal/ai` for appointment confirmation, rescheduling, and scheduling-intent suggestions.
+
+Planned frontend modules:
+
+- `features/schedule/` for daily and weekly agenda views.
+- `features/professionals/` for operational professional management.
+- Appointment create/edit flow.
+- Lead conversion action from lead detail and Inbox AI.
+- Dashboard cards for today's appointments, pending confirmations, available slots, hot leads without appointment, and overdue follow-ups.
+
+Planned data model:
+
+```txt
+Clinic
+  has many Users
+  has many Services
+  has many Professionals
+  has many Leads
+  has many Appointments
+
+Professional
+  belongs to Clinic
+  can provide many Services
+  has many Appointments
+
+Lead
+  belongs to Clinic
+  may be interested in one Service
+  may be converted into Appointment
+
+Appointment
+  belongs to Clinic
+  belongs to Professional
+  may belong to Lead
+  belongs to Service
+  has status and scheduled date/time
+  stores commercial/admin notes only
+```
+
+Planned appointment statuses:
+
+```txt
+scheduled
+confirmed
+pending_confirmation
+rescheduled
+no_show
+cancelled
+completed
+converted_from_lead
+```
+
+Architecture constraints:
+
+- Every schedule entity must include `clinic_id` and be scoped by authenticated clinic.
+- Appointment notes must be commercial/admin only.
+- Professionals are operational schedule resources, not clinical profiles.
+- The schedule must not store diagnosis, prescription, clinical history, clinical images, or treatment decisions.
+- AI may suggest confirmation, rescheduling, or follow-up messages but must not create appointments or send messages automatically.
+- Lead-to-appointment conversion must require explicit human confirmation.
 
 ## Smart Lead Inbox Architecture
 
 Status: Partially Implemented.
 
-Smart Lead Inbox extends the current AI, leads, follow-up, and dashboard modules. The first implemented slice analyzes pasted conversations and turns them into reviewed commercial actions without storing raw conversations or sending messages automatically.
+Smart Lead Inbox extends the current AI, leads, follow-up, dashboard, and planned schedule modules. The first implemented slice analyzes pasted conversations and turns them into reviewed commercial actions without storing raw conversations or sending messages automatically.
 
 Implemented backend slice:
 
@@ -220,6 +311,7 @@ Implemented backend slice:
 Planned backend modules or extensions:
 
 - Lead creation/update orchestration that only persists reviewed data.
+- Appointment suggestion and lead-to-appointment orchestration after human review.
 - Optional inbound conversation/message storage, only after explicit retention and privacy rules are approved.
 - Follow-up suggestion use case that proposes timing and next action without scheduling automatically.
 - Dashboard action aggregation for daily priorities.
@@ -235,6 +327,7 @@ Planned frontend modules or extensions:
 
 - Dashboard action cards for daily assistant priorities.
 - Review panels for extracted lead data, detected objections, suggested reply, and suggested follow-up.
+- Review panels for suggested appointment creation and missing scheduling data.
 - Copy-to-clipboard and explicit save/confirm buttons.
 
 Architectural guardrails:
@@ -253,6 +346,9 @@ The dashboard is planned to evolve from a KPI summary into an action layer. It s
 
 Potential dashboard data sources:
 
+- Today's appointments and appointment statuses.
+- Professionals and their assigned appointments.
+- Available schedule slots.
 - Lead status and creation time.
 - `next_action_at` for overdue and due-today follow-ups.
 - Service demand counts.
@@ -261,6 +357,9 @@ Potential dashboard data sources:
 
 Potential dashboard actions:
 
+- Open Smart Schedule.
+- Confirm appointment manually.
+- Create appointment from lead.
 - Analyze conversation.
 - Open Inbox AI.
 - Create lead with AI.
@@ -405,7 +504,7 @@ The MVP must not include architecture for:
 - Electronic invoicing.
 - Native mobile apps.
 - Telemedicine or video calls.
-- Full appointment scheduling.
+- Clinical-grade scheduling, treatment planning, or autonomous appointment booking.
 - Native bidirectional WhatsApp Business Cloud API integration.
 - Autonomous WhatsApp bots.
 - Required RAG/vector-search infrastructure.
@@ -430,6 +529,7 @@ These integrations must not become immediate dependencies for the MVP extension.
 Potential post-MVP architecture additions:
 
 - Smart Lead Inbox and manual conversation analysis.
+- Smart Schedule with professionals, appointments, availability, confirmations, and lead-to-appointment conversion.
 - Intelligent dashboard action layer.
 - WhatsApp Business Cloud API integration.
 - Event-driven follow-up automation.

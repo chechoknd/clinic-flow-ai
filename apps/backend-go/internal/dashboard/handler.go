@@ -31,6 +31,24 @@ func (h *Handler) Summary(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, res)
 }
 
+func (h *Handler) ScheduleSummary(w http.ResponseWriter, r *http.Request) {
+	claims, ok := auth.ClaimsFromContext(r.Context())
+	if !ok {
+		writeError(w, http.StatusUnauthorized, "UNAUTHORIZED", "Authentication is required.")
+		return
+	}
+
+	dateStr := r.URL.Query().Get("date")
+
+	res, err := h.service.ScheduleSummary(r.Context(), claims.ClinicID, dateStr)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "The request could not be completed.")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, res)
+}
+
 func writeJSON(w http.ResponseWriter, statusCode int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)

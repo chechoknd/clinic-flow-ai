@@ -192,3 +192,63 @@ Implement the first Smart Lead Inbox slice as a manual, human-reviewed workflow:
 ClinicFlow AI now has a usable manual Inbox AI workflow without changing the product into an autonomous bot or clinical system.
 
 Next implementation decisions should focus on whether to prioritize updating existing leads from analysis, persisting reviewed analysis history, or adding dashboard action cards.
+
+## 2026-06-01 — Evolve product center toward Smart Schedule
+
+### Context
+
+Dentist validation showed that the product becomes more attractive when the daily agenda is one of the core modules. The previous direction centered on AI-assisted commercial CRM, Smart Lead Inbox, follow-ups, and dashboard metrics. Those modules remain useful, but dentists understand the product more directly when leads, follow-ups, confirmations, professionals, and services connect to a visual schedule.
+
+This change introduces scope risk because a schedule can easily become a clinical system, treatment-planning tool, or autonomous booking system if boundaries are not explicit.
+
+### Decision
+
+Evolve ClinicFlow AI toward a Smart Schedule-centered product:
+
+```txt
+Smart commercial schedule -> lead conversion -> appointment confirmation -> manual follow-up -> AI-assisted communication
+```
+
+The planned Smart Schedule / Agenda Inteligente will connect:
+
+- Appointments.
+- Dentists/professionals.
+- Leads.
+- Services.
+- Follow-ups.
+- Appointment confirmations.
+- Available slots.
+- Daily commercial priorities.
+- Inbox AI suggestions after human review.
+
+The existing lead CRM, service catalog, follow-up module, Inbox AI, AI reply assistant, and dashboard remain part of the product, but they should align around the appointment-oriented workflow.
+
+The schedule remains operational and commercial. It must not include clinical histories, diagnoses, prescriptions, treatment plans, clinical notes, clinical images, telemedicine, autonomous WhatsApp sending, or AI medical advice.
+
+### Consequences
+
+Documentation must be updated before implementation. New planning is required for professionals/dentists, appointments, availability, lead-to-appointment conversion, schedule-centered dashboard summaries, and Inbox AI schedule suggestions.
+
+Future implementation should start only after reviewing the new docs. The first technical phase should plan database tables and backend contracts while preserving clinic-level tenant isolation and human review requirements.
+
+## 2026-06-01 — Plan Smart Schedule schema before migrations
+
+### Context
+
+The Smart Schedule direction requires new persistence for professionals, service assignment, appointments, appointment status, availability calculations, and lead-to-appointment conversion. Creating migrations before agreeing on tenant boundaries and safety constraints could introduce clinical data risk or cross-clinic leakage.
+
+### Decision
+
+Document the Smart Schedule database plan before implementation. The first planned schema should use:
+
+- `clinic_professionals` for operational dentists/professionals.
+- `professional_services` for service assignment.
+- `appointments` for operational appointments.
+
+Every table must include `clinic_id` where applicable. Appointment notes are commercial/admin only. Overlap checks should start in backend service logic inside transactions; database exclusion constraints can be considered later if needed.
+
+### Consequences
+
+The team can review schema shape, indexes, status values, tenant isolation rules, and lead-to-appointment behavior before writing migrations.
+
+After approval, the first migration was created. Backend and frontend implementation should still follow the documented module boundaries.

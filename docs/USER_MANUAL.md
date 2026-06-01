@@ -8,11 +8,13 @@ No es un sistema medico, no guarda historias clinicas, no diagnostica, no prescr
 
 ## Estado actual y evolucion planeada
 
-Status: Current manual covers implemented screens. Inbox AI manual conversation analysis is implemented as a first Smart Lead Inbox slice; broader inbox history and integrations remain planned.
+Status: Current manual covers implemented screens. Inbox AI manual conversation analysis is implemented as a first Smart Lead Inbox slice; broader inbox history, Smart Schedule, professionals, appointments, and integrations remain planned.
 
 La aplicacion actual permite gestionar leads, seguimientos, servicios, perfil de clinica, dashboard y respuestas asistidas por AI.
 
-La evolucion se llama `Smart Lead Inbox` o `Inbox AI`. La primera version permite pegar una conversacion completa, analizarla con AI, detectar interes comercial, detectar objeciones, sugerir una respuesta, sugerir una proxima accion y crear un lead despues de revision humana. Actualizar leads existentes, historial persistente e integraciones externas siguen planeados.
+La nueva evolucion central es `Smart Schedule` o `Agenda Inteligente`. La agenda planeada conectara citas, odontologos/profesionales, leads, servicios, seguimientos, confirmaciones y asistencia AI.
+
+`Smart Lead Inbox` o `Inbox AI` sigue siendo importante. La primera version permite pegar una conversacion completa, analizarla con AI, detectar interes comercial, detectar objeciones, sugerir una respuesta, sugerir una proxima accion y crear un lead despues de revision humana. En la evolucion planeada, Inbox AI tambien podra sugerir si una conversacion esta lista para convertirse en cita, que datos faltan para agendar y que respuesta enviar para confirmar.
 
 Regla obligatoria:
 
@@ -74,6 +76,92 @@ Usalo para responder preguntas rapidas como:
 - Que servicios generan mas interes?
 
 Desde el Dashboard puedes ir rapidamente a `Leads` con el boton `Ver leads`.
+
+## Agenda Inteligente
+
+Status: Planned. Esta funcionalidad no esta implementada todavia.
+
+La Agenda Inteligente sera el centro operativo del producto. Su objetivo es ayudar a recepcion y administracion a ver que pasa hoy en la clinica y que oportunidades pueden convertirse en citas.
+
+La agenda planeada permitira:
+
+- Ver citas del dia.
+- Ver citas de la semana.
+- Identificar citas pendientes de confirmacion.
+- Asignar una cita a un odontologo o profesional.
+- Asociar la cita a un servicio.
+- Asociar la cita a un lead cuando venga de una conversacion comercial.
+- Ver espacios disponibles.
+- Reprogramar una cita.
+- Marcar una cita como confirmada, cancelada, no asistio o completada.
+- Crear seguimientos manuales relacionados con citas.
+
+### Flujo planeado para recepcion
+
+1. Abrir `Agenda`.
+2. Revisar las citas de hoy.
+3. Ver cuales estan pendientes de confirmacion.
+4. Usar AI para generar un mensaje corto de confirmacion, si hace falta.
+5. Revisar el mensaje.
+6. Copiarlo y enviarlo manualmente por WhatsApp.
+7. Marcar la cita como confirmada solo despues de recibir respuesta.
+
+### Convertir un lead en cita
+
+Status: Planned.
+
+Cuando una persona interesada quiere agendar:
+
+1. Abrir el lead o el analisis de Inbox AI.
+2. Confirmar que la persona quiere una valoracion o cita.
+3. Seleccionar servicio.
+4. Seleccionar odontologo/profesional.
+5. Elegir fecha y hora disponible.
+6. Crear la cita despues de revisar los datos.
+7. El lead queda conectado con la cita para mantener trazabilidad.
+
+La AI puede sugerir que el lead parece listo para agendar, pero no debe crear la cita automaticamente.
+
+### Profesionales u odontologos
+
+Status: Planned.
+
+La clinica podra registrar profesionales para organizar la agenda.
+
+La informacion planeada sera operativa:
+
+- Nombre.
+- Especialidad o rol.
+- Estado activo/inactivo.
+- Servicios que puede atender.
+- Horarios o disponibilidad.
+- Color de calendario.
+
+No se deben guardar historias clinicas, documentos medicos, notas clinicas ni informacion sensible en este modulo.
+
+### Estados planeados de una cita
+
+La agenda usara estados simples:
+
+- Programada.
+- Confirmada.
+- Pendiente de confirmacion.
+- Reprogramada.
+- No asistio.
+- Cancelada.
+- Completada.
+- Convertida desde lead.
+
+Estos estados son administrativos. No representan diagnostico, evolucion clinica ni resultado medico.
+
+### Reglas de seguridad para la agenda
+
+- No escribir diagnosticos en notas de cita.
+- No guardar historia clinica.
+- No registrar prescripciones.
+- No usar AI para decidir urgencia medica.
+- No enviar mensajes automaticos por WhatsApp.
+- Toda sugerencia de AI debe ser revisada por una persona.
 
 
 ## Inbox AI

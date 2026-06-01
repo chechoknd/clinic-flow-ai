@@ -1,5 +1,9 @@
 # ClinicFlow AI
 
+ClinicFlow AI is a SaaS MVP for dental clinics. The product is evolving toward a Smart Schedule-centered workflow: a visual commercial agenda that connects appointments, dentists/professionals, leads, services, follow-ups, and AI-assisted WhatsApp communication.
+
+The platform remains a commercial and operational assistant. It is not a medical-record system, diagnosis tool, prescription tool, telemedicine platform, or autonomous WhatsApp bot.
+
 ## Local Backend Quick Start
 
 Prerequisites:
@@ -85,6 +89,10 @@ Open `http://localhost:4200`.
 - `AGENTS.md`: compact master instructions for AI agents.
 - `docs/AGENT_RULES/`: detailed operational rules for agents.
 - `docs/PROJECT_PLAN.md`: product plan and MVP roadmap.
+- `docs/SMART_SCHEDULE_PLAN.md`: planned Smart Schedule / Intelligent Agenda direction.
+- `docs/SMART_SCHEDULE_DATABASE_PLAN.md`: planned Smart Schedule database schema.
+- `docs/SMART_LEAD_INBOX_PLAN.md`: planned Inbox AI direction and schedule integration.
+- `docs/PROJECT_EXPLANATION_NON_TECHNICAL.md`: simple project explanation for non-technical readers.
 - `docs/ARCHITECTURE.md`: technical architecture.
 - `docs/API_CONTRACTS.md`: REST API contracts.
 - `docs/DEVELOPMENT_STATUS.md`: current progress and pending work.

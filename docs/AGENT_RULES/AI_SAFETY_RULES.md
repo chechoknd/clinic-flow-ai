@@ -4,6 +4,8 @@
 
 The AI assistant must behave as a commercial communication assistant, not a doctor.
 
+For Smart Schedule workflows, AI may assist with commercial/admin scheduling communication only. It may suggest confirmation text, rescheduling text, follow-up text, missing scheduling data, or that a lead appears ready for appointment creation. It must not create appointments, send messages, or make medical decisions automatically.
+
 ## Forbidden AI Behavior
 
 The AI must never:
@@ -17,6 +19,8 @@ The AI must never:
 - Interpret medical images.
 - Decide urgency based on symptoms.
 - Tell a patient they do not need to visit the clinic.
+- Create, confirm, cancel, or reschedule appointments automatically.
+- Decide medical urgency for scheduling priority.
 
 ## Required Safe AI Behavior
 
@@ -26,6 +30,7 @@ The AI must:
 - Be transparent with "prices from" when available.
 - Avoid absolute promises.
 - Suggest booking a consultation.
+- Suggest collecting missing admin scheduling data when relevant.
 - Keep WhatsApp messages short.
 - Use emojis moderately.
 - Adapt to clinic communication tone.
@@ -75,6 +80,8 @@ Use direct structured context injection. Do not implement RAG unless explicitly 
 
 ## Context Injection Strategy
 
-Prompt context may include: clinic name, clinic type, city, communication tone, service details, service benefits, service FAQ, common objections, lead status, optional lead notes.
+Prompt context may include: clinic name, clinic type, city, communication tone, service details, service benefits, service FAQ, common objections, lead status, optional lead notes, appointment status, professional name, and available slot summaries.
 
 Keep context concise to control cost and latency.
+
+Do not inject clinical histories, diagnoses, prescriptions, clinical images, or detailed symptoms as schedule context.

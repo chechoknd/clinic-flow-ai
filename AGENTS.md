@@ -2,15 +2,17 @@
 
 ## 1. Project Identity
 
-ClinicFlow AI is a SaaS platform focused on helping small and medium private clinics improve commercial attention, lead follow-up, and patient conversion through AI-assisted WhatsApp communication.
+ClinicFlow AI is a SaaS platform focused on helping small and medium private clinics manage commercial attention, lead follow-up, appointment-oriented operations, and patient conversion through an AI-assisted Smart Schedule.
 
 The first MVP focuses on dental clinics.
 
 The product is **not** a hospital system, a clinical diagnosis system, a medical records system, or an autonomous WhatsApp bot in the MVP.
 
+The product is evolving from an AI-assisted commercial CRM into a smart commercial schedule for dental clinics that connects appointments, dentists/professionals, leads, services, follow-ups, and AI assistance.
+
 **Core business promise:**
 
-> Help clinics respond better, recover interested patients, and sell more treatments through WhatsApp.
+> Help clinics organize their daily agenda, respond better, recover interested patients, and convert more conversations into booked appointments.
 
 ---
 
@@ -19,6 +21,9 @@ The product is **not** a hospital system, a clinical diagnosis system, a medical
 - Authentication and roles (superadmin, clinic_admin, assistant)
 - Clinic profile and configuration
 - Clinic service catalog
+- Planned Smart Schedule / Intelligent Agenda
+- Planned dentists/professionals module
+- Planned appointment management connected to leads and services
 - Simple commercial CRM for leads
 - AI reply assistant for WhatsApp
 - AI objection handler
@@ -43,7 +48,7 @@ If a task introduces any of these, stop and report the scope conflict:
 - Clinical decision support, medical image interpretation
 - Payment gateways, electronic invoicing
 - Native mobile apps, telemedicine, video calls
-- Full appointment scheduling system
+- Clinical-grade scheduling, treatment planning, or autonomous appointment booking
 - Native bidirectional WhatsApp Business Cloud API integration
 - Autonomous WhatsApp bots
 - RAG/vector search as required MVP infrastructure
@@ -106,6 +111,8 @@ clinic-flow-ai/
     ├── ARCHITECTURE.md
     ├── DEVELOPMENT_STATUS.md
     ├── API_CONTRACTS.md
+    ├── SMART_SCHEDULE_PLAN.md
+    ├── SMART_SCHEDULE_DATABASE_PLAN.md
     └── DECISIONS_LOG.md
 ```
 
@@ -118,6 +125,7 @@ clinic-flow-ai/
 - **Multi-tenant isolation.** Backend must enforce clinic-level data isolation.
 - **Backend authorization.** JWT validation on every protected endpoint. Frontend guard alone is insufficient.
 - **AI cannot diagnose.** The AI assistant is a commercial communication tool, not a doctor.
+- **Smart Schedule is operational, not clinical.** Appointment notes must remain commercial/admin only.
 - **No WhatsApp Cloud API in the MVP.** No autonomous WhatsApp bots.
 - **Never expose stack traces or SQL errors in API responses.**
 - **Never log passwords, JWT tokens, or API keys.**
@@ -180,6 +188,6 @@ Detailed rules are organized in `docs/AGENT_RULES/`:
 
 This is not a hospital system. This is not clinical diagnosis. This is not a WhatsApp bot in the MVP.
 
-This is a commercial assistant for private clinics that helps human staff respond better, follow up faster, and convert more interested patients into booked appointments.
+This is a smart commercial schedule and assistant for private clinics that helps human staff organize appointments, respond better, follow up faster, and convert more interested patients into booked appointments.
 
 Every technical decision must support that goal.

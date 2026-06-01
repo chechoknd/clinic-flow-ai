@@ -48,6 +48,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/ai-assistant/ai-assistant.page').then((m) => m.AiAssistantPage),
       },
+      {
+        path: 'professionals',
+        loadComponent: () =>
+          import('./features/professionals/professionals.page').then((m) => m.ProfessionalsPage),
+      },
+      {
+        path: 'schedule',
+        loadComponent: () =>
+          import('./features/schedule/schedule.page').then((m) => m.SchedulePage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },

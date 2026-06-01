@@ -11,12 +11,15 @@ import (
 	"time"
 
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/ai"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/appointments"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/auth"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/clinics"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/config"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/dashboard"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/health"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/leads"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/professionals"
+	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/schedule"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/services"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/internal/shared"
 	"github.com/chechoknd/clinic-flow-ai/apps/backend-go/pkg/database"
@@ -60,9 +63,21 @@ func main() {
 				serviceService := services.NewService(serviceRepository)
 				services.RegisterRoutes(mux, services.NewHandler(serviceService), tokenManager)
 
+				professionalRepository := professionals.NewPostgresRepository(db)
+				professionalService := professionals.NewService(professionalRepository)
+				professionals.RegisterRoutes(mux, professionals.NewHandler(professionalService), tokenManager)
+
+				appointmentRepository := appointments.NewPostgresRepository(db)
+				appointmentService := appointments.NewService(appointmentRepository)
+				appointments.RegisterRoutes(mux, appointments.NewHandler(appointmentService), tokenManager)
+
 				leadRepository := leads.NewPostgresRepository(db)
 				leadService := leads.NewService(leadRepository)
 				leads.RegisterRoutes(mux, leads.NewHandler(leadService), tokenManager)
+
+				scheduleRepository := schedule.NewPostgresRepository(db)
+				scheduleService := schedule.NewService(scheduleRepository)
+				schedule.RegisterRoutes(mux, schedule.NewHandler(scheduleService), tokenManager)
 
 				dashboardRepository := dashboard.NewPostgresRepository(db)
 				dashboardService := dashboard.NewService(dashboardRepository)

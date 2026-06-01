@@ -224,7 +224,7 @@
           <textarea data-testid="inbox-ai-lead-notes-textarea" formControlName="notes" rows="3" class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"></textarea>
         </label>
 
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-3 sm:grid-cols-3">
           <button
             type="button"
             data-testid="inbox-ai-create-lead-button"
@@ -242,8 +242,24 @@
             [disabled]="!analyzeForm.controls.lead_id.value || leadForm.invalid || !isLeadReady() || savingLead()"
             (click)="updateExistingLead()"
           >
-            {{ savingLead() ? 'Actualizando...' : 'Actualizar lead existente' }}
+            {{ savingLead() ? 'Actualizando...' : 'Actualizar lead' }}
           </button>
+
+          <a
+            data-testid="inbox-ai-convert-appt-button"
+            routerLink="/schedule"
+            [queryParams]="{
+              contact_name: leadForm.controls.full_name.value,
+              contact_phone: leadForm.controls.phone.value,
+              service_id: leadForm.controls.service_id.value,
+              lead_id: analyzeForm.controls.lead_id.value
+            }"
+            class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center text-center transition"
+            [class.pointer-events-none]="leadForm.controls.full_name.invalid || leadForm.controls.phone.invalid"
+            [class.opacity-50]="leadForm.controls.full_name.invalid || leadForm.controls.phone.invalid"
+          >
+            Agendar Cita
+          </a>
         </div>
       </form>
     </div>

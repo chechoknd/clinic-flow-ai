@@ -19,6 +19,9 @@
 - `users`
 - `leads`
 - `lead_notes`
+- `clinic_professionals`
+- `professional_services`
+- `appointments`
 - `ai_generations`
 - `followups`
 
@@ -32,6 +35,18 @@
 - Next follow-up date.
 - Basic source/channel.
 
+## Allowed Appointment Data
+
+- Contact name and phone.
+- Linked lead when applicable.
+- Linked service.
+- Linked dentist/professional.
+- Start and end date/time.
+- Appointment status.
+- Confirmation status.
+- Commercial/admin notes only.
+- Basic source/channel.
+
 ## Forbidden Medical Data
 
 - Diagnoses.
@@ -41,10 +56,14 @@
 - Lab results.
 - Medical records.
 - Detailed symptoms as medical history.
+- Clinical notes inside appointment records.
+- Treatment plans or medical decisions.
 
 ## Multi-Tenant Rules
 
 Every entity must belong to a clinic when applicable. Backend queries must enforce data isolation between clinics. Never rely solely on frontend filters.
+
+Smart Schedule entities such as professionals, professional-service assignments, and appointments must include `clinic_id` directly and must validate that linked professionals, services, leads, and appointments all belong to the authenticated clinic.
 
 ## pgvector
 

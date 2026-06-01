@@ -2,21 +2,23 @@
 
 ## Product Vision
 
-ClinicFlow AI is a SaaS platform for small and medium private clinics that improves commercial attention, lead follow-up, and patient conversion through AI-assisted WhatsApp communication.
+ClinicFlow AI is a SaaS platform for small and medium private clinics that improves commercial attention, appointment-oriented operations, lead follow-up, and patient conversion through an AI-assisted Smart Schedule.
 
 The first MVP focuses on dental clinics and avoids heavy clinical, hospital, or medical-record workflows. The product promise is:
 
-> Help clinics respond better, recover interested patients, and sell more treatments through WhatsApp.
+> Help clinics organize their daily agenda, respond better, recover interested patients, and convert more conversations into booked appointments.
 
-ClinicFlow AI is a commercial communication assistant for clinic staff. It is not a medical diagnosis system, prescription tool, telemedicine platform, hospital system, medical records system, or autonomous WhatsApp bot in the MVP.
+ClinicFlow AI is evolving from an AI-assisted commercial CRM into a smart commercial schedule for dental clinics. The schedule connects appointments, dentists/professionals, leads, services, follow-ups, and AI-assisted communication.
+
+ClinicFlow AI remains a commercial and operational assistant for clinic staff. It is not a medical diagnosis system, prescription tool, telemedicine platform, hospital system, medical records system, or autonomous WhatsApp bot in the MVP.
 
 ## Problem Statement
 
-Private clinics receive many interested patients through WhatsApp, especially around pricing, appointment availability, treatment fears, and service details. Reception teams often lack time, structure, and commercial support to answer consistently, follow up at the right time, and convert interest into booked evaluations.
+Private clinics receive many interested patients through WhatsApp, especially around pricing, appointment availability, treatment fears, and service details. Reception teams often lack time, structure, schedule visibility, and commercial support to answer consistently, follow up at the right time, and convert interest into booked evaluations.
 
 This creates a commercial "black hole": leads ask a question, receive a weak or delayed answer, and disappear without structured follow-up.
 
-ClinicFlow AI addresses this by giving staff fast, safe, context-aware message suggestions, objection handling, follow-up reminders, and simple CRM visibility.
+ClinicFlow AI addresses this by giving staff a smart operational agenda plus fast, safe, context-aware message suggestions, objection handling, follow-up reminders, and simple CRM visibility.
 
 ## Target Users
 
@@ -24,7 +26,8 @@ ClinicFlow AI addresses this by giving staff fast, safe, context-aware message s
 - Dental clinics and independent dental offices for the first MVP.
 - Clinic owners who need more predictable lead conversion.
 - Clinic administrators who manage service catalogs, staff, and daily commercial performance.
-- Assistants or receptionists who answer WhatsApp messages and follow up with leads.
+- Assistants or receptionists who answer WhatsApp messages, confirm appointments, reschedule, and follow up with leads.
+- Dentists/professionals who need visibility into their assigned schedule without clinical-record workflows.
 
 ## Initial Niche: Dental Clinics
 
@@ -38,9 +41,26 @@ The MVP is optimized for dental clinics because they commonly have:
 
 Initial dental services may include dental cleaning, whitening, orthodontics, smile design, implants, oral rehabilitation, dental emergencies, initial evaluation, and preventive controls.
 
-## Product Direction: Smart Lead Inbox and Intelligent Dashboard
+## Product Direction: Smart Schedule, Smart Lead Inbox, and Intelligent Dashboard
 
 Status: Planned.
+
+ClinicFlow AI should now evolve around the Smart Schedule / Agenda Inteligente as the product center.
+
+The new product direction is:
+
+> A smart commercial schedule for dental clinics that connects appointments, dentists, leads, services, follow-ups, and AI assistance.
+
+The schedule should help clinic staff manage:
+
+- Appointments.
+- Dentists/professionals.
+- Leads that can become appointments.
+- Follow-ups.
+- Appointment status.
+- Available time slots.
+- Pending confirmations.
+- Daily commercial priorities.
 
 ClinicFlow AI is planned to evolve toward a Smart Lead Inbox experience: a commercial inbox assisted by AI where staff can paste conversations, analyze commercial intent, detect service interest and objections, generate safe response drafts, and decide the next follow-up action.
 
@@ -52,8 +72,9 @@ AI suggests -> human reviews -> human replies
 
 The system must not send autonomous WhatsApp messages in the MVP. The assistant or clinic staff member remains responsible for reviewing, editing, copying, and sending any response through the original channel.
 
-The dashboard is also planned to evolve from mostly metrics into an intelligent action layer that helps staff decide what to handle today: new leads without response, overdue follow-ups, high-intent leads, detected objections, service demand, and AI-recommended next actions.
+The dashboard is also planned to evolve from mostly metrics into an intelligent action layer that helps staff decide what to handle today: today's appointments, pending confirmations, available schedule opportunities, hot leads without appointment, overdue follow-ups, detected objections, service demand, and AI-recommended next actions.
 
+See `docs/SMART_SCHEDULE_PLAN.md` for the detailed Smart Schedule plan.
 See `docs/SMART_LEAD_INBOX_PLAN.md` for the detailed product plan.
 
 ## MVP Scope
@@ -63,6 +84,9 @@ The MVP includes the following planned capabilities:
 - Authentication and roles.
 - Clinic profile and configuration.
 - Clinic service catalog.
+- Planned Smart Schedule / Intelligent Agenda.
+- Planned dentists/professionals module.
+- Planned appointment management connected to leads and services.
 - Simple commercial CRM for leads.
 - AI reply assistant for WhatsApp.
 - AI objection handler.
@@ -94,7 +118,7 @@ The MVP strictly excludes:
 - Native mobile apps.
 - Telemedicine.
 - Video calls.
-- Full appointment scheduling system.
+- Clinical-grade scheduling, treatment planning, or autonomous appointment booking.
 - Native bidirectional WhatsApp Business Cloud API integration.
 - Autonomous WhatsApp bots.
 - RAG/vector search as required MVP infrastructure.
@@ -106,13 +130,16 @@ If a task introduces excluded scope, it must be treated as a scope conflict.
 - Authentication: login, JWT issuance, role-aware access.
 - Clinics: clinic profile, city, operating WhatsApp, address, hours, FAQs, communication tone.
 - Services: dental service catalog with descriptions, benefits, "price from", FAQs, and common objections.
+- Professionals: planned operational module for dentists/professionals, specialties or roles, active state, service assignment, availability, and calendar colors.
+- Smart Schedule: planned visual daily/weekly agenda with appointments, statuses, professional assignment, services, lead/contact reference, confirmations, available slots, and rescheduling.
+- Appointments: planned operational records connected to clinic, professional, service, optional lead/contact, date/time, status, source, confirmation state, and commercial/admin notes only.
 - Leads: simple commercial pipeline with status, service of interest, notes, source, and next action date.
 - AI Assistant: safe WhatsApp-ready reply suggestions based on clinic and service context.
 - Objection Handler: categorization and response strategy for commercial objections.
 - Follow-ups: manual reminders and AI-assisted re-engagement messages for stale leads.
 - Content Generator: marketing copy, post ideas, Reel/TikTok scripts, carousel outlines, and WhatsApp campaign text.
-- Dashboard: basic commercial KPIs for leads, service demand, pending follow-ups, and AI usage. Planned evolution: actionable dashboard cards for what the assistant should handle today.
-- Smart Lead Inbox: first manual conversation analysis slice implemented for pasted conversations, commercial extraction, response suggestion, and reviewed lead creation. Lead update, persisted analysis history, and richer follow-up confirmation remain planned.
+- Dashboard: basic commercial KPIs for leads, service demand, pending follow-ups, and AI usage. Planned evolution: schedule-centered action cards for today's appointments, pending confirmations, available slots, hot leads without appointment, and overdue follow-ups.
+- Smart Lead Inbox: first manual conversation analysis slice implemented for pasted conversations, commercial extraction, response suggestion, and reviewed lead creation. Planned evolution: detect scheduling intent and suggest reviewed appointment creation.
 
 
 ## User Roles
@@ -155,27 +182,43 @@ Document and validate the Smart Lead Inbox direction, Dashboard Inteligente acti
 
 Partially implemented: manual conversation paste screen, AI conversation analysis, extracted commercial fields, suggested response, and reviewed lead creation through the existing leads API. Pending: update existing lead from analysis and persisted analysis history.
 
-### Phase 8: Dashboard Action Layer
+### Phase 8: Smart Schedule Product Alignment
+
+Document and validate the Smart Schedule direction, professionals model, appointment model, lead-to-appointment flow, dashboard changes, safety rules, and draft API contracts before writing code.
+
+### Phase 9: Database and API Planning for Smart Schedule
+
+Plan tables/entities for professionals, professional services, appointments, schedule availability, lead-to-appointment conversion, and schedule-centered dashboard summaries. Do not create migrations until implementation is approved.
+
+### Phase 10: Smart Schedule Frontend Planning
+
+Plan the daily/weekly agenda UI, professional management, appointment create/edit flows, lead conversion to appointment, pending confirmation cards, and dashboard schedule priorities.
+
+### Phase 11: Dashboard Action Layer
 
 Evolve the dashboard from metrics into an action queue: what to handle today, leads without response, overdue follow-ups, high-intent leads, detected objections, and quick actions.
 
-### Phase 9: Inbox AI MVP
+### Phase 12: Inbox AI Schedule Integration
 
-Implement a simple inbox-style operational view with attention states, response suggestions, follow-up suggestions, and reviewed analysis history.
+Align Inbox AI with the schedule-centered workflow: detect scheduling intent, identify missing scheduling data, suggest appointment creation, and keep human-reviewed lead/appointment traceability.
 
-### Phase 10: MVP Closure and Pilot
+### Phase 13: MVP Closure and Pilot
 
 Finalize dashboard summary, integration testing under Docker Compose, safety review, documentation updates, pilot readiness checklist, and pilot execution with 5 to 10 independent dental clinics.
 
 ## Success Criteria for MVP
 
 - A clinic can configure its profile, communication tone, and service catalog.
+- A clinic can manage professionals/dentists as operational schedule resources when the Smart Schedule module is implemented.
+- Staff can view a visual daily/weekly agenda when the Smart Schedule module is implemented.
+- Staff can create, edit, confirm, cancel, reschedule, and complete operational appointments without storing clinical data when the appointment module is implemented.
 - Staff can create, view, filter, and update commercial leads.
+- Staff can convert a lead into an appointment after human review when the Smart Schedule module is implemented.
 - Staff can generate safe WhatsApp reply suggestions using clinic and service context.
 - Staff can generate objection-handling responses that avoid diagnosis and medical advice.
 - Staff can manage manual follow-ups without native WhatsApp API automation.
 - Staff can paste a conversation, receive AI commercial analysis, review it, and manually create or update a lead when Smart Lead Inbox is implemented.
-- Staff can use an intelligent dashboard to decide what to handle next when the action layer is implemented.
+- Staff can use an intelligent dashboard to decide what to handle next, including appointments pending confirmation, available slots, hot leads without appointment, and overdue follow-ups when the action layer is implemented.
 
 - Clinic administrators can see basic commercial KPIs.
 - AI prompts and provider configuration are controlled by the backend.
@@ -190,6 +233,8 @@ Finalize dashboard summary, integration testing under Docker Compose, safety rev
 - Scope creep into clinical systems: keep medical records, diagnosis, prescriptions, and clinical decision support out of MVP.
 - WhatsApp automation complexity: use manual assisted follow-ups and exclude native bidirectional WhatsApp Cloud API integration from MVP.
 - Inbox AI scope creep: keep conversation capture manual or semi-manual first, and require human approval before saving lead updates, follow-ups, or sending messages.
+- Smart Schedule scope creep: keep appointment data operational and commercial; do not add clinical notes, treatment plans, diagnosis, prescriptions, or autonomous booking.
+- Schedule complexity risk: start with daily/weekly views, simple professional assignment, service duration, and clear statuses before advanced calendar features.
 
 - Multi-tenant data leakage: enforce clinic isolation in backend queries and authorization checks.
 - AI provider cost or reliability issues: use provider abstraction, token limits, timeouts, fallbacks, and usage metadata.
@@ -198,6 +243,7 @@ Finalize dashboard summary, integration testing under Docker Compose, safety rev
 ## Future Expansion Opportunities
 
 - Smart Lead Inbox with manual conversation paste, AI commercial analysis, and human-reviewed lead creation/update.
+- Smart Schedule with professionals, appointments, availability, confirmations, and lead-to-appointment conversion.
 - Intelligent dashboard action layer for daily assistant priorities.
 - WhatsApp Business Cloud API integration after MVP validation.
 

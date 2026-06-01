@@ -7,8 +7,11 @@ import (
 )
 
 type fakeRepository struct {
-	summary Summary
-	err     error
+	summary     Summary
+	schedSum    ScheduleSummary
+	activeProfs []ProfessionalHours
+	appts       []AppointmentSummary
+	err         error
 }
 
 func (r fakeRepository) Summary(ctx context.Context, clinicID string) (Summary, error) {
@@ -16,6 +19,27 @@ func (r fakeRepository) Summary(ctx context.Context, clinicID string) (Summary, 
 		return Summary{}, r.err
 	}
 	return r.summary, nil
+}
+
+func (r fakeRepository) ScheduleSummary(ctx context.Context, clinicID string, dateStr string) (ScheduleSummary, error) {
+	if r.err != nil {
+		return ScheduleSummary{}, r.err
+	}
+	return r.schedSum, nil
+}
+
+func (r fakeRepository) GetActiveProfessionalsWithHours(ctx context.Context, clinicID string) ([]ProfessionalHours, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	return r.activeProfs, nil
+}
+
+func (r fakeRepository) GetAppointmentsForDate(ctx context.Context, clinicID string, dateStr string) ([]AppointmentSummary, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	return r.appts, nil
 }
 
 func TestServiceSummary(t *testing.T) {
@@ -60,3 +84,37 @@ func TestServiceSummaryRequiresClinicID(t *testing.T) {
 		t.Fatalf("expected ErrMissingClinicID, got %v", err)
 	}
 }
+
+func TestServiceScheduleSummary(t *testing.T) {
+	sched := ScheduleSummary{
+		Date:                            "2026-06-01",
+		TodaysAppointments:              5,
+		AppointmentsPendingConfirmation: 2,
+		HotLeadsWithoutAppointment:      3,
+		OverdueFollowUps:                1,
+		LeadsConvertedToAppointments:    2,
+		AppointmentsByProfessional: []ProfessionalCountModel{
+			{ProfessionalID: "prof-1", ProfessionalName: "Dr. House", AppointmentCount: 3},
+		},
+		TopServicesByScheduleDemand: []ServiceCountModel{
+			{ServiceID: "serv-1", ServiceName: "Ortodoncia", AppointmentCount: 4},
+		},
+	}
+
+	repo := fakeRepository{
+		schedSum:    sched,
+		activeProfs: []ProfessionalHours{},
+		appts:       []AppointmentSummary{},
+	}
+	service := NewService(repo)
+
+	res, err := service.ScheduleSummary(context.Background(), "clinic-1", "2026-06-01")
+	if err != nil {
+		t.Fatalf("schedule summary failed: %v", err)
+	}
+
+	if res.Date != "2026-06-01" || res.TodaysAppointments != 5 || res.AvailableSlots != 0 {
+		t.Fatalf("unexpected schedule summary: %#v", res)
+	}
+}
+

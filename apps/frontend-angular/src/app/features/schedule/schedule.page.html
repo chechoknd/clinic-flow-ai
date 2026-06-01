@@ -1,0 +1,673 @@
+<section class="grid gap-6">
+  <!-- Top Toolbar / Navigation -->
+  <header class="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+    <!-- View & Date Toggles -->
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+        <button
+          type="button"
+          (click)="toggleView('day')"
+          class="rounded-md px-3 py-1.5 text-xs font-semibold transition focus:outline-none"
+          [class.bg-white]="selectedView() === 'day'"
+          [class.shadow-sm]="selectedView() === 'day'"
+          [class.text-slate-900]="selectedView() === 'day'"
+          [class.text-slate-500]="selectedView() !== 'day'"
+        >
+          Día
+        </button>
+        <button
+          type="button"
+          (click)="toggleView('week')"
+          class="rounded-md px-3 py-1.5 text-xs font-semibold transition focus:outline-none"
+          [class.bg-white]="selectedView() === 'week'"
+          [class.shadow-sm]="selectedView() === 'week'"
+          [class.text-slate-900]="selectedView() === 'week'"
+          [class.text-slate-500]="selectedView() !== 'week'"
+        >
+          Semana
+        </button>
+      </div>
+
+      <!-- Date picker and quick steps -->
+      <div class="flex items-center gap-1.5">
+        <button
+          type="button"
+          (click)="changeDate(-1)"
+          class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          (click)="goToToday()"
+          class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+        >
+          Hoy
+        </button>
+        <button
+          type="button"
+          (click)="changeDate(1)"
+          class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+        >
+          ▶
+        </button>
+
+        <input
+          type="date"
+          [value]="selectedDate()"
+          (change)="onDateChange($event)"
+          class="ml-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-950 focus:border-teal-500 focus:outline-none"
+        />
+      </div>
+    </div>
+
+    <!-- Quick action buttons -->
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        (click)="openCreateDialog()"
+        class="rounded-md bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition"
+      >
+        + Agendar Cita
+      </button>
+    </div>
+  </header>
+
+  <!-- Alerts -->
+  @if (error()) {
+    <div class="rounded-md bg-red-50 p-4 text-xs text-red-700 shadow-sm">
+      {{ error() }}
+    </div>
+  }
+  @if (success()) {
+    <div class="rounded-md bg-emerald-50 p-4 text-xs text-emerald-700 shadow-sm">
+      {{ success() }}
+    </div>
+  }
+
+  <!-- Professional Selection tab for Weekly View only -->
+  @if (selectedView() === 'week') {
+    <div class="flex items-center gap-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 shrink-0">Dentista:</span>
+      @for (p of professionals(); track p.id) {
+        <button
+          type="button"
+          (click)="selectWeeklyProfessional(p)"
+          class="flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium border shrink-0 transition"
+          [class.border-teal-500]="activeWeeklyProfessional()?.id === p.id"
+          [class.bg-teal-50/10]="activeWeeklyProfessional()?.id === p.id"
+          [class.text-teal-700]="activeWeeklyProfessional()?.id === p.id"
+          [class.border-slate-200]="activeWeeklyProfessional()?.id !== p.id"
+          [class.hover:bg-slate-50]="activeWeeklyProfessional()?.id !== p.id"
+        >
+          <span class="h-3 w-3 rounded-full border border-black/10" [style.backgroundColor]="p.calendar_color || '#2563EB'"></span>
+          {{ p.full_name }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Calendar Workspace Box -->
+  <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+    <!-- Grid Outer Container -->
+    <div class="overflow-x-auto">
+      <div class="min-w-[800px] flex flex-col">
+        <!-- HEADER ROW -->
+        <div class="flex border-b border-slate-200 bg-slate-50/50 sticky top-0 z-10">
+          <!-- Hour Margin header -->
+          <div class="w-16 border-r border-slate-200 shrink-0"></div>
+
+          <!-- Columns Header -->
+          <div class="flex-1 grid" [style.gridTemplateColumns]="'repeat(' + (selectedView() === 'day' ? professionals().length : 7) + ', minmax(0, 1fr))'">
+            <!-- Daily Columns Headers -->
+            @if (selectedView() === 'day') {
+              @for (p of professionals(); track p.id) {
+                <div class="flex items-center gap-2.5 p-3.5 border-r border-slate-200 last:border-r-0 truncate">
+                  <span class="h-4 w-4 rounded-full border border-black/10 shrink-0" [style.backgroundColor]="p.calendar_color || '#2563EB'"></span>
+                  <div>
+                    <h3 class="text-xs font-semibold text-slate-900 truncate">{{ p.full_name }}</h3>
+                    <p class="text-[10px] text-slate-500 truncate">{{ p.role_or_specialty || 'General' }}</p>
+                  </div>
+                </div>
+              } @empty {
+                <div class="p-4 text-center text-xs text-slate-500 col-span-full">Aún no hay profesionales configurados en esta clínica.</div>
+              }
+            } @else {
+              <!-- Weekly Days Headers -->
+              @for (day of weekDates(); track day.dateStr) {
+                <div class="p-3 border-r border-slate-200 last:border-r-0 text-center truncate">
+                  <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ day.dayLabel }}</span>
+                  <span class="block text-xs font-semibold text-slate-900 mt-0.5">{{ day.label }}</span>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- CALENDAR GRID BODY -->
+        <div class="flex relative bg-white" style="height: 58.5rem;">
+          <!-- Hours Sidebar Label -->
+          <div class="w-16 border-r border-slate-200 shrink-0 flex flex-col relative select-none bg-slate-50/20">
+            @for (hour of hoursList; track hour) {
+              <div class="h-[4.5rem] relative">
+                <span class="absolute -top-2.5 right-2 text-[10px] font-medium text-slate-400">{{ hour }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Main Grid Content Columns -->
+          <div class="flex-1 grid relative" [style.gridTemplateColumns]="'repeat(' + (selectedView() === 'day' ? professionals().length : 7) + ', minmax(0, 1fr))'">
+            <!-- Grid Lines backdrop (Google Calendar style) -->
+            <div class="absolute inset-0 flex flex-col pointer-events-none select-none">
+              @for (hour of hoursList; track hour) {
+                <div class="h-[4.5rem] border-b border-slate-100 last:border-b-0 w-full"></div>
+              }
+            </div>
+
+            <!-- Horizontal column dividers -->
+            <div class="absolute inset-0 grid pointer-events-none select-none" [style.gridTemplateColumns]="'repeat(' + (selectedView() === 'day' ? professionals().length : 7) + ', minmax(0, 1fr))'">
+              @for (item of [].constructor(selectedView() === 'day' ? professionals().length : 7); track $index) {
+                <div class="border-r border-slate-100 last:border-r-0 h-full"></div>
+              }
+            </div>
+
+            <!-- APPOINTMENT CARDS LAYER -->
+            <!-- 1. DAY VIEW APPOINTMENTS -->
+            @if (selectedView() === 'day') {
+              @for (p of professionals(); track p.id; let pIdx = $index) {
+                <!-- Wrapper relative div per professional column -->
+                <div class="h-full relative overflow-visible" [style.gridColumnStart]="pIdx + 1">
+                  @for (appt of appointments(); track appt.id) {
+                    @if (appt.professional.id === p.id && appt.starts_at.split('T')[0] === selectedDate()) {
+                      <article
+                        [attr.data-testid]="'appointment-card-' + appt.id"
+                        (click)="openDetailDialog(appt)"
+                        (keydown.enter)="openDetailDialog(appt)"
+                        tabindex="0"
+                        class="absolute left-1 right-2 rounded-lg border p-2 text-left cursor-pointer transition select-none hover:shadow-md hover:scale-[1.01] hover:z-10 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        [class]="statusColors[appt.status].bg + ' ' + statusColors[appt.status].border + ' ' + statusColors[appt.status].text"
+                        [style.top]="getSlotStyle(appt.starts_at, appt.ends_at).top"
+                        [style.height]="getSlotStyle(appt.starts_at, appt.ends_at).height"
+                      >
+                        <div class="flex flex-col h-full justify-between">
+                          <div class="min-w-0">
+                            <span class="block text-[10px] font-semibold opacity-80 leading-none">
+                              {{ appt.starts_at.split('T')[1].substring(0, 5) }} - {{ appt.ends_at.split('T')[1].substring(0, 5) }}
+                            </span>
+                            <h4 class="font-bold text-xs truncate mt-1 leading-tight">{{ appt.contact_name }}</h4>
+                            <p class="text-[10px] truncate leading-normal opacity-90 mt-0.5">{{ appt.service.name }}</p>
+                          </div>
+                          @if (appt.confirmation_status === 'confirmed') {
+                            <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-white/70 px-1.5 py-0.5 rounded-full border border-current mt-1">
+                              ✓ Confirmada
+                            </span>
+                          } @else if (appt.status === 'pending_confirmation') {
+                            <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-amber-100/90 text-amber-900 px-1.5 py-0.5 rounded-full border border-amber-300 mt-1">
+                              ? Confirmación
+                            </span>
+                          }
+                        </div>
+                      </article>
+                    }
+                  }
+                </div>
+              }
+            } @else {
+              <!-- 2. WEEK VIEW APPOINTMENTS -->
+              @for (day of weekDates(); track day.dateStr; let dIdx = $index) {
+                <div class="h-full relative overflow-visible" [style.gridColumnStart]="dIdx + 1">
+                  @for (appt of appointments(); track appt.id) {
+                    @if (appt.professional.id === activeWeeklyProfessional()?.id && appt.starts_at.split('T')[0] === day.dateStr) {
+                      <article
+                        [attr.data-testid]="'appointment-card-' + appt.id"
+                        (click)="openDetailDialog(appt)"
+                        (keydown.enter)="openDetailDialog(appt)"
+                        tabindex="0"
+                        class="absolute left-1 right-2 rounded-lg border p-2 text-left cursor-pointer transition select-none hover:shadow-md hover:scale-[1.01] hover:z-10 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        [class]="statusColors[appt.status].bg + ' ' + statusColors[appt.status].border + ' ' + statusColors[appt.status].text"
+                        [style.top]="getSlotStyle(appt.starts_at, appt.ends_at).top"
+                        [style.height]="getSlotStyle(appt.starts_at, appt.ends_at).height"
+                      >
+                        <div class="flex flex-col h-full justify-between">
+                          <div class="min-w-0">
+                            <span class="block text-[10px] font-semibold opacity-80 leading-none">
+                              {{ appt.starts_at.split('T')[1].substring(0, 5) }} - {{ appt.ends_at.split('T')[1].substring(0, 5) }}
+                            </span>
+                            <h4 class="font-bold text-xs truncate mt-1 leading-tight">{{ appt.contact_name }}</h4>
+                            <p class="text-[10px] truncate leading-normal opacity-90 mt-0.5">{{ appt.service.name }}</p>
+                          </div>
+                          @if (appt.confirmation_status === 'confirmed') {
+                            <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-white/70 px-1.5 py-0.5 rounded-full border border-current mt-1">
+                              ✓ Confirmada
+                            </span>
+                          }
+                        </div>
+                      </article>
+                    }
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================== -->
+<!-- 3. MODAL DIALOG: NUEVA CITA -->
+<!-- ========================================== -->
+@if (isCreateModalOpen()) {
+  <div data-testid="appointment-create-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
+      <!-- Header -->
+      <header class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
+        <h3 class="text-base font-semibold text-slate-950">Agendar Nueva Cita</h3>
+        <button type="button" (click)="closeCreateDialog()" class="text-slate-400 hover:text-slate-600 text-lg">×</button>
+      </header>
+
+      <!-- Error / Messages -->
+      @if (error()) {
+        <div data-testid="appointment-error-alert" class="mb-4 rounded-md bg-red-50 p-4 text-xs text-red-700 shrink-0">
+          {{ error() }}
+        </div>
+      }
+
+      <!-- Form Scrollable -->
+      <form [formGroup]="appointmentForm" (ngSubmit)="saveAppointment()" class="flex-1 overflow-y-auto pr-1 grid gap-4">
+        <!-- Patient Details -->
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label for="contact_name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Nombre de Contacto *
+            </label>
+            <input
+              type="text"
+              id="contact_name"
+              data-testid="appointment-name-input"
+              formControlName="contact_name"
+              placeholder="Ej. Carlos Torres"
+              class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none"
+              [class.border-red-500]="appointmentForm.controls.contact_name.touched && appointmentForm.controls.contact_name.invalid"
+            />
+          </div>
+
+          <div>
+            <label for="contact_phone" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Teléfono (WhatsApp) *
+            </label>
+            <input
+              type="tel"
+              id="contact_phone"
+              data-testid="appointment-phone-input"
+              formControlName="contact_phone"
+              placeholder="Ej. +573123456789"
+              class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none"
+              [class.border-red-500]="appointmentForm.controls.contact_phone.touched && appointmentForm.controls.contact_phone.invalid"
+            />
+          </div>
+        </div>
+
+        <!-- Professional & Service Selectors -->
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label for="professional_id" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Dentista / Profesional *
+            </label>
+            <select
+              id="professional_id"
+              data-testid="appointment-prof-select"
+              formControlName="professional_id"
+              (change)="checkAvailability()"
+              class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none bg-white"
+            >
+              <option value="">Seleccionar...</option>
+              @for (p of professionals(); track p.id) {
+                <option [value]="p.id">{{ p.full_name }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label for="service_id" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Servicio Requerido *
+            </label>
+            <select
+              id="service_id"
+              data-testid="appointment-service-select"
+              formControlName="service_id"
+              (change)="checkAvailability()"
+              class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none bg-white"
+            >
+              <option value="">Seleccionar...</option>
+              @for (s of services(); track s.id) {
+                <option [value]="s.id">{{ s.name }} ({{ s.duration_minutes }} min)</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Date, Start Time & Duration -->
+        <div class="grid gap-3 sm:grid-cols-3">
+          <div>
+            <label for="starts_at_date" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Fecha *
+            </label>
+            <input
+              type="date"
+              id="starts_at_date"
+              formControlName="starts_at_date"
+              (change)="checkAvailability()"
+              class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label for="starts_at_time" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Hora Inicio *
+            </label>
+            <input
+              type="time"
+              id="starts_at_time"
+              data-testid="appointment-time-input"
+              formControlName="starts_at_time"
+              class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label for="duration_mins" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              Duración (min) *
+            </label>
+            <input
+              type="number"
+              id="duration_mins"
+              formControlName="duration_mins"
+              (change)="checkAvailability()"
+              class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- Real-time Availability Lookup Helper Section -->
+        <div class="rounded-md border border-slate-100 bg-slate-50 p-3">
+          <div class="flex justify-between items-center gap-2 mb-2">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              Disponibilidad del Dentista
+            </span>
+            <button
+              type="button"
+              (click)="checkAvailability()"
+              [disabled]="checkingAvailability()"
+              class="text-[10px] text-teal-600 hover:text-teal-700 font-semibold focus:outline-none"
+            >
+              {{ checkingAvailability() ? 'Consultando...' : 'Actualizar Slots' }}
+            </button>
+          </div>
+
+          <!-- Free Slots Chips list -->
+          <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+            @for (slot of availableSlots(); track slot.starts_at) {
+              <button
+                type="button"
+                (click)="selectAvailableSlot(slot)"
+                class="rounded bg-white border border-slate-200 hover:border-teal-500 hover:bg-teal-50/50 px-2 py-1 text-[10px] text-slate-700 font-medium transition focus:outline-none"
+              >
+                {{ slot.starts_at.split('T')[1].substring(0, 5) }}
+              </button>
+            } @empty {
+              <p class="text-[10px] text-slate-400 italic py-1">
+                {{ appointmentForm.controls.professional_id.value ? 'No hay slots disponibles o haz clic en "Actualizar Slots"' : 'Selecciona un dentista y fecha para ver opciones libres.' }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- Admin Commercial notes -->
+        <div>
+          <label for="admin_notes" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+            Notas de Agenda (Únicamente Comerciales/Admin)
+          </label>
+          <textarea
+            id="admin_notes"
+            formControlName="admin_notes"
+            placeholder="Ej. Viene por valoración de ortodoncia. Requiere cotización."
+            rows="2"
+            class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Submit actions -->
+        <div class="flex justify-end gap-3 border-t border-slate-100 pt-3 shrink-0">
+          <button
+            type="button"
+            (click)="closeCreateDialog()"
+            class="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            data-testid="appointment-save-submit"
+            [disabled]="saving()"
+            class="rounded-md bg-teal-600 px-5 py-2 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
+          >
+            {{ saving() ? 'Guardando...' : 'Agendar Cita' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================== -->
+<!-- 4. SLIDE-OVER DETAIL SIDE PANEL: DETALLE DE CITA -->
+<!-- ========================================== -->
+@if (isDetailModalOpen()) {
+  <div data-testid="appointment-detail-modal" class="fixed inset-0 z-50 flex justify-end bg-slate-900/60 backdrop-blur-sm">
+    <div class="w-full max-w-md bg-white h-full shadow-2xl relative animate-in slide-in-from-right duration-200 flex flex-col p-6 overflow-y-auto">
+      
+      <!-- Close drawer button -->
+      <button
+        type="button"
+        (click)="closeDetailDialog()"
+        class="absolute top-4 left-4 h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 font-bold focus:outline-none"
+      >
+        ✕
+      </button>
+
+      @if (selectedAppointment()) {
+        <!-- Appt Detail Inner -->
+        <div class="flex flex-col gap-6 mt-6 flex-1 min-h-0">
+          
+          <!-- Large Patient overview header -->
+          <header class="border-b border-slate-100 pb-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-bold text-slate-950">{{ selectedAppointment()?.contact_name }}</h3>
+                <p class="text-xs font-semibold text-teal-600 mt-1">
+                  {{ selectedAppointment()?.contact_phone || 'Sin teléfono registrado' }}
+                </p>
+              </div>
+              <span
+                class="rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider border"
+                [class]="statusColors[selectedAppointment()!.status].bg + ' ' + statusColors[selectedAppointment()!.status].border + ' ' + statusColors[selectedAppointment()!.status].text"
+              >
+                {{ selectedAppointment()?.status }}
+              </span>
+            </div>
+          </header>
+
+          <!-- Core details table -->
+          <section class="grid gap-3 text-xs bg-slate-50 p-4 rounded-lg border border-slate-100">
+            <div class="flex justify-between gap-2">
+              <span class="font-semibold text-slate-500">Servicio:</span>
+              <span class="font-bold text-slate-950">{{ selectedAppointment()?.service?.name }}</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="font-semibold text-slate-500">Dentista:</span>
+              <span class="font-bold text-slate-950">{{ selectedAppointment()?.professional?.full_name }}</span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="font-semibold text-slate-500">Horario:</span>
+              <span class="font-bold text-slate-950 text-right">
+                {{ selectedAppointment()?.starts_at | date:'EEEE d MMMM, h:mm a' }}
+              </span>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="font-semibold text-slate-500">Canal Origen:</span>
+              <span class="font-bold text-slate-800 capitalize">{{ selectedAppointment()?.source }}</span>
+            </div>
+            <div class="flex justify-between gap-2 border-t border-slate-200/60 pt-2 mt-1">
+              <span class="font-semibold text-slate-500">Notas de Agenda:</span>
+              <span class="font-medium text-slate-700 italic max-w-[200px] break-words text-right">
+                {{ selectedAppointment()?.admin_notes || 'Ninguna nota ingresada' }}
+              </span>
+            </div>
+          </section>
+
+          <!-- AI reply assistant widget (Crucial for CRM value) -->
+          <section class="rounded-xl border border-teal-100 bg-teal-50/20 p-4">
+            <h4 class="text-xs font-bold text-teal-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              ✨ Asistente de Comunicación AI
+            </h4>
+            
+            <div class="flex flex-wrap gap-1.5 mb-3">
+              <button
+                type="button"
+                (click)="generateAiMessage('confirmation')"
+                [disabled]="loadingAiMessage()"
+                class="rounded bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white px-2.5 py-1 text-[10px] font-semibold transition focus:outline-none"
+              >
+                Sugerir Confirmación
+              </button>
+              <button
+                type="button"
+                (click)="generateAiMessage('no_show')"
+                [disabled]="loadingAiMessage()"
+                class="rounded border border-teal-600 text-teal-700 hover:bg-teal-50 disabled:opacity-50 px-2.5 py-1 text-[10px] font-semibold transition focus:outline-none"
+              >
+                Sugerir Reactivación (Inasistencia)
+              </button>
+            </div>
+
+            <!-- AI Suggested Box -->
+            @if (loadingAiMessage()) {
+              <div class="p-4 text-center text-xs text-slate-400 italic animate-pulse">
+                IA redactando sugerencia personalizada...
+              </div>
+            } @else if (aiSuggestedMessage()) {
+              <div class="grid gap-2">
+                <textarea
+                  readonly
+                  rows="4"
+                  [value]="aiSuggestedMessage()"
+                  class="w-full rounded border border-slate-200 bg-white p-2.5 text-xs text-slate-800 focus:outline-none resize-none leading-relaxed"
+                ></textarea>
+                <button
+                  type="button"
+                  (click)="copyToClipboard(aiSuggestedMessage()!)"
+                  class="rounded bg-teal-100 hover:bg-teal-200 text-teal-800 text-[10px] font-bold py-1.5 px-3 transition flex items-center justify-center gap-1"
+                >
+                  📋 Copiar Mensaje
+                </button>
+              </div>
+            } @else {
+              <p class="text-[10px] text-slate-500 leading-normal">
+                Genera mensajes de WhatsApp personalizados en base a las notas de la cita y la especialidad médica.
+              </p>
+            }
+          </section>
+
+          <!-- Interactive Actions tabs -->
+          <div class="grid gap-4 mt-1 border-t border-slate-100 pt-4">
+            
+            <!-- Quick confirmation confirmation action button -->
+            @if (selectedAppointment()?.status === 'pending_confirmation') {
+              <button
+                type="button"
+                (click)="quickConfirm(selectedAppointment()!)"
+                class="w-full rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 transition"
+              >
+                ✓ Confirmar Asistencia Ahora
+              </button>
+            }
+
+            <!-- 1. Form state transition -->
+            <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="rounded-lg border border-slate-200 p-3 bg-white shadow-sm">
+              <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Actualizar Estado de la Cita
+              </span>
+              <div class="grid gap-2">
+                <select
+                  formControlName="status"
+                  class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none"
+                >
+                  <option value="scheduled">Programada</option>
+                  <option value="confirmed">Confirmada</option>
+                  <option value="pending_confirmation">Pendiente de Confirmación</option>
+                  <option value="rescheduled">Reprogramada</option>
+                  <option value="no_show">No Asistió</option>
+                  <option value="cancelled">Cancelada</option>
+                  <option value="completed">Completada</option>
+                </select>
+
+                <input
+                  type="text"
+                  formControlName="admin_notes"
+                  placeholder="Agregar nota de actualización"
+                  class="w-full rounded border border-slate-300 px-2.5 py-1 text-xs text-slate-900 focus:outline-none"
+                />
+
+                <button
+                  type="submit"
+                  [disabled]="saving()"
+                  class="rounded bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold py-1.5 mt-1 transition"
+                >
+                  Guardar Estado
+                </button>
+              </div>
+            </form>
+
+            <!-- 2. Reprogramar time block -->
+            <form [formGroup]="rescheduleForm" (ngSubmit)="reschedule()" class="rounded-lg border border-slate-200 p-3 bg-white shadow-sm">
+              <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Reprogramar Horario / Fecha
+              </span>
+              <div class="grid gap-2">
+                <div class="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    formControlName="starts_at_date"
+                    class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-900 focus:outline-none"
+                  />
+                  <input
+                    type="time"
+                    formControlName="starts_at_time"
+                    class="rounded border border-slate-300 px-2 py-1 text-xs text-slate-900 focus:outline-none"
+                  />
+                </div>
+
+                <input
+                  type="text"
+                  formControlName="admin_note"
+                  placeholder="Nota de reprogramación (Ej. Disponibilidad paciente)"
+                  class="w-full rounded border border-slate-300 px-2.5 py-1 text-xs text-slate-900 focus:outline-none"
+                />
+
+                <button
+                  type="submit"
+                  [disabled]="saving()"
+                  class="rounded border border-teal-600 text-teal-700 hover:bg-teal-50/50 disabled:opacity-50 text-xs font-bold py-1.5 mt-1 transition"
+                >
+                  Reprogramar Cita
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

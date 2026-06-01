@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase B — Manual Conversation Analysis
+Phase A — Smart Schedule Documentation and Product Alignment
 
 ## Completed Items
 
@@ -45,16 +45,25 @@ Phase B — Manual Conversation Analysis
 - Proposed Smart Lead Inbox API contracts documented as planned and not implemented.
 - Implemented `POST /api/ai/analyze-conversation` for manual pasted conversation analysis.
 - Added Angular Inbox AI screen for pasted conversation analysis, suggested reply copy, human-reviewed lead creation, and existing lead follow-up updates through the existing leads API.
+- Smart Schedule database plan documented in `docs/SMART_SCHEDULE_DATABASE_PLAN.md` for professionals, professional-service assignment, appointments, indexes, overlap rules, and tenant isolation.
+- Smart Schedule schema migration created and locally applied in `database/migrations/20260601000100_create_smart_schedule_schema.sql`.
+- Backend professionals module implemented with clinic-scoped list, detail, create, and update endpoints.
+- Backend appointments module implemented with clinic-scoped list, detail, create, update, status update, reschedule, overlap validation, and lead-to-appointment conversion.
 
 ## In-Progress Items
 
-- Phase B manual conversation analysis first UX enhancement is implemented and ready for review.
+- Product direction is being realigned around Smart Schedule / Agenda Inteligente as the planned core workflow.
+- Documentation planning is being updated for backend endpoints, frontend schedule workflows, schedule-centered dashboard priorities, and Inbox AI schedule integration.
 
 ## Pending Items
 
+- Review and approve `docs/SMART_SCHEDULE_PLAN.md` before implementation.
+- Plan backend endpoints for availability and schedule dashboard summaries.
+- Plan Angular screens for daily/weekly Smart Schedule, professional management, appointment create/edit, lead conversion, and pending confirmations.
 - Review the Smart Lead Inbox create/update lead workflow with real local usage.
+- Align Inbox AI so it can detect scheduling intent, missing appointment data, and suggested appointment creation while requiring human review.
 - Define retention rules before storing full inbound conversations.
-- Define exact dashboard action scoring before coding priority queues.
+- Define exact dashboard action scoring before coding priority queues, including today's appointments, pending confirmations, available slots, hot leads without appointment, and overdue follow-ups.
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
@@ -62,6 +71,7 @@ Phase B — Manual Conversation Analysis
 ## Known Risks
 
 - Scope creep into medical records, diagnosis, prescriptions, telemedicine, or hospital-system behavior.
+- Smart Schedule scope creep into clinical scheduling, treatment planning, clinical notes, or autonomous booking.
 - Premature WhatsApp Business Cloud API integration before validating manual assisted workflows.
 - Smart Lead Inbox scope creep into autonomous bots or automatic message sending.
 - Full conversation storage creating privacy risk if retention rules are not defined.
@@ -75,6 +85,7 @@ Phase B — Manual Conversation Analysis
 - Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
 - Frontend screens currently cover first navigation, lead workflows, AI reply generation, follow-up actions, service catalog CRUD, and clinic profile editing.
 - Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, and frontend actions to create or update leads from reviewed analysis. Dashboard action layer, conversation analysis persistence, and remaining proposed API endpoints are not implemented.
+- Smart Schedule database migration, professionals backend module, and appointments backend module exist, but availability, schedule dashboard summary, frontend screens, and broader e2e tests are still pending.
 - API contracts now reflect implemented MVP endpoints, but should continue to be updated when response shapes change.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
@@ -82,9 +93,21 @@ Phase B — Manual Conversation Analysis
 
 ## Next Recommended Step
 
-Review the Inbox AI create/update lead flow, then implement dashboard action cards for the highest-priority manual follow-ups.
+Implement schedule availability and dashboard summary endpoints, or start the Angular Smart Schedule UI against the implemented backend modules.
 
 ## Change Log
+
+### 2026-06-01
+
+- Started product realignment from AI-assisted commercial CRM toward a Smart Schedule-centered product for dental clinics.
+- Planned Smart Schedule / Agenda Inteligente as the new core workflow connecting appointments, professionals, leads, services, follow-ups, and AI assistance.
+- Documented that schedule data must remain commercial/admin only and must not introduce clinical histories, diagnoses, prescriptions, clinical notes, telemedicine, autonomous WhatsApp sending, or AI medical advice.
+- Marked professionals/dentists, appointments, availability, lead-to-appointment conversion, and schedule-centered dashboard APIs as planned, not implemented.
+- Added Smart Schedule database planning for `clinic_professionals`, `professional_services`, `appointments`, tenant isolation, overlap prevention, and lead-to-appointment conversion.
+- Created the first Smart Schedule SQL migration for professionals, professional service assignment, appointments, indexes, triggers, status constraints, and schedule tenant relationships.
+- Validated the migration against local PostgreSQL and confirmed backend tests still pass.
+- Implemented the first Smart Schedule backend module for professionals with authenticated clinic-scoped endpoints.
+- Implemented backend appointment endpoints with operational appointment CRUD, status changes, rescheduling, overlap checks, and lead conversion.
 
 ### 2026-05-24
 

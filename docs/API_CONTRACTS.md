@@ -2,7 +2,7 @@
 
 ## Status
 
-Status: Implemented for the current MVP backend/frontend surface.
+Status: Implemented for the current MVP backend/frontend surface. Smart Schedule endpoints are planned/proposed only and are not implemented.
 
 This document describes the REST API currently implemented in the Go backend and consumed by the Angular frontend. Keep it updated when endpoints, payloads, authentication, pagination, roles, or error response shapes change.
 
@@ -106,6 +106,17 @@ Paginated responses use:
 | POST | `/api/services` | Yes | `clinic_admin` |
 | PUT | `/api/services/:id` | Yes | `clinic_admin` |
 | DELETE | `/api/services/:id` | Yes | `clinic_admin` |
+| GET | `/api/professionals` | Yes | any authenticated user |
+| GET | `/api/professionals/:id` | Yes | any authenticated user |
+| POST | `/api/professionals` | Yes | `clinic_admin` |
+| PUT | `/api/professionals/:id` | Yes | `clinic_admin` |
+| GET | `/api/appointments` | Yes | any authenticated user |
+| GET | `/api/appointments/:id` | Yes | any authenticated user |
+| POST | `/api/appointments` | Yes | any authenticated user |
+| PUT | `/api/appointments/:id` | Yes | any authenticated user |
+| POST | `/api/appointments/:id/status` | Yes | any authenticated user |
+| POST | `/api/appointments/:id/reschedule` | Yes | any authenticated user |
+| POST | `/api/leads/:id/convert-to-appointment` | Yes | any authenticated user |
 | GET | `/api/leads` | Yes | any authenticated user |
 | POST | `/api/leads` | Yes | any authenticated user |
 | GET | `/api/leads/:id` | Yes | any authenticated user |
@@ -120,6 +131,8 @@ Paginated responses use:
 | GET | `/api/dashboard/summary` | Yes | any authenticated user |
 
 `POST /api/content/generate-post` is planned in MVP documentation but is not implemented in the current backend.
+
+Planned Smart Schedule endpoints are documented later in this file. They are not part of the implemented API surface yet.
 
 ## Health Endpoints
 
@@ -348,6 +361,106 @@ Response: service response shape.
 Deletes a clinic service. Existing leads referencing that service keep tenant isolation and the database sets `service_id` to `null`.
 
 Response: `204 No Content` with an empty body.
+
+## Professional Endpoints
+
+Status: Implemented.
+
+Professionals are operational schedule resources for the Smart Schedule. They are scoped to the authenticated clinic and must not store clinical histories, diagnoses, prescriptions, clinical notes, or medical-record content.
+
+Professional response shape:
+
+```json
+{
+  "id": "professional-id",
+  "clinic_id": "clinic-id",
+  "full_name": "Dra. Ana Gomez",
+  "role_or_specialty": "Ortodoncia",
+  "calendar_color": "#2563EB",
+  "working_hours": {
+    "monday": [{"start": "08:00", "end": "12:00"}]
+  },
+  "is_active": true,
+  "service_ids": ["service-id"],
+  "created_at": "2026-06-01T14:00:00Z",
+  "updated_at": "2026-06-01T14:00:00Z"
+}
+```
+
+### GET /api/professionals
+
+Lists professionals for the authenticated clinic.
+
+Query parameters:
+
+```txt
+is_active=true
+service_id=33333333-3333-4333-8333-333333333331
+```
+
+Response:
+
+```json
+[
+  {
+    "id": "professional-id",
+    "clinic_id": "clinic-id",
+    "full_name": "Dra. Ana Gomez",
+    "role_or_specialty": "Ortodoncia",
+    "calendar_color": "#2563EB",
+    "working_hours": {},
+    "is_active": true,
+    "service_ids": ["service-id"],
+    "created_at": "2026-06-01T14:00:00Z",
+    "updated_at": "2026-06-01T14:00:00Z"
+  }
+]
+```
+
+### GET /api/professionals/:id
+
+Returns one professional scoped to the authenticated clinic.
+
+Response uses the professional response shape.
+
+### POST /api/professionals
+
+Creates an operational professional.
+
+Request:
+
+```json
+{
+  "full_name": "Dra. Ana Gomez",
+  "role_or_specialty": "Ortodoncia",
+  "calendar_color": "#2563EB",
+  "working_hours": {
+    "monday": [{"start": "08:00", "end": "12:00"}]
+  },
+  "service_ids": ["33333333-3333-4333-8333-333333333331"]
+}
+```
+
+Response: `201 Created`, professional response shape.
+
+### PUT /api/professionals/:id
+
+Updates an operational professional.
+
+Request:
+
+```json
+{
+  "full_name": "Dra. Ana Gomez",
+  "role_or_specialty": "Ortodoncia",
+  "calendar_color": "#2563EB",
+  "working_hours": {},
+  "is_active": true,
+  "service_ids": ["33333333-3333-4333-8333-333333333331"]
+}
+```
+
+Response: professional response shape.
 
 ## Lead Endpoints
 
@@ -727,6 +840,8 @@ These contracts document remaining proposed Smart Lead Inbox capabilities. They 
 
 These endpoints must not send WhatsApp messages or any other patient message automatically. They only support analysis, draft generation, reviewed lead updates, and suggested follow-ups.
 
+Future Smart Lead Inbox schedule integration should allow AI to suggest appointment creation, missing scheduling data, and confirmation/follow-up messaging. Appointment creation must still happen through a separate human-reviewed appointment endpoint.
+
 ### POST /api/leads/from-conversation
 
 Creates or updates a lead from human-reviewed conversation analysis.
@@ -826,12 +941,327 @@ Notes:
 - Scheduling a follow-up requires human confirmation through an implemented lead/follow-up update flow.
 - Sending a message remains manual.
 
+## Appointment Endpoints
+
+Status: Implemented.
+
+Appointments are operational schedule records. They connect clinic, professional, service, optional lead, contact, date/time, status, confirmation state, source, and commercial/admin notes only.
+
+Appointment response shape:
+
+```json
+{
+  "id": "appointment-id",
+  "clinic_id": "clinic-id",
+  "professional": {
+    "id": "professional-id",
+    "full_name": "Dra. Ana Gomez",
+    "calendar_color": "#2563EB"
+  },
+  "lead": {
+    "id": "lead-id",
+    "full_name": "Maria Perez"
+  },
+  "service": {
+    "id": "service-id",
+    "name": "Ortodoncia"
+  },
+  "contact_name": "Maria Perez",
+  "contact_phone": "+573009998877",
+  "starts_at": "2026-06-02T14:00:00-05:00",
+  "ends_at": "2026-06-02T15:00:00-05:00",
+  "status": "pending_confirmation",
+  "source": "whatsapp",
+  "confirmation_status": "pending",
+  "admin_notes": "Confirmar asistencia en la manana.",
+  "created_at": "2026-06-01T14:00:00Z",
+  "updated_at": "2026-06-01T14:00:00Z"
+}
+```
+
+### GET /api/appointments
+
+Lists appointments for the authenticated clinic.
+
+Query parameters:
+
+```txt
+date=2026-06-02
+date_from=2026-06-02T00:00:00-05:00
+date_to=2026-06-08T23:59:59-05:00
+professional_id=professional-id
+service_id=service-id
+status=pending_confirmation
+lead_id=lead-id
+```
+
+Response:
+
+```json
+{
+  "data": []
+}
+```
+
+### GET /api/appointments/:id
+
+Returns one appointment scoped to the authenticated clinic.
+
+Response uses the appointment response shape.
+
+### POST /api/appointments
+
+Creates an appointment after human review.
+
+Request:
+
+```json
+{
+  "professional_id": "professional-id",
+  "lead_id": "optional-lead-id",
+  "service_id": "service-id",
+  "contact_name": "Maria Perez",
+  "contact_phone": "+573009998877",
+  "starts_at": "2026-06-02T14:00:00-05:00",
+  "duration_minutes": 60,
+  "status": "pending_confirmation",
+  "source": "whatsapp",
+  "admin_notes": "Solicito horario en la tarde."
+}
+```
+
+Response: `201 Created`, appointment response shape.
+
+### PUT /api/appointments/:id
+
+Updates appointment operational data.
+
+Request:
+
+```json
+{
+  "professional_id": "professional-id",
+  "service_id": "service-id",
+  "contact_name": "Maria Perez",
+  "contact_phone": "+573009998877",
+  "starts_at": "2026-06-02T15:00:00-05:00",
+  "duration_minutes": 60,
+  "status": "rescheduled",
+  "confirmation_status": "pending",
+  "admin_notes": "Reprogramada por solicitud del contacto."
+}
+```
+
+Response: appointment response shape.
+
+### POST /api/appointments/:id/status
+
+Updates appointment status and optionally replaces/sets the admin note.
+
+Request:
+
+```json
+{
+  "status": "confirmed",
+  "admin_note": "Confirmo asistencia por WhatsApp."
+}
+```
+
+Response: appointment response shape.
+
+### POST /api/appointments/:id/reschedule
+
+Reschedules an appointment after human confirmation.
+
+Request:
+
+```json
+{
+  "starts_at": "2026-06-03T10:00:00-05:00",
+  "duration_minutes": 60,
+  "admin_note": "Reprogramada para manana en la manana."
+}
+```
+
+Response: appointment response shape.
+
+### POST /api/leads/:id/convert-to-appointment
+
+Creates an appointment from a lead after human review.
+
+Request:
+
+```json
+{
+  "professional_id": "professional-id",
+  "service_id": "service-id",
+  "starts_at": "2026-06-02T14:00:00-05:00",
+  "duration_minutes": 60,
+  "status": "pending_confirmation",
+  "admin_notes": "Lead pidio valoracion inicial.",
+  "update_lead_status": true
+}
+```
+
+Response:
+
+```json
+{
+  "lead_id": "lead-id",
+  "lead_status": "Agendado",
+  "appointment_id": "appointment-id",
+  "appointment_status": "pending_confirmation"
+}
+```
+
+Notes:
+
+- Appointment creation validates clinic ownership for professional, service, lead, and user.
+- The backend rejects overlapping active appointments for the same professional.
+- Appointment notes must remain commercial/admin only.
+- No message is sent automatically.
+
+## Proposed Smart Schedule API Contracts
+
+Status: Planned / Proposed for remaining schedule availability and dashboard endpoints. Professional and appointment endpoints are implemented and documented above.
+
+These contracts document the remaining planned Smart Schedule / Agenda Inteligente surface. They are intentionally not implemented yet. All endpoints require JWT auth, clinic-level tenant isolation, sanitized errors, and backend authorization.
+
+The Smart Schedule is operational and commercial. It must not accept or return clinical histories, diagnoses, prescriptions, treatment plans, clinical images, clinical notes, or AI medical advice.
+
+### Planned Appointment Status Values
+
+Stable API values:
+
+```txt
+scheduled
+confirmed
+pending_confirmation
+rescheduled
+no_show
+cancelled
+completed
+converted_from_lead
+```
+
+Suggested Spanish UI labels:
+
+```txt
+Programada
+Confirmada
+Pendiente de confirmacion
+Reprogramada
+No asistio
+Cancelada
+Completada
+Convertida desde lead
+```
+
+### GET /api/schedule/availability
+
+Returns available slots for a professional, date range, and optional service duration.
+
+Proposed query parameters:
+
+```txt
+professional_id=professional-id
+service_id=service-id
+date_from=2026-06-02
+date_to=2026-06-08
+duration_minutes=60
+```
+
+Proposed response:
+
+```json
+{
+  "professional_id": "professional-id",
+  "slots": [
+    {
+      "starts_at": "2026-06-02T14:00:00-05:00",
+      "ends_at": "2026-06-02T15:00:00-05:00"
+    }
+  ]
+}
+```
+
+Notes:
+
+- Availability is operational and based on configured working hours plus existing appointments.
+- It must not imply clinical urgency or medical prioritization.
+
+### GET /api/dashboard/schedule-summary
+
+Returns schedule-centered daily priorities for the authenticated clinic.
+
+Proposed query parameters:
+
+```txt
+date=2026-06-02
+```
+
+Proposed response:
+
+```json
+{
+  "date": "2026-06-02",
+  "todays_appointments": 18,
+  "appointments_pending_confirmation": 5,
+  "available_slots": 7,
+  "hot_leads_without_appointment": 4,
+  "overdue_followups": 2,
+  "appointments_by_professional": [
+    {
+      "professional_id": "professional-id",
+      "professional_name": "Dra. Ana Gomez",
+      "appointment_count": 6
+    }
+  ],
+  "leads_converted_to_appointments": 3,
+  "top_services_by_schedule_demand": [
+    {
+      "service_id": "service-id",
+      "service_name": "Ortodoncia",
+      "appointment_count": 8
+    }
+  ]
+}
+```
+
+## Proposed Smart Schedule AI Extensions
+
+Status: Planned / Proposed. Not implemented.
+
+Potential extension to `POST /api/ai/analyze-conversation` response:
+
+```json
+{
+  "scheduling_intent": "high",
+  "missing_scheduling_data": ["preferred_date", "preferred_time"],
+  "suggested_appointment": {
+    "service_id": "service-id",
+    "professional_id": "",
+    "duration_minutes": 60,
+    "preferred_time_text": "manana en la tarde"
+  },
+  "suggested_next_action": "Pedir horario preferido y ofrecer opciones de valoracion"
+}
+```
+
+Notes:
+
+- AI may suggest appointment creation or missing scheduling data.
+- AI must not create, confirm, cancel, or reschedule an appointment automatically.
+- Human review is mandatory before any appointment endpoint is called.
+
 ## Planned But Not Implemented
 
 - `POST /api/content/generate-post`.
 - `POST /api/leads/from-conversation` for proposed human-reviewed lead creation/update from analysis.
 - `POST /api/inbound/messages` for optional future manual inbound message storage after retention rules are approved.
 - `POST /api/followups/suggest` for proposed follow-up suggestions requiring human confirmation.
+- `GET /api/schedule/availability`.
+- `GET /api/dashboard/schedule-summary`.
 
 - User management endpoints.
 - Superadmin platform administration endpoints.
@@ -845,5 +1275,6 @@ Notes:
 - Keep AI provider selection provider-agnostic and environment-based.
 - Keep WhatsApp Business Cloud API integration out of the MVP contract unless scope is explicitly changed.
 - Keep Smart Lead Inbox endpoints marked as planned until backend, frontend, persistence, safety, and privacy decisions are approved.
+- Keep remaining Smart Schedule endpoints marked as planned until database schema, frontend flows, backend validation, and tenant isolation rules are approved.
 
 - Do not add clinical-history, diagnosis, prescription, or medical-record endpoints.

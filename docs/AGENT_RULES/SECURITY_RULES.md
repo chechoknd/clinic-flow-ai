@@ -39,14 +39,20 @@ The MVP must not store clinical history or sensitive health records.
 Allowed lead data:
 - Full name, phone, service of interest, commercial status, sales conversation notes, next follow-up date, basic source/channel.
 
+Allowed appointment data:
+- Contact name and phone, linked lead, linked service, linked professional, appointment date/time, appointment status, confirmation status, commercial/admin notes, basic source/channel.
+
 Not allowed:
 - Diagnoses, medical evolution notes, clinical images, prescriptions, lab results, medical records, detailed symptoms as medical history.
+- Clinical notes, treatment plans, or medical decisions inside appointment records.
 
 ## Multi-Tenant Data Isolation
 
 Every business entity belongs to a clinic. Backend queries must enforce data isolation. A user from Clinic A must never access data from Clinic B.
 
 This must be enforced in backend queries, not only in frontend filters.
+
+Smart Schedule entities must validate clinic ownership for every linked object: professional, service, lead, appointment, and user.
 
 ## Backend Authorization Enforcement
 

@@ -23,6 +23,8 @@ apps/frontend-angular/src/app/
 │   ├── dashboard/
 │   ├── clinics/
 │   ├── services/
+│   ├── professionals/
+│   ├── schedule/
 │   ├── leads/
 │   ├── ai-assistant/
 │   ├── content/
@@ -67,6 +69,24 @@ Priorities:
 7. No complex medical terminology unless needed.
 8. No unnecessary visual noise.
 9. Mobile-friendly layouts.
+
+### Smart Schedule UX
+
+Status: Planned.
+
+The Smart Schedule should be the first operational surface once implemented. It should feel like a clear commercial agenda, not a hospital system.
+
+Priorities:
+
+1. Daily view first.
+2. Weekly view for planning.
+3. Appointment cards with time, contact, service, professional, and status.
+4. Clear pending confirmation indicators.
+5. Professional color identifiers.
+6. Available slots that are easy to scan.
+7. Fast create, confirm, cancel, complete, and reschedule actions.
+8. Lead-to-appointment conversion from reviewed data.
+9. No clinical notes or medical-history UI.
 
 ### AI Assistant UX
 
