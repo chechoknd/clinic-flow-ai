@@ -43,9 +43,9 @@ Initial dental services may include dental cleaning, whitening, orthodontics, sm
 
 ## Product Direction: Smart Schedule, Smart Lead Inbox, and Intelligent Dashboard
 
-Status: Planned.
+Status: Partially Implemented.
 
-ClinicFlow AI should now evolve around the Smart Schedule / Agenda Inteligente as the product center.
+ClinicFlow AI is now evolving around the Smart Schedule / Agenda Inteligente as the product center. The first schedule slice has been implemented across database, backend, and Angular screens.
 
 The new product direction is:
 
@@ -84,16 +84,16 @@ The MVP includes the following planned capabilities:
 - Authentication and roles.
 - Clinic profile and configuration.
 - Clinic service catalog.
-- Planned Smart Schedule / Intelligent Agenda.
-- Planned dentists/professionals module.
-- Planned appointment management connected to leads and services.
+- Smart Schedule / Intelligent Agenda first slice.
+- Dentists/professionals operational module.
+- Appointment management connected to leads and services.
 - Simple commercial CRM for leads.
 - AI reply assistant for WhatsApp.
 - AI objection handler.
 - Manual assisted follow-ups.
 - Basic dashboard.
-- Planned Smart Lead Inbox for manual conversation analysis.
-- Planned intelligent dashboard action layer.
+- Smart Lead Inbox for manual conversation analysis.
+- Intelligent dashboard action layer first slice.
 - AI content generator for marketing.
 - PostgreSQL database.
 - Docker Compose local environment.
@@ -130,15 +130,15 @@ If a task introduces excluded scope, it must be treated as a scope conflict.
 - Authentication: login, JWT issuance, role-aware access.
 - Clinics: clinic profile, city, operating WhatsApp, address, hours, FAQs, communication tone.
 - Services: dental service catalog with descriptions, benefits, "price from", FAQs, and common objections.
-- Professionals: planned operational module for dentists/professionals, specialties or roles, active state, service assignment, availability, and calendar colors.
-- Smart Schedule: planned visual daily/weekly agenda with appointments, statuses, professional assignment, services, lead/contact reference, confirmations, available slots, and rescheduling.
-- Appointments: planned operational records connected to clinic, professional, service, optional lead/contact, date/time, status, source, confirmation state, and commercial/admin notes only.
+- Professionals: implemented operational module for dentists/professionals, specialties or roles, active state, service assignment, availability, and calendar colors.
+- Smart Schedule: first visual daily/weekly agenda slice implemented with appointments, statuses, professional assignment, services, lead/contact reference, confirmations, available slots, and rescheduling.
+- Appointments: implemented operational records connected to clinic, professional, service, optional lead/contact, date/time, status, source, confirmation state, and commercial/admin notes only.
 - Leads: simple commercial pipeline with status, service of interest, notes, source, and next action date.
 - AI Assistant: safe WhatsApp-ready reply suggestions based on clinic and service context.
 - Objection Handler: categorization and response strategy for commercial objections.
 - Follow-ups: manual reminders and AI-assisted re-engagement messages for stale leads.
 - Content Generator: marketing copy, post ideas, Reel/TikTok scripts, carousel outlines, and WhatsApp campaign text.
-- Dashboard: basic commercial KPIs for leads, service demand, pending follow-ups, and AI usage. Planned evolution: schedule-centered action cards for today's appointments, pending confirmations, available slots, hot leads without appointment, and overdue follow-ups.
+- Dashboard: basic commercial KPIs plus first schedule-centered action cards for today's appointments, pending confirmations, available slots, hot leads without appointment, and overdue follow-ups.
 - Smart Lead Inbox: first manual conversation analysis slice implemented for pasted conversations, commercial extraction, response suggestion, and reviewed lead creation. Planned evolution: detect scheduling intent and suggest reviewed appointment creation.
 
 
@@ -184,19 +184,19 @@ Partially implemented: manual conversation paste screen, AI conversation analysi
 
 ### Phase 8: Smart Schedule Product Alignment
 
-Document and validate the Smart Schedule direction, professionals model, appointment model, lead-to-appointment flow, dashboard changes, safety rules, and draft API contracts before writing code.
+Implemented documentation alignment for the Smart Schedule direction, professionals model, appointment model, lead-to-appointment flow, dashboard changes, safety rules, and draft API contracts.
 
-### Phase 9: Database and API Planning for Smart Schedule
+### Phase 9: Smart Schedule Database and Backend First Slice
 
-Plan tables/entities for professionals, professional services, appointments, schedule availability, lead-to-appointment conversion, and schedule-centered dashboard summaries. Do not create migrations until implementation is approved.
+Partially implemented: tables for professionals, professional services, and appointments; backend professionals endpoints; appointment CRUD/status/reschedule/lead-conversion endpoints; schedule availability endpoint; and schedule-centered dashboard summary.
 
-### Phase 10: Smart Schedule Frontend Planning
+### Phase 10: Smart Schedule Frontend First Slice
 
-Plan the daily/weekly agenda UI, professional management, appointment create/edit flows, lead conversion to appointment, pending confirmation cards, and dashboard schedule priorities.
+Partially implemented: Angular schedule view, professional management, appointment create/edit flows, lead links into schedule, pending confirmation states, and dashboard schedule priorities.
 
 ### Phase 11: Dashboard Action Layer
 
-Evolve the dashboard from metrics into an action queue: what to handle today, leads without response, overdue follow-ups, high-intent leads, detected objections, and quick actions.
+Partially implemented: dashboard has a schedule-first tab with daily appointment, pending confirmation, hot lead, overdue follow-up, professional, and service demand signals. Further action scoring remains pending.
 
 ### Phase 12: Inbox AI Schedule Integration
 
@@ -209,16 +209,16 @@ Finalize dashboard summary, integration testing under Docker Compose, safety rev
 ## Success Criteria for MVP
 
 - A clinic can configure its profile, communication tone, and service catalog.
-- A clinic can manage professionals/dentists as operational schedule resources when the Smart Schedule module is implemented.
-- Staff can view a visual daily/weekly agenda when the Smart Schedule module is implemented.
-- Staff can create, edit, confirm, cancel, reschedule, and complete operational appointments without storing clinical data when the appointment module is implemented.
+- A clinic can manage professionals/dentists as operational schedule resources.
+- Staff can view a visual daily/weekly agenda in the first Smart Schedule slice.
+- Staff can create, edit, confirm, cancel, reschedule, and complete operational appointments without storing clinical data.
 - Staff can create, view, filter, and update commercial leads.
-- Staff can convert a lead into an appointment after human review when the Smart Schedule module is implemented.
+- Staff can convert a lead into an appointment after human review.
 - Staff can generate safe WhatsApp reply suggestions using clinic and service context.
 - Staff can generate objection-handling responses that avoid diagnosis and medical advice.
 - Staff can manage manual follow-ups without native WhatsApp API automation.
 - Staff can paste a conversation, receive AI commercial analysis, review it, and manually create or update a lead when Smart Lead Inbox is implemented.
-- Staff can use an intelligent dashboard to decide what to handle next, including appointments pending confirmation, available slots, hot leads without appointment, and overdue follow-ups when the action layer is implemented.
+- Staff can use the first intelligent dashboard action layer to review appointments pending confirmation, available slots, hot leads without appointment, and overdue follow-ups.
 
 - Clinic administrators can see basic commercial KPIs.
 - AI prompts and provider configuration are controlled by the backend.

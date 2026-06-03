@@ -2,7 +2,7 @@
 
 ## Status
 
-Status: Implemented for the current MVP backend/frontend surface. Smart Schedule endpoints are planned/proposed only and are not implemented.
+Status: Implemented for the current MVP backend/frontend surface. Professional, appointment, schedule availability, and schedule dashboard summary endpoints are implemented as the first Smart Schedule API slice.
 
 This document describes the REST API currently implemented in the Go backend and consumed by the Angular frontend. Keep it updated when endpoints, payloads, authentication, pagination, roles, or error response shapes change.
 
@@ -129,10 +129,12 @@ Paginated responses use:
 | POST | `/api/ai/objection-handler` | Yes | any authenticated user |
 | POST | `/api/ai/follow-up-message` | Yes | any authenticated user |
 | GET | `/api/dashboard/summary` | Yes | any authenticated user |
+| GET | `/api/schedule/availability` | Yes | any authenticated user |
+| GET | `/api/dashboard/schedule-summary` | Yes | any authenticated user |
 
 `POST /api/content/generate-post` is planned in MVP documentation but is not implemented in the current backend.
 
-Planned Smart Schedule endpoints are documented later in this file. They are not part of the implemented API surface yet.
+Implemented Smart Schedule endpoints are documented in the Professional, Appointment, Schedule Availability, and Schedule Dashboard sections below. Remaining AI schedule extensions are still planned.
 
 ## Health Endpoints
 
@@ -831,6 +833,11 @@ Response:
 - Follow-up list/reschedule/complete.
 - AI reply, objection, and follow-up message generation with `AI_PROVIDER=mock`.
 - Dashboard summary.
+- Professional create/detail with service assignment and cleanup deactivation.
+- Schedule availability.
+- Appointment create/list/reschedule/status update.
+- Lead-to-appointment conversion.
+- Schedule dashboard summary.
 
 ## Proposed Smart Lead Inbox API Contracts
 
@@ -1121,15 +1128,15 @@ Notes:
 - Appointment notes must remain commercial/admin only.
 - No message is sent automatically.
 
-## Proposed Smart Schedule API Contracts
+## Smart Schedule Availability and Dashboard API Contracts
 
-Status: Planned / Proposed for remaining schedule availability and dashboard endpoints. Professional and appointment endpoints are implemented and documented above.
+Status: Implemented for schedule availability and schedule dashboard summary. Professional and appointment endpoints are implemented and documented above.
 
-These contracts document the remaining planned Smart Schedule / Agenda Inteligente surface. They are intentionally not implemented yet. All endpoints require JWT auth, clinic-level tenant isolation, sanitized errors, and backend authorization.
+These contracts document the current Smart Schedule / Agenda Inteligente surface. All endpoints require JWT auth, clinic-level tenant isolation, sanitized errors, and backend authorization.
 
 The Smart Schedule is operational and commercial. It must not accept or return clinical histories, diagnoses, prescriptions, treatment plans, clinical images, clinical notes, or AI medical advice.
 
-### Planned Appointment Status Values
+### Appointment Status Values
 
 Stable API values:
 
@@ -1161,7 +1168,7 @@ Convertida desde lead
 
 Returns available slots for a professional, date range, and optional service duration.
 
-Proposed query parameters:
+Query parameters:
 
 ```txt
 professional_id=professional-id
@@ -1171,7 +1178,7 @@ date_to=2026-06-08
 duration_minutes=60
 ```
 
-Proposed response:
+Response:
 
 ```json
 {
@@ -1194,13 +1201,13 @@ Notes:
 
 Returns schedule-centered daily priorities for the authenticated clinic.
 
-Proposed query parameters:
+Query parameters:
 
 ```txt
 date=2026-06-02
 ```
 
-Proposed response:
+Response:
 
 ```json
 {
@@ -1260,9 +1267,6 @@ Notes:
 - `POST /api/leads/from-conversation` for proposed human-reviewed lead creation/update from analysis.
 - `POST /api/inbound/messages` for optional future manual inbound message storage after retention rules are approved.
 - `POST /api/followups/suggest` for proposed follow-up suggestions requiring human confirmation.
-- `GET /api/schedule/availability`.
-- `GET /api/dashboard/schedule-summary`.
-
 - User management endpoints.
 - Superadmin platform administration endpoints.
 - Lead deletion endpoint.
@@ -1275,6 +1279,6 @@ Notes:
 - Keep AI provider selection provider-agnostic and environment-based.
 - Keep WhatsApp Business Cloud API integration out of the MVP contract unless scope is explicitly changed.
 - Keep Smart Lead Inbox endpoints marked as planned until backend, frontend, persistence, safety, and privacy decisions are approved.
-- Keep remaining Smart Schedule endpoints marked as planned until database schema, frontend flows, backend validation, and tenant isolation rules are approved.
+- Keep Smart Schedule AI extensions marked as planned until backend prompts, frontend review flows, validation, and tenant isolation rules are approved.
 
 - Do not add clinical-history, diagnosis, prescription, or medical-record endpoints.

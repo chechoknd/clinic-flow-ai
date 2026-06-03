@@ -73,8 +73,14 @@ echo "Login OK."
 
 ORIGINAL_CLINIC=""
 SMOKE_SERVICE_ID=""
+SMOKE_PROFESSIONAL_ID=""
+SMOKE_PROFESSIONAL_PAYLOAD=""
 
 cleanup() {
+  if [[ -n "${SMOKE_PROFESSIONAL_ID}" && -n "${SMOKE_PROFESSIONAL_PAYLOAD}" ]]; then
+    PROFESSIONAL_DEACTIVATE_PAYLOAD=$(jq '. + {is_active: false}' <<<"${SMOKE_PROFESSIONAL_PAYLOAD}")
+    api_put "/api/professionals/${SMOKE_PROFESSIONAL_ID}" "${PROFESSIONAL_DEACTIVATE_PAYLOAD}" >/dev/null 2>&1 || true
+  fi
   if [[ -n "${SMOKE_SERVICE_ID}" ]]; then
     api_delete "/api/services/${SMOKE_SERVICE_ID}" >/dev/null 2>&1 || true
   fi
@@ -253,4 +259,162 @@ DASHBOARD_RESPONSE=$(api_get "/api/dashboard/summary")
 echo "${DASHBOARD_RESPONSE}" | jq .
 assert_jq "${DASHBOARD_RESPONSE}" '.leads_total >= 1' "dashboard should report at least one lead"
 
-echo -e "\nSmoke test completed. Created lead: ${LEAD_ID}"
+SCHEDULE_SERVICE_ID=$(jq -r --arg smoke "${SMOKE_SERVICE_ID}" '
+  def items: if type == "array" then . else (.data // []) end;
+  ([items[] | select(.id != $smoke and (.is_active // true)) | .id][0] // $smoke)
+' <<<"${SERVICES_RESPONSE}")
+if [[ -z "${SCHEDULE_SERVICE_ID}" || "${SCHEDULE_SERVICE_ID}" == "null" ]]; then
+  SCHEDULE_SERVICE_ID="${SMOKE_SERVICE_ID}"
+fi
+
+SMOKE_RUN_ID=$(date -u '+%Y%m%d%H%M%S')
+SCHEDULE_DATE=$(date -u -d '+7 days' '+%Y-%m-%d')
+APPOINTMENT_START="${SCHEDULE_DATE}T14:00:00Z"
+APPOINTMENT_RESCHEDULE_START="${SCHEDULE_DATE}T15:00:00Z"
+CONVERTED_APPOINTMENT_START="${SCHEDULE_DATE}T16:00:00Z"
+
+WORKING_HOURS=$(jq -n '{
+  monday: [{start: "08:00", end: "18:00"}],
+  tuesday: [{start: "08:00", end: "18:00"}],
+  wednesday: [{start: "08:00", end: "18:00"}],
+  thursday: [{start: "08:00", end: "18:00"}],
+  friday: [{start: "08:00", end: "18:00"}],
+  saturday: [{start: "08:00", end: "14:00"}],
+  sunday: [{start: "08:00", end: "14:00"}]
+}')
+
+SMOKE_PROFESSIONAL_PAYLOAD=$(jq -n \
+  --arg full_name "Dra. Smoke E2E ${SMOKE_RUN_ID}" \
+  --arg role "Agenda Operativa" \
+  --arg color "#0F766E" \
+  --arg service_id "${SCHEDULE_SERVICE_ID}" \
+  --argjson working_hours "${WORKING_HOURS}" '{
+    full_name: $full_name,
+    role_or_specialty: $role,
+    calendar_color: $color,
+    working_hours: $working_hours,
+    service_ids: [$service_id]
+  }')
+
+echo -e "\n16. POST /api/professionals"
+PROFESSIONAL_RESPONSE=$(api_post "/api/professionals" "${SMOKE_PROFESSIONAL_PAYLOAD}")
+echo "${PROFESSIONAL_RESPONSE}" | jq .
+SMOKE_PROFESSIONAL_ID=$(jq -r '.id // empty' <<<"${PROFESSIONAL_RESPONSE}")
+if [[ -z "${SMOKE_PROFESSIONAL_ID}" ]]; then
+  echo "Professional creation did not return an id." >&2
+  exit 1
+fi
+assert_jq "${PROFESSIONAL_RESPONSE}" '.is_active == true and (.service_ids | length >= 1)' "professional should be active and linked to a service"
+
+SMOKE_PROFESSIONAL_PAYLOAD=$(jq '. + {is_active: true}' <<<"${SMOKE_PROFESSIONAL_PAYLOAD}")
+
+echo -e "\n17. GET /api/professionals/${SMOKE_PROFESSIONAL_ID}"
+PROFESSIONAL_DETAIL_RESPONSE=$(api_get "/api/professionals/${SMOKE_PROFESSIONAL_ID}")
+echo "${PROFESSIONAL_DETAIL_RESPONSE}" | jq .
+if ! jq -e --arg id "${SMOKE_PROFESSIONAL_ID}" '.id == $id' <<<"${PROFESSIONAL_DETAIL_RESPONSE}" >/dev/null; then
+  echo "Assertion failed: professional detail should return created professional" >&2
+  exit 1
+fi
+
+echo -e "\n18. GET /api/schedule/availability"
+AVAILABILITY_RESPONSE=$(api_get "/api/schedule/availability?professional_id=${SMOKE_PROFESSIONAL_ID}&service_id=${SCHEDULE_SERVICE_ID}&date_from=${SCHEDULE_DATE}&date_to=${SCHEDULE_DATE}&duration_minutes=30")
+echo "${AVAILABILITY_RESPONSE}" | jq .
+if ! jq -e --arg id "${SMOKE_PROFESSIONAL_ID}" '.professional_id == $id and (.slots | length >= 1)' <<<"${AVAILABILITY_RESPONSE}" >/dev/null; then
+  echo "Assertion failed: availability should return at least one slot for the smoke professional" >&2
+  exit 1
+fi
+
+echo -e "\n19. POST /api/appointments"
+APPOINTMENT_PAYLOAD=$(jq -n \
+  --arg professional_id "${SMOKE_PROFESSIONAL_ID}" \
+  --arg service_id "${SCHEDULE_SERVICE_ID}" \
+  --arg starts_at "${APPOINTMENT_START}" '{
+    professional_id: $professional_id,
+    service_id: $service_id,
+    contact_name: "Contacto Agenda Smoke",
+    contact_phone: "+573009997777",
+    starts_at: $starts_at,
+    duration_minutes: 30,
+    status: "pending_confirmation",
+    source: "whatsapp",
+    admin_notes: "Cita operativa creada por smoke e2e."
+  }')
+APPOINTMENT_RESPONSE=$(api_post "/api/appointments" "${APPOINTMENT_PAYLOAD}")
+echo "${APPOINTMENT_RESPONSE}" | jq .
+APPOINTMENT_ID=$(jq -r '.id // empty' <<<"${APPOINTMENT_RESPONSE}")
+if [[ -z "${APPOINTMENT_ID}" ]]; then
+  echo "Appointment creation did not return an id." >&2
+  exit 1
+fi
+assert_jq "${APPOINTMENT_RESPONSE}" '.status == "pending_confirmation" and .confirmation_status == "pending"' "appointment should start pending confirmation"
+
+echo -e "\n20. GET /api/appointments?date=${SCHEDULE_DATE}&professional_id=${SMOKE_PROFESSIONAL_ID}"
+APPOINTMENTS_RESPONSE=$(api_get "/api/appointments?date=${SCHEDULE_DATE}&professional_id=${SMOKE_PROFESSIONAL_ID}")
+echo "${APPOINTMENTS_RESPONSE}" | jq .
+if ! jq -e --arg id "${APPOINTMENT_ID}" 'any(.data[]; .id == $id)' <<<"${APPOINTMENTS_RESPONSE}" >/dev/null; then
+  echo "Assertion failed: appointment list should include smoke appointment" >&2
+  exit 1
+fi
+
+echo -e "\n21. POST /api/appointments/${APPOINTMENT_ID}/reschedule"
+APPOINTMENT_RESCHEDULE_PAYLOAD=$(jq -n --arg starts_at "${APPOINTMENT_RESCHEDULE_START}" '{
+  starts_at: $starts_at,
+  duration_minutes: 30,
+  admin_note: "Reprogramada por smoke e2e."
+}')
+APPOINTMENT_RESCHEDULE_RESPONSE=$(api_post "/api/appointments/${APPOINTMENT_ID}/reschedule" "${APPOINTMENT_RESCHEDULE_PAYLOAD}")
+echo "${APPOINTMENT_RESCHEDULE_RESPONSE}" | jq .
+assert_jq "${APPOINTMENT_RESCHEDULE_RESPONSE}" '.status == "rescheduled"' "appointment reschedule should return rescheduled status"
+
+echo -e "\n22. POST /api/appointments/${APPOINTMENT_ID}/status"
+APPOINTMENT_STATUS_PAYLOAD=$(jq -n '{
+  status: "confirmed",
+  admin_note: "Confirmada manualmente por smoke e2e."
+}')
+APPOINTMENT_STATUS_RESPONSE=$(api_post "/api/appointments/${APPOINTMENT_ID}/status" "${APPOINTMENT_STATUS_PAYLOAD}")
+echo "${APPOINTMENT_STATUS_RESPONSE}" | jq .
+assert_jq "${APPOINTMENT_STATUS_RESPONSE}" '.status == "confirmed"' "appointment status update should return confirmed status"
+
+echo -e "\n23. POST /api/leads for schedule conversion"
+SCHEDULE_LEAD_PAYLOAD=$(jq -n --arg service_id "${SCHEDULE_SERVICE_ID}" '{
+  full_name: "Lead Agenda Smoke",
+  phone: "+573009996666",
+  service_id: $service_id,
+  status: "Interesado",
+  source: "whatsapp",
+  notes: "Lead operativo creado por smoke e2e para convertir a cita."
+}')
+SCHEDULE_LEAD_RESPONSE=$(api_post "/api/leads" "${SCHEDULE_LEAD_PAYLOAD}")
+echo "${SCHEDULE_LEAD_RESPONSE}" | jq .
+SCHEDULE_LEAD_ID=$(jq -r '.id // empty' <<<"${SCHEDULE_LEAD_RESPONSE}")
+if [[ -z "${SCHEDULE_LEAD_ID}" ]]; then
+  echo "Schedule lead creation did not return an id." >&2
+  exit 1
+fi
+
+echo -e "\n24. POST /api/leads/${SCHEDULE_LEAD_ID}/convert-to-appointment"
+CONVERT_PAYLOAD=$(jq -n \
+  --arg professional_id "${SMOKE_PROFESSIONAL_ID}" \
+  --arg service_id "${SCHEDULE_SERVICE_ID}" \
+  --arg starts_at "${CONVERTED_APPOINTMENT_START}" '{
+    professional_id: $professional_id,
+    service_id: $service_id,
+    starts_at: $starts_at,
+    duration_minutes: 30,
+    status: "pending_confirmation",
+    admin_notes: "Conversion humana validada por smoke e2e.",
+    update_lead_status: true
+  }')
+CONVERT_RESPONSE=$(api_post "/api/leads/${SCHEDULE_LEAD_ID}/convert-to-appointment" "${CONVERT_PAYLOAD}")
+echo "${CONVERT_RESPONSE}" | jq .
+if ! jq -e --arg lead_id "${SCHEDULE_LEAD_ID}" '.lead_id == $lead_id and .lead_status == "Agendado" and .appointment_status == "pending_confirmation"' <<<"${CONVERT_RESPONSE}" >/dev/null; then
+  echo "Assertion failed: lead conversion should create appointment and update lead status" >&2
+  exit 1
+fi
+
+echo -e "\n25. GET /api/dashboard/schedule-summary?date=${SCHEDULE_DATE}"
+SCHEDULE_SUMMARY_RESPONSE=$(api_get "/api/dashboard/schedule-summary?date=${SCHEDULE_DATE}")
+echo "${SCHEDULE_SUMMARY_RESPONSE}" | jq .
+assert_jq "${SCHEDULE_SUMMARY_RESPONSE}" '.todays_appointments >= 2 and .appointments_pending_confirmation >= 1 and (.appointments_by_professional | length >= 1)' "schedule summary should include smoke appointments"
+
+echo -e "\nSmoke test completed. Created lead: ${LEAD_ID}. Created schedule professional: ${SMOKE_PROFESSIONAL_ID}"

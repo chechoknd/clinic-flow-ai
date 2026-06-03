@@ -237,6 +237,62 @@ describe('ApiService', () => {
     replyRequest.flush({ suggested_reply: 'Claro, con gusto.' });
     objectionRequest.flush({ suggested_reply: 'Entiendo tu inquietud.' });
   });
+
+  it('posts appointment payloads with backend duration field names', () => {
+    const createPayload = {
+      professional_id: 'professional-1',
+      service_id: 'service-1',
+      contact_name: 'Contacto Agenda',
+      contact_phone: '+573009997777',
+      starts_at: '2026-06-09T14:00:00.000Z',
+      duration_minutes: 45,
+      status: 'pending_confirmation' as const,
+      source: 'whatsapp',
+      admin_notes: 'Confirmar asistencia.',
+    };
+    const reschedulePayload = {
+      starts_at: '2026-06-09T15:00:00.000Z',
+      duration_minutes: 45,
+      admin_note: 'Reprogramada por disponibilidad.',
+    };
+
+    service.createAppointment(createPayload).subscribe();
+    service.rescheduleAppointment('appointment-1', reschedulePayload).subscribe();
+
+    const createRequest = http.expectOne(`${baseUrl}/api/appointments`);
+    const rescheduleRequest = http.expectOne(`${baseUrl}/api/appointments/appointment-1/reschedule`);
+
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual(createPayload);
+    expect(rescheduleRequest.request.method).toBe('POST');
+    expect(rescheduleRequest.request.body).toEqual(reschedulePayload);
+
+    createRequest.flush({
+      id: 'appointment-1',
+      clinic_id: 'clinic-1',
+      professional: { id: 'professional-1', full_name: 'Dra. Agenda' },
+      service: { id: 'service-1', name: 'Blanqueamiento dental' },
+      contact_name: 'Contacto Agenda',
+      starts_at: '2026-06-09T14:00:00Z',
+      ends_at: '2026-06-09T14:45:00Z',
+      status: 'pending_confirmation',
+      confirmation_status: 'pending',
+      source: 'whatsapp',
+    });
+    rescheduleRequest.flush({
+      id: 'appointment-1',
+      clinic_id: 'clinic-1',
+      professional: { id: 'professional-1', full_name: 'Dra. Agenda' },
+      service: { id: 'service-1', name: 'Blanqueamiento dental' },
+      contact_name: 'Contacto Agenda',
+      starts_at: '2026-06-09T15:00:00Z',
+      ends_at: '2026-06-09T15:45:00Z',
+      status: 'rescheduled',
+      confirmation_status: 'pending',
+      source: 'whatsapp',
+    });
+  });
+
   it('posts conversation analysis payload to the AI endpoint', () => {
     const payload = {
       conversation_text: 'Paciente: Hola, quiero saber cuanto cuesta el blanqueamiento.',

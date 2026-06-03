@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApiService } from '../../core/services/api.service';
@@ -47,6 +48,7 @@ describe('InboxAiPage', () => {
     await TestBed.configureTestingModule({
       imports: [InboxAiPage],
       providers: [
+        provideRouter([]),
         {
           provide: ApiService,
           useValue: {
@@ -126,7 +128,7 @@ describe('InboxAiPage', () => {
       notes: 'Pregunta por precio y quiere informacion.',
       next_action_at: undefined,
     });
-    expect(fixture.componentInstance.success()).toBe('Lead creado desde el analisis revisado.');
+    expect(fixture.componentInstance.success()).toBe('Lead creado desde el analisis revisado. Ya puedes agendarlo desde el boton de agenda.');
   });
 
   it('updates an existing lead with the reviewed analysis action', () => {
@@ -144,6 +146,28 @@ describe('InboxAiPage', () => {
       next_action_at: undefined,
     });
     expect(fixture.componentInstance.success()).toBe('Lead actualizado con el analisis revisado.');
+  });
+
+
+  it('builds reviewed schedule handoff query params after analysis', () => {
+    fixture.componentInstance.analyzeForm.setValue({
+      source: 'whatsapp',
+      lead_id: '',
+      service_id: 'service-1',
+      conversation_text: 'Paciente: Hola, quiero saber cuanto cuesta el blanqueamiento dental.',
+    });
+
+    fixture.componentInstance.analyze();
+
+    expect(fixture.componentInstance.canOpenSchedule()).toBe(true);
+    expect(fixture.componentInstance.scheduleQueryParams()).toEqual({
+      contact_name: 'Lead Demo Inbox',
+      contact_phone: '+573001234567',
+      service_id: 'service-1',
+      lead_id: undefined,
+      starts_at_date: undefined,
+      admin_notes: 'Pregunta por precio y quiere informacion.',
+    });
   });
 
   it('copies the suggested reply to clipboard', async () => {

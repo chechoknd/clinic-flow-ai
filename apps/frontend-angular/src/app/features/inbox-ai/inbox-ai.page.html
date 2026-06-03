@@ -161,6 +161,25 @@
             <h3 class="text-sm font-semibold text-slate-950">Siguiente accion sugerida</h3>
             <p data-testid="inbox-ai-next-action" class="mt-2 text-sm leading-6 text-slate-700">{{ result.suggested_next_action || 'Sin accion sugerida.' }}</p>
           </div>
+
+          <div class="mt-5 rounded-md border border-teal-200 bg-teal-50/60 p-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-slate-950">Posible cita</h3>
+                <p class="mt-1 text-xs text-slate-600">Si el contacto quiere agendar, revisa los datos y abre la agenda. Nada se agenda automaticamente.</p>
+              </div>
+              <a
+                data-testid="inbox-ai-schedule-handoff-link"
+                routerLink="/schedule"
+                [queryParams]="scheduleQueryParams()"
+                class="inline-flex h-10 items-center justify-center rounded-md bg-teal-600 px-4 text-sm font-semibold text-white transition hover:bg-teal-700"
+                [class.pointer-events-none]="!canOpenSchedule()"
+                [class.opacity-50]="!canOpenSchedule()"
+              >
+                Revisar en agenda
+              </a>
+            </div>
+          </div>
         } @else {
           <div class="mt-5 rounded-md bg-slate-50 p-8 text-center text-sm text-slate-500">
             El analisis aparecera aqui despues de pegar una conversacion.
@@ -248,17 +267,12 @@
           <a
             data-testid="inbox-ai-convert-appt-button"
             routerLink="/schedule"
-            [queryParams]="{
-              contact_name: leadForm.controls.full_name.value,
-              contact_phone: leadForm.controls.phone.value,
-              service_id: leadForm.controls.service_id.value,
-              lead_id: analyzeForm.controls.lead_id.value
-            }"
-            class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center text-center transition"
-            [class.pointer-events-none]="leadForm.controls.full_name.invalid || leadForm.controls.phone.invalid"
-            [class.opacity-50]="leadForm.controls.full_name.invalid || leadForm.controls.phone.invalid"
+            [queryParams]="scheduleQueryParams()"
+            class="flex h-11 items-center justify-center rounded-md bg-teal-600 px-4 text-center text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+            [class.pointer-events-none]="!canOpenSchedule()"
+            [class.opacity-50]="!canOpenSchedule()"
           >
-            Agendar Cita
+            Agendar cita
           </a>
         </div>
       </form>

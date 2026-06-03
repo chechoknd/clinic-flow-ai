@@ -276,7 +276,7 @@ export interface CreateAppointmentPayload {
   contact_phone?: string;
   starts_at: string;
   ends_at?: string;
-  duration_mins?: number;
+  duration_minutes?: number;
   status?: AppointmentStatus;
   source?: string;
   admin_notes?: string;
@@ -289,7 +289,7 @@ export interface UpdateAppointmentPayload {
   contact_phone?: string;
   starts_at: string;
   ends_at?: string;
-  duration_mins?: number;
+  duration_minutes?: number;
   status: AppointmentStatus;
   confirmation_status: ConfirmationStatus;
   admin_notes?: string;
@@ -298,7 +298,7 @@ export interface UpdateAppointmentPayload {
 export interface RescheduleAppointmentPayload {
   starts_at: string;
   ends_at?: string;
-  duration_mins?: number;
+  duration_minutes?: number;
   admin_note?: string;
 }
 
@@ -307,7 +307,7 @@ export interface ConvertLeadPayload {
   service_id: string;
   starts_at: string;
   ends_at?: string;
-  duration_mins?: number;
+  duration_minutes?: number;
   status?: AppointmentStatus;
   admin_notes?: string;
   update_lead_status: boolean;

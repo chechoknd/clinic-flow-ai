@@ -3,11 +3,11 @@ import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
-  Appointment, 
-  AppointmentStatus, 
-  ClinicServiceItem, 
-  Professional, 
-  TimeSlot 
+  Appointment,
+  AppointmentStatus,
+  ClinicServiceItem,
+  Professional,
+  TimeSlot,
 } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 
@@ -28,7 +28,7 @@ export class SchedulePage {
   readonly appointments = signal<Appointment[]>([]);
   readonly selectedDate = signal<string>(new Date().toISOString().split('T')[0]);
   readonly selectedView = signal<'day' | 'week'>('day');
-  
+
   // Selected Professional for Weekly View (defaults to first active)
   readonly activeWeeklyProfessional = signal<Professional | null>(null);
 
@@ -75,6 +75,36 @@ export class SchedulePage {
     admin_note: [''],
   });
 
+  readonly statusLabels: Record<AppointmentStatus, string> = {
+    scheduled: 'Programada',
+    confirmed: 'Confirmada',
+    pending_confirmation: 'Pendiente',
+    rescheduled: 'Reprogramada',
+    no_show: 'No asistio',
+    cancelled: 'Cancelada',
+    completed: 'Completada',
+    converted_from_lead: 'Desde lead',
+  };
+
+  readonly selectedDateLabel = computed(() => {
+    const date = new Date(this.selectedDate() + 'T00:00:00');
+    return date.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+  });
+
+  readonly selectedDateAppointments = computed(() =>
+    this.appointments().filter((appt) => appt.starts_at.split('T')[0] === this.selectedDate()),
+  );
+
+  readonly dailyStats = computed(() => {
+    const appointments = this.selectedDateAppointments();
+    return {
+      total: appointments.length,
+      pending: appointments.filter((appt) => appt.status === 'pending_confirmation' || appt.confirmation_status === 'pending').length,
+      confirmed: appointments.filter((appt) => appt.status === 'confirmed' || appt.confirmation_status === 'confirmed').length,
+      availableSlots: this.availableSlots().length,
+    };
+  });
+
   // Calendar Timeline Rows (08:00 to 20:00)
   readonly hoursList = Array.from({ length: 13 }, (_, i) => {
     const hr = 8 + i;
@@ -98,7 +128,7 @@ export class SchedulePage {
     const baseDate = new Date(this.selectedDate() + 'T00:00:00');
     const day = baseDate.getDay();
     const sundayOffset = day === 0 ? -6 : 1 - day; // Align Lunes as start of week
-    
+
     const dates: { dateStr: string; label: string; dayLabel: string }[] = [];
     const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
@@ -109,7 +139,7 @@ export class SchedulePage {
       dates.push({
         dateStr,
         label: `${d.getDate()} ${d.toLocaleString('es-ES', { month: 'short' })}`,
-        dayLabel: weekdays[d.getDay()]
+        dayLabel: weekdays[d.getDay()],
       });
     }
     return dates;
@@ -122,13 +152,19 @@ export class SchedulePage {
     this.route.queryParams.subscribe((params) => {
       if (params['contact_name'] || params['contact_phone'] || params['service_id'] || params['lead_id']) {
         const startsAtTime = params['starts_at_time'] || '09:00';
+        if (params['starts_at_date']) {
+          this.selectedDate.set(params['starts_at_date']);
+        }
         this.openCreateDialog(undefined, startsAtTime);
         this.appointmentForm.patchValue({
           contact_name: params['contact_name'] || '',
           contact_phone: params['contact_phone'] || '',
           service_id: params['service_id'] || '',
           lead_id: params['lead_id'] || '',
+          starts_at_date: params['starts_at_date'] || this.selectedDate(),
+          admin_notes: params['admin_notes'] || '',
         });
+        this.applyServiceDuration(params['service_id'] || '');
       }
     });
   }
@@ -136,18 +172,18 @@ export class SchedulePage {
   loadCatalog(): void {
     this.api.professionals().subscribe({
       next: (profs) => {
-        const activeOnly = profs.filter(p => p.is_active);
+        const activeOnly = profs.filter((p) => p.is_active);
         this.professionals.set(activeOnly);
         if (activeOnly.length > 0 && !this.activeWeeklyProfessional()) {
           this.activeWeeklyProfessional.set(activeOnly[0]);
         }
-      }
+      },
     });
 
     this.api.services().subscribe({
       next: (res) => {
-        this.services.set(res.data.filter(s => s.is_active));
-      }
+        this.services.set(res.data.filter((s) => s.is_active));
+      },
     });
   }
 
@@ -173,13 +209,14 @@ export class SchedulePage {
       error: () => {
         this.error.set('No se pudieron cargar las citas de la agenda.');
         this.loading.set(false);
-      }
+      },
     });
   }
 
   changeDate(days: number): void {
     const d = new Date(this.selectedDate() + 'T00:00:00');
-    d.setDate(d.getDate() + days);
+    const step = this.selectedView() === 'week' ? days * 7 : days;
+    d.setDate(d.getDate() + step);
     this.selectedDate.set(d.toISOString().split('T')[0]);
     this.loadAppointments();
   }
@@ -206,22 +243,57 @@ export class SchedulePage {
     this.activeWeeklyProfessional.set(p);
   }
 
+  gridTemplateColumns(): string {
+    const columns = this.selectedView() === 'day' ? Math.max(this.professionals().length, 1) : 7;
+    return `repeat(${columns}, minmax(0, 1fr))`;
+  }
+
+  statusLabel(status: AppointmentStatus): string {
+    return this.statusLabels[status] ?? status;
+  }
+
+  sourceLabel(source: string): string {
+    const labels: Record<string, string> = {
+      manual: 'Manual',
+      whatsapp: 'WhatsApp',
+      instagram: 'Instagram',
+      facebook: 'Facebook',
+      web: 'Web',
+      llamada: 'Llamada',
+      otro: 'Otro',
+      lead_conversion: 'Conversion de lead',
+    };
+    return labels[source] ?? source;
+  }
+
+  onServiceChange(): void {
+    this.applyServiceDuration(this.appointmentForm.controls.service_id.value);
+    this.checkAvailability();
+  }
+
+  private applyServiceDuration(serviceID: string): void {
+    const service = this.services().find((item) => item.id === serviceID);
+    if (service?.duration_minutes) {
+      this.appointmentForm.patchValue({ duration_mins: service.duration_minutes });
+    }
+  }
+
   // Visual absolute positioning math
   getSlotStyle(startsAt: string, endsAt: string) {
     const start = new Date(startsAt);
     const end = new Date(endsAt);
-    
+
     const dayStartHour = 8;
     const startHour = start.getHours() + start.getMinutes() / 60;
     const endHour = end.getHours() + end.getMinutes() / 60;
-    
+
     const duration = Math.max(0.5, endHour - startHour); // Minimum 30 mins slot visual height
     const topOffset = Math.max(0, (startHour - dayStartHour) * 4.5); // 4.5rem per hour row
     const height = duration * 4.5;
-    
+
     return {
       top: `${topOffset}rem`,
-      height: `${height}rem`
+      height: `${height}rem`,
     };
   }
 
@@ -230,11 +302,13 @@ export class SchedulePage {
     this.clearMessages();
     this.aiSuggestedMessage.set(null);
     this.availableSlots.set([]);
-    
+
+    const defaultProfessionalID = professionalId || this.activeWeeklyProfessional()?.id || this.professionals()[0]?.id || '';
+
     this.appointmentForm.reset({
       contact_name: '',
       contact_phone: '',
-      professional_id: professionalId || '',
+      professional_id: defaultProfessionalID,
       service_id: '',
       starts_at_date: this.selectedDate(),
       starts_at_time: timeStr || '09:00',
@@ -253,7 +327,7 @@ export class SchedulePage {
     this.clearMessages();
     this.selectedAppointment.set(appt);
     this.aiSuggestedMessage.set(null);
-    
+
     this.statusForm.reset({
       status: appt.status,
       admin_notes: appt.admin_notes ?? '',
@@ -295,7 +369,7 @@ export class SchedulePage {
       },
       error: () => {
         this.checkingAvailability.set(false);
-      }
+      },
     });
   }
 
@@ -323,7 +397,7 @@ export class SchedulePage {
       contact_name: value.contact_name.trim(),
       contact_phone: value.contact_phone.trim() || undefined,
       starts_at: startsAt.toISOString(),
-      duration_mins: value.duration_mins,
+      duration_minutes: value.duration_mins,
       lead_id: value.lead_id || undefined,
       admin_notes: value.admin_notes.trim() || undefined,
     };
@@ -339,7 +413,7 @@ export class SchedulePage {
         const errMsg = err.error?.error?.message || 'Error al agendar la cita. Verifica que no haya cruces.';
         this.error.set(errMsg);
         this.saving.set(false);
-      }
+      },
     });
   }
 
@@ -355,14 +429,14 @@ export class SchedulePage {
     this.api.updateAppointmentStatus(appt.id, value.status, value.admin_notes || undefined).subscribe({
       next: (updated) => {
         this.success.set('Estado de cita actualizado.');
-        this.appointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.appointments.update((items) => items.map((item) => item.id === updated.id ? updated : item));
         this.selectedAppointment.set(updated);
         this.saving.set(false);
       },
       error: (err) => {
         this.error.set(err.error?.error?.message || 'No fue posible actualizar el estado.');
         this.saving.set(false);
-      }
+      },
     });
   }
 
@@ -379,22 +453,23 @@ export class SchedulePage {
 
     const payload = {
       starts_at: startsAt.toISOString(),
+      duration_minutes: this.appointmentDurationMinutes(appt),
       admin_note: value.admin_note.trim() || undefined,
     };
 
     this.api.rescheduleAppointment(appt.id, payload).subscribe({
       next: (updated) => {
         this.success.set('Cita reprogramada correctamente.');
-        this.appointments.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.appointments.update((items) => items.map((item) => item.id === updated.id ? updated : item));
         this.selectedAppointment.set(updated);
-        
+
         // Update form values
         const dateStr = updated.starts_at.split('T')[0];
         const timeStr = updated.starts_at.split('T')[1].substring(0, 5);
         this.rescheduleForm.patchValue({
           starts_at_date: dateStr,
           starts_at_time: timeStr,
-          admin_note: ''
+          admin_note: '',
         });
 
         this.saving.set(false);
@@ -402,7 +477,7 @@ export class SchedulePage {
       error: (err) => {
         this.error.set(err.error?.error?.message || 'Error al reprogramar. Revisa la disponibilidad.');
         this.saving.set(false);
-      }
+      },
     });
   }
 
@@ -410,8 +485,8 @@ export class SchedulePage {
   quickConfirm(appt: Appointment): void {
     this.api.updateAppointmentStatus(appt.id, 'confirmed', 'Confirmada por el personal.').subscribe({
       next: (updated) => {
-        this.appointments.update(items => items.map(item => item.id === updated.id ? updated : item));
-      }
+        this.appointments.update((items) => items.map((item) => item.id === updated.id ? updated : item));
+      },
     });
   }
 
@@ -424,11 +499,11 @@ export class SchedulePage {
     this.aiSuggestedMessage.set(null);
 
     const payload = {
-      patient_message: type === 'confirmation' 
+      patient_message: type === 'confirmation'
         ? `Hola, confirmo mi cita para el servicio de ${appt.service.name}`
-        : `Disculpe, no podré asistir a mi cita de ${appt.service.name}`,
+        : `Hola, no podre asistir a mi cita de ${appt.service.name}`,
       service_id: appt.service.id,
-      lead_id: appt.lead?.id || undefined
+      lead_id: appt.lead?.id || undefined,
     };
 
     this.api.replySuggestion(payload).subscribe({
@@ -436,15 +511,16 @@ export class SchedulePage {
         const dateObj = new Date(appt.starts_at);
         const dayStr = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
         const hrStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-        
+
         let msg = res.suggested_reply || res.suggested_message || res.message || '';
-        
+
         // Clean and replace generic placeholders with real scheduled dates in draft
-        msg = msg.replace(/\[Fecha\]/gi, dayStr)
-                 .replace(/\[Hora\]/gi, hrStr)
-                 .replace(/\[Nombre del Paciente\]/gi, appt.contact_name)
-                 .replace(/\[Nombre del Profesional\]/gi, appt.professional.full_name)
-                 .replace(/\[Servicio\]/gi, appt.service.name);
+        msg = msg
+          .replace(/\[Fecha\]/gi, dayStr)
+          .replace(/\[Hora\]/gi, hrStr)
+          .replace(/\[Nombre del Paciente\]/gi, appt.contact_name)
+          .replace(/\[Nombre del Profesional\]/gi, appt.professional.full_name)
+          .replace(/\[Servicio\]/gi, appt.service.name);
 
         this.aiSuggestedMessage.set(msg);
         this.loadingAiMessage.set(false);
@@ -452,8 +528,15 @@ export class SchedulePage {
       error: () => {
         this.aiSuggestedMessage.set('Lo sentimos, no fue posible generar la sugerencia de mensaje por IA.');
         this.loadingAiMessage.set(false);
-      }
+      },
     });
+  }
+
+  private appointmentDurationMinutes(appt: Appointment): number {
+    const starts = new Date(appt.starts_at).getTime();
+    const ends = new Date(appt.ends_at).getTime();
+    const minutes = Math.round((ends - starts) / 60000);
+    return Number.isFinite(minutes) && minutes > 0 ? minutes : 60;
   }
 
   copyToClipboard(text: string): void {

@@ -252,3 +252,18 @@ Every table must include `clinic_id` where applicable. Appointment notes are com
 The team can review schema shape, indexes, status values, tenant isolation rules, and lead-to-appointment behavior before writing migrations.
 
 After approval, the first migration was created. Backend and frontend implementation should still follow the documented module boundaries.
+
+## 2026-06-02 — Implement first Smart Schedule slice
+
+### Context
+
+The Smart Schedule direction had moved from product alignment into concrete backend and frontend work. Documentation still contained planned-only language while the repository already had schema, backend modules, Angular screens, availability calculation, and schedule dashboard summary.
+
+### Decision
+
+Treat Smart Schedule as partially implemented. The first slice includes operational professionals, professional-service assignment, appointments, schedule availability, lead-to-appointment conversion, and schedule-centered dashboard summary. The module remains commercial/admin only and must not introduce clinical records, diagnosis, prescriptions, autonomous booking, or autonomous WhatsApp sending.
+
+### Consequences
+
+Documentation and smoke coverage must track the implemented state. Remaining work should focus on local end-to-end validation, Angular workflow polish, Inbox AI scheduling suggestions with human review, and schedule action prioritization.
+

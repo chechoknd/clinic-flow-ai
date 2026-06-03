@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase A — Smart Schedule Documentation and Product Alignment
+Phase B — Smart Schedule First Slice Validation and Documentation Alignment
 
 ## Completed Items
 
@@ -37,7 +37,7 @@ Phase A — Smart Schedule Documentation and Product Alignment
 - Frontend follow-up screen connected to complete, reschedule, and AI follow-up message workflows.
 - Frontend service catalog workflow implemented for create, update, active state, and delete actions.
 - Frontend clinic profile workflow implemented for editing commercial profile and communication tone.
-- Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, leads, follow-ups, dashboard, and AI-assisted endpoints with a deterministic mock AI provider.
+- Local end-to-end smoke script covers login, clinic profile update, service catalog CRUD, leads, follow-ups, dashboard, AI-assisted endpoints, professionals, schedule availability, appointments, lead-to-appointment conversion, and schedule dashboard summary with a deterministic mock AI provider.
 - API contracts documentation updated to match the implemented backend/frontend response shapes and smoke coverage.
 - Architecture documentation reconciled with the actual repository structure and Phase 1 completion state.
 - Smart Lead Inbox product direction documented as planned in `docs/SMART_LEAD_INBOX_PLAN.md`.
@@ -49,17 +49,20 @@ Phase A — Smart Schedule Documentation and Product Alignment
 - Smart Schedule schema migration created and locally applied in `database/migrations/20260601000100_create_smart_schedule_schema.sql`.
 - Backend professionals module implemented with clinic-scoped list, detail, create, and update endpoints.
 - Backend appointments module implemented with clinic-scoped list, detail, create, update, status update, reschedule, overlap validation, and lead-to-appointment conversion.
+- Backend schedule availability endpoint implemented through `GET /api/schedule/availability`.
+- Backend schedule-centered dashboard summary endpoint implemented through `GET /api/dashboard/schedule-summary`.
+- Angular Smart Schedule, professionals, and schedule-first dashboard screens exist and are wired to API service methods.
 
 ## In-Progress Items
 
-- Product direction is being realigned around Smart Schedule / Agenda Inteligente as the planned core workflow.
-- Documentation planning is being updated for backend endpoints, frontend schedule workflows, schedule-centered dashboard priorities, and Inbox AI schedule integration.
+- Smart Schedule first slice is being validated end-to-end and reconciled in documentation.
+- Inbox AI schedule integration remains in product planning and must keep human review before appointment creation.
 
 ## Pending Items
 
-- Review and approve `docs/SMART_SCHEDULE_PLAN.md` before implementation.
-- Plan backend endpoints for availability and schedule dashboard summaries.
-- Plan Angular screens for daily/weekly Smart Schedule, professional management, appointment create/edit, lead conversion, and pending confirmations.
+- Polish Angular daily/weekly Smart Schedule workflows with real receptionist usage.
+- Review schedule availability and dashboard summary behavior against local demo data.
+- Extend Inbox AI so it can suggest scheduling intent, missing appointment data, and human-reviewed appointment creation.
 - Review the Smart Lead Inbox create/update lead workflow with real local usage.
 - Align Inbox AI so it can detect scheduling intent, missing appointment data, and suggested appointment creation while requiring human review.
 - Define retention rules before storing full inbound conversations.
@@ -85,7 +88,7 @@ Phase A — Smart Schedule Documentation and Product Alignment
 - Backend has implemented MVP modules, but content generation, AI usage metadata, and richer AI error handling remain pending.
 - Frontend screens currently cover first navigation, lead workflows, AI reply generation, follow-up actions, service catalog CRUD, and clinic profile editing.
 - Smart Lead Inbox now has a first frontend route, conversation analysis endpoint, and frontend actions to create or update leads from reviewed analysis. Dashboard action layer, conversation analysis persistence, and remaining proposed API endpoints are not implemented.
-- Smart Schedule database migration, professionals backend module, and appointments backend module exist, but availability, schedule dashboard summary, frontend screens, and broader e2e tests are still pending.
+- Smart Schedule database migration, professionals backend module, appointments backend module, availability endpoint, schedule dashboard summary, Angular schedule/professionals screens, and smoke-script coverage exist; local smoke execution against a running API and UX hardening remain pending.
 - API contracts now reflect implemented MVP endpoints, but should continue to be updated when response shapes change.
 - Migration execution tooling exists, but rollback/down migration support is not implemented yet.
 - AI safety validation exists, but provider error taxonomy and usage tracking need improvement.
@@ -93,9 +96,18 @@ Phase A — Smart Schedule Documentation and Product Alignment
 
 ## Next Recommended Step
 
-Implement schedule availability and dashboard summary endpoints, or start the Angular Smart Schedule UI against the implemented backend modules.
+Validate the Smart Schedule flow end-to-end locally, then harden the Angular schedule UX and Inbox AI schedule handoff.
 
 ## Change Log
+
+### 2026-06-02
+
+- Reconciled Smart Schedule documentation to mark the first slice as partially implemented instead of planned-only.
+- Updated API contracts for implemented professionals, appointments, schedule availability, and schedule dashboard summary endpoints.
+- Expanded `e2e_test.sh` to cover professionals, schedule availability, appointment create/list/reschedule/status update, lead-to-appointment conversion, and schedule dashboard summary.
+- Fixed the Inbox AI frontend spec router provider so the full Angular test suite can run with `RouterLink`.
+- Polished the Angular Smart Schedule screen with daily operational summary cards, safer empty states, Spanish status/source labels, service-based duration autofill, weekly date stepping, and frontend appointment payload alignment with `duration_minutes`.
+- Improved Inbox AI to Smart Schedule handoff with reviewed schedule query params, commercial notes transfer, lead linkage after reviewed creation, and Schedule hydration from handoff params.
 
 ### 2026-06-01
 

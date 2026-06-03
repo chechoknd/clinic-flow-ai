@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -28,6 +28,26 @@ export class InboxAiPage {
   readonly copied = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+
+  readonly canOpenSchedule = computed(() => {
+    const value = this.leadForm.getRawValue();
+    return Boolean(this.analysis() && value.full_name.trim() && value.phone.trim() && value.service_id);
+  });
+
+  readonly scheduleQueryParams = computed(() => {
+    const value = this.leadForm.getRawValue();
+    const analysis = this.analysis();
+    const suggestedDate = this.toLocalDateValue(analysis?.suggested_follow_up_at);
+
+    return {
+      contact_name: value.full_name.trim(),
+      contact_phone: value.phone.trim(),
+      service_id: value.service_id || undefined,
+      lead_id: this.analyzeForm.controls.lead_id.value || undefined,
+      starts_at_date: suggestedDate || undefined,
+      admin_notes: analysis?.commercial_summary || value.notes.trim() || undefined,
+    };
+  });
 
   readonly analyzeForm = this.fb.nonNullable.group({
     source: ['whatsapp', Validators.required],
@@ -163,7 +183,7 @@ export class InboxAiPage {
         next: (lead) => {
           this.leads.update((items) => [lead, ...items]);
           this.analyzeForm.patchValue({ lead_id: lead.id });
-          this.success.set('Lead creado desde el analisis revisado.');
+          this.success.set('Lead creado desde el analisis revisado. Ya puedes agendarlo desde el boton de agenda.');
           this.savingLead.set(false);
         },
         error: () => {
@@ -245,6 +265,11 @@ export class InboxAiPage {
 
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  }
+
+  private toLocalDateValue(value: string | undefined): string {
+    const localDateTime = this.toLocalDateTimeValue(value);
+    return localDateTime ? localDateTime.slice(0, 10) : '';
   }
 
   private toLocalDateTimeValue(value: string | undefined): string {

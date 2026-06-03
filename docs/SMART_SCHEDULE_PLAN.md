@@ -1,10 +1,19 @@
 # Smart Schedule Plan
 
-Status: Planned.
+Status: Partially Implemented.
 
-Smart Schedule, also called Agenda Inteligente, is the planned product center for ClinicFlow AI. It evolves the product from an AI-assisted lead CRM into a smart commercial schedule for dental clinics that connects appointments, dentists or professionals, leads, services, follow-ups, and AI assistance.
+Smart Schedule, also called Agenda Inteligente, is the product center for ClinicFlow AI. It evolves the product from an AI-assisted lead CRM into a smart commercial schedule for dental clinics that connects appointments, dentists or professionals, leads, services, follow-ups, and AI assistance.
 
-This plan is documentation and product alignment only. No frontend components, backend handlers, migrations, or tests have been implemented for this module yet.
+The first implementation slice exists:
+
+- Database migration for professionals, professional-service assignment, and appointments.
+- Backend professionals endpoints.
+- Backend appointments endpoints, including status changes, rescheduling, overlap validation, and lead-to-appointment conversion.
+- Backend schedule availability endpoint.
+- Backend schedule-centered dashboard summary endpoint.
+- Angular schedule, professionals, and schedule-first dashboard screens.
+
+Remaining work includes broader end-to-end validation, richer Inbox AI schedule suggestions, product polishing for daily/weekly agenda workflows, and continued documentation alignment.
 
 ## Purpose
 
@@ -33,7 +42,7 @@ ClinicFlow AI must remain a commercial and operational assistant. It must not be
 
 ## MVP Scope
 
-The Smart Schedule MVP should include planning for:
+The Smart Schedule MVP includes or is implementing:
 
 - Daily schedule view.
 - Weekly schedule view.
@@ -187,7 +196,7 @@ Any lead update or appointment creation requires human review.
 
 Use Spanish-first labels in the frontend while keeping API values stable and documented.
 
-Planned appointment statuses:
+Implemented appointment statuses:
 
 ```txt
 scheduled
@@ -213,11 +222,11 @@ Completada
 Convertida desde lead
 ```
 
-Status rules to validate later:
+Status rules:
 
 - A new appointment usually starts as `scheduled` or `pending_confirmation`.
 - Confirmation changes status or confirmation state only after human action.
-- Rescheduling should preserve traceability through notes or an appointment event history in a later phase.
+- Rescheduling currently updates the appointment and can store an admin note; a dedicated appointment event history remains a later phase.
 - `completed` means the operational appointment occurred, not that a clinical outcome was recorded.
 - `converted_from_lead` should be used carefully. It may be better as a source/event flag instead of a long-term status if it conflicts with normal appointment lifecycle.
 

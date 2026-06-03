@@ -1,6 +1,11 @@
 <section class="grid gap-6">
   <!-- Top Toolbar / Navigation -->
-  <header class="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+  <header class="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center">
+    <div class="min-w-0">
+      <h1 class="text-lg font-bold text-slate-950">Agenda</h1>
+      <p class="mt-1 text-xs font-medium capitalize text-slate-500">{{ selectedDateLabel() }}</p>
+    </div>
+
     <!-- View & Date Toggles -->
     <div class="flex flex-wrap items-center gap-3">
       <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
@@ -33,9 +38,10 @@
         <button
           type="button"
           (click)="changeDate(-1)"
+          aria-label="Fecha anterior"
           class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
         >
-          ◀
+          ‹
         </button>
         <button
           type="button"
@@ -47,9 +53,10 @@
         <button
           type="button"
           (click)="changeDate(1)"
+          aria-label="Fecha siguiente"
           class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
         >
-          ▶
+          ›
         </button>
 
         <input
@@ -68,10 +75,29 @@
         (click)="openCreateDialog()"
         class="rounded-md bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition"
       >
-        + Agendar Cita
+        + Nueva cita
       </button>
     </div>
   </header>
+
+  <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Citas del día</p>
+      <p class="mt-1 text-2xl font-bold text-slate-950">{{ dailyStats().total }}</p>
+    </div>
+    <div class="rounded-lg border border-amber-200 bg-amber-50/70 px-4 py-3 shadow-sm">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Por confirmar</p>
+      <p class="mt-1 text-2xl font-bold text-amber-800">{{ dailyStats().pending }}</p>
+    </div>
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50/70 px-4 py-3 shadow-sm">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Confirmadas</p>
+      <p class="mt-1 text-2xl font-bold text-emerald-800">{{ dailyStats().confirmed }}</p>
+    </div>
+    <div class="rounded-lg border border-teal-200 bg-teal-50/70 px-4 py-3 shadow-sm">
+      <p class="text-[10px] font-bold uppercase tracking-wider text-teal-700">Horarios consultados</p>
+      <p class="mt-1 text-2xl font-bold text-teal-800">{{ dailyStats().availableSlots }}</p>
+    </div>
+  </section>
 
   <!-- Alerts -->
   @if (error()) {
@@ -82,6 +108,18 @@
   @if (success()) {
     <div class="rounded-md bg-emerald-50 p-4 text-xs text-emerald-700 shadow-sm">
       {{ success() }}
+    </div>
+  }
+
+  @if (!loading() && professionals().length === 0) {
+    <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs font-medium text-amber-800 shadow-sm">
+      Configura al menos un profesional activo para empezar a usar la agenda.
+    </div>
+  }
+
+  @if (!loading() && selectedView() === 'day' && professionals().length > 0 && selectedDateAppointments().length === 0) {
+    <div class="rounded-lg border border-slate-200 bg-white p-4 text-xs font-medium text-slate-600 shadow-sm">
+      No hay citas para esta fecha. Usa Nueva cita o revisa disponibilidad desde el formulario.
     </div>
   }
 
@@ -118,7 +156,7 @@
           <div class="w-16 border-r border-slate-200 shrink-0"></div>
 
           <!-- Columns Header -->
-          <div class="flex-1 grid" [style.gridTemplateColumns]="'repeat(' + (selectedView() === 'day' ? professionals().length : 7) + ', minmax(0, 1fr))'">
+          <div class="flex-1 grid" [style.gridTemplateColumns]="gridTemplateColumns()">
             <!-- Daily Columns Headers -->
             @if (selectedView() === 'day') {
               @for (p of professionals(); track p.id) {
@@ -156,7 +194,7 @@
           </div>
 
           <!-- Main Grid Content Columns -->
-          <div class="flex-1 grid relative" [style.gridTemplateColumns]="'repeat(' + (selectedView() === 'day' ? professionals().length : 7) + ', minmax(0, 1fr))'">
+          <div class="flex-1 grid relative" [style.gridTemplateColumns]="gridTemplateColumns()">
             <!-- Grid Lines backdrop (Google Calendar style) -->
             <div class="absolute inset-0 flex flex-col pointer-events-none select-none">
               @for (hour of hoursList; track hour) {
@@ -165,8 +203,8 @@
             </div>
 
             <!-- Horizontal column dividers -->
-            <div class="absolute inset-0 grid pointer-events-none select-none" [style.gridTemplateColumns]="'repeat(' + (selectedView() === 'day' ? professionals().length : 7) + ', minmax(0, 1fr))'">
-              @for (item of [].constructor(selectedView() === 'day' ? professionals().length : 7); track $index) {
+            <div class="absolute inset-0 grid pointer-events-none select-none" [style.gridTemplateColumns]="gridTemplateColumns()">
+              @for (item of [].constructor(selectedView() === 'day' ? (professionals().length || 1) : 7); track $index) {
                 <div class="border-r border-slate-100 last:border-r-0 h-full"></div>
               }
             </div>
@@ -199,11 +237,11 @@
                           </div>
                           @if (appt.confirmation_status === 'confirmed') {
                             <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-white/70 px-1.5 py-0.5 rounded-full border border-current mt-1">
-                              ✓ Confirmada
+                              Confirmada
                             </span>
                           } @else if (appt.status === 'pending_confirmation') {
                             <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-amber-100/90 text-amber-900 px-1.5 py-0.5 rounded-full border border-amber-300 mt-1">
-                              ? Confirmación
+                              Por confirmar
                             </span>
                           }
                         </div>
@@ -238,7 +276,7 @@
                           </div>
                           @if (appt.confirmation_status === 'confirmed') {
                             <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-white/70 px-1.5 py-0.5 rounded-full border border-current mt-1">
-                              ✓ Confirmada
+                              Confirmada
                             </span>
                           }
                         </div>
@@ -263,7 +301,7 @@
     <div class="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
       <!-- Header -->
       <header class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
-        <h3 class="text-base font-semibold text-slate-950">Agendar Nueva Cita</h3>
+        <h3 class="text-base font-semibold text-slate-950">Nueva cita</h3>
         <button type="button" (click)="closeCreateDialog()" class="text-slate-400 hover:text-slate-600 text-lg">×</button>
       </header>
 
@@ -337,7 +375,7 @@
               id="service_id"
               data-testid="appointment-service-select"
               formControlName="service_id"
-              (change)="checkAvailability()"
+              (change)="onServiceChange()"
               class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none bg-white"
             >
               <option value="">Seleccionar...</option>
@@ -394,7 +432,7 @@
         <div class="rounded-md border border-slate-100 bg-slate-50 p-3">
           <div class="flex justify-between items-center gap-2 mb-2">
             <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              Disponibilidad del Dentista
+              Horarios disponibles
             </span>
             <button
               type="button"
@@ -402,7 +440,7 @@
               [disabled]="checkingAvailability()"
               class="text-[10px] text-teal-600 hover:text-teal-700 font-semibold focus:outline-none"
             >
-              {{ checkingAvailability() ? 'Consultando...' : 'Actualizar Slots' }}
+              {{ checkingAvailability() ? 'Consultando...' : 'Actualizar horarios' }}
             </button>
           </div>
 
@@ -418,7 +456,7 @@
               </button>
             } @empty {
               <p class="text-[10px] text-slate-400 italic py-1">
-                {{ appointmentForm.controls.professional_id.value ? 'No hay slots disponibles o haz clic en "Actualizar Slots"' : 'Selecciona un dentista y fecha para ver opciones libres.' }}
+                {{ appointmentForm.controls.professional_id.value ? 'No hay horarios disponibles o haz clic en "Actualizar horarios"' : 'Selecciona un dentista y fecha para ver opciones libres.' }}
               </p>
             }
           </div>
@@ -427,12 +465,12 @@
         <!-- Admin Commercial notes -->
         <div>
           <label for="admin_notes" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-            Notas de Agenda (Únicamente Comerciales/Admin)
+            Notas de agenda (solo comerciales/admin)
           </label>
           <textarea
             id="admin_notes"
             formControlName="admin_notes"
-            placeholder="Ej. Viene por valoración de ortodoncia. Requiere cotización."
+            placeholder="Ej. Prefiere horario en la tarde. Confirmar asistencia por WhatsApp."
             rows="2"
             class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none resize-none"
           ></textarea>
@@ -453,7 +491,7 @@
             [disabled]="saving()"
             class="rounded-md bg-teal-600 px-5 py-2 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
           >
-            {{ saving() ? 'Guardando...' : 'Agendar Cita' }}
+            {{ saving() ? 'Guardando...' : 'Guardar cita' }}
           </button>
         </div>
       </form>
@@ -494,7 +532,7 @@
                 class="rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider border"
                 [class]="statusColors[selectedAppointment()!.status].bg + ' ' + statusColors[selectedAppointment()!.status].border + ' ' + statusColors[selectedAppointment()!.status].text"
               >
-                {{ selectedAppointment()?.status }}
+                {{ statusLabel(selectedAppointment()!.status) }}
               </span>
             </div>
           </header>
@@ -517,7 +555,7 @@
             </div>
             <div class="flex justify-between gap-2">
               <span class="font-semibold text-slate-500">Canal Origen:</span>
-              <span class="font-bold text-slate-800 capitalize">{{ selectedAppointment()?.source }}</span>
+              <span class="font-bold text-slate-800 capitalize">{{ sourceLabel(selectedAppointment()!.source) }}</span>
             </div>
             <div class="flex justify-between gap-2 border-t border-slate-200/60 pt-2 mt-1">
               <span class="font-semibold text-slate-500">Notas de Agenda:</span>
@@ -530,7 +568,7 @@
           <!-- AI reply assistant widget (Crucial for CRM value) -->
           <section class="rounded-xl border border-teal-100 bg-teal-50/20 p-4">
             <h4 class="text-xs font-bold text-teal-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-              ✨ Asistente de Comunicación AI
+              Asistente de comunicación AI
             </h4>
             
             <div class="flex flex-wrap gap-1.5 mb-3">
@@ -548,14 +586,14 @@
                 [disabled]="loadingAiMessage()"
                 class="rounded border border-teal-600 text-teal-700 hover:bg-teal-50 disabled:opacity-50 px-2.5 py-1 text-[10px] font-semibold transition focus:outline-none"
               >
-                Sugerir Reactivación (Inasistencia)
+                Sugerir reactivación
               </button>
             </div>
 
             <!-- AI Suggested Box -->
             @if (loadingAiMessage()) {
               <div class="p-4 text-center text-xs text-slate-400 italic animate-pulse">
-                IA redactando sugerencia personalizada...
+                IA redactando sugerencia...
               </div>
             } @else if (aiSuggestedMessage()) {
               <div class="grid gap-2">
@@ -570,12 +608,12 @@
                   (click)="copyToClipboard(aiSuggestedMessage()!)"
                   class="rounded bg-teal-100 hover:bg-teal-200 text-teal-800 text-[10px] font-bold py-1.5 px-3 transition flex items-center justify-center gap-1"
                 >
-                  📋 Copiar Mensaje
+                  Copiar mensaje
                 </button>
               </div>
             } @else {
               <p class="text-[10px] text-slate-500 leading-normal">
-                Genera mensajes de WhatsApp personalizados en base a las notas de la cita y la especialidad médica.
+                Genera mensajes de WhatsApp basados en el servicio, el horario y las notas administrativas.
               </p>
             }
           </section>
@@ -590,14 +628,14 @@
                 (click)="quickConfirm(selectedAppointment()!)"
                 class="w-full rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 transition"
               >
-                ✓ Confirmar Asistencia Ahora
+                Confirmar asistencia ahora
               </button>
             }
 
             <!-- 1. Form state transition -->
             <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="rounded-lg border border-slate-200 p-3 bg-white shadow-sm">
               <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                Actualizar Estado de la Cita
+                Actualizar estado de la cita
               </span>
               <div class="grid gap-2">
                 <select
@@ -625,7 +663,7 @@
                   [disabled]="saving()"
                   class="rounded bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold py-1.5 mt-1 transition"
                 >
-                  Guardar Estado
+                  Guardar estado
                 </button>
               </div>
             </form>
@@ -633,7 +671,7 @@
             <!-- 2. Reprogramar time block -->
             <form [formGroup]="rescheduleForm" (ngSubmit)="reschedule()" class="rounded-lg border border-slate-200 p-3 bg-white shadow-sm">
               <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                Reprogramar Horario / Fecha
+                Reprogramar horario
               </span>
               <div class="grid gap-2">
                 <div class="grid grid-cols-2 gap-2">
@@ -661,7 +699,7 @@
                   [disabled]="saving()"
                   class="rounded border border-teal-600 text-teal-700 hover:bg-teal-50/50 disabled:opacity-50 text-xs font-bold py-1.5 mt-1 transition"
                 >
-                  Reprogramar Cita
+                  Reprogramar cita
                 </button>
               </div>
             </form>
