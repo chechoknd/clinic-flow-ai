@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { FollowUp, LeadStatus } from '../../core/services/api.models';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ApiService } from '../../core/services/api.service';
 
 interface FollowUpGroup {
@@ -21,6 +22,7 @@ interface FollowUpGroup {
 export class FollowupsPage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
 
   readonly statuses: LeadStatus[] = ['Contactado', 'Interesado', 'Agendado', 'No Respondio', 'Perdido', 'Convertido'];
   readonly followups = signal<FollowUp[]>([]);
@@ -35,20 +37,20 @@ export class FollowupsPage {
   readonly canGenerateMessage = computed(() => Boolean(this.selectedFollowUp()?.service_id));
   readonly followupGroups = computed<FollowUpGroup[]>(() => [
     {
-      label: 'Vencidos',
-      description: 'Requieren accion primero.',
+      label: this.i18n.t('followups.overdue'),
+      description: this.i18n.t('followups.overdueDescription'),
       tone: 'urgent',
       items: this.followups().filter((followup) => this.isOverdue(followup.next_action_at)),
     },
     {
-      label: 'Hoy',
-      description: 'Contactos programados para el dia.',
+      label: this.i18n.t('followups.today'),
+      description: this.i18n.t('followups.todayDescription'),
       tone: 'today',
       items: this.followups().filter((followup) => this.isToday(followup.next_action_at) && !this.isOverdue(followup.next_action_at)),
     },
     {
-      label: 'Proximos',
-      description: 'Seguimientos futuros.',
+      label: this.i18n.t('followups.upcoming'),
+      description: this.i18n.t('followups.upcomingDescription'),
       tone: 'upcoming',
       items: this.followups().filter((followup) => !this.isToday(followup.next_action_at) && !this.isOverdue(followup.next_action_at)),
     },
@@ -96,11 +98,11 @@ export class FollowupsPage {
         next: () => {
           this.followups.update((items) => items.filter((item) => item.id !== followup.id));
           this.selectedFollowUp.set(null);
-          this.success.set('Seguimiento completado correctamente.');
+          this.success.set(this.i18n.t('followups.completed'));
           this.saving.set(false);
         },
         error: () => {
-          this.error.set('No fue posible completar el seguimiento.');
+          this.error.set(this.i18n.t('followups.completeError'));
           this.saving.set(false);
         },
       });
@@ -121,7 +123,7 @@ export class FollowupsPage {
     const value = this.actionForm.getRawValue();
     const nextActionAt = this.toApiDateTime(value.next_action_at);
     if (!nextActionAt) {
-      this.error.set('La fecha de proxima accion no es valida.');
+      this.error.set(this.i18n.t('followups.invalidDate'));
       this.saving.set(false);
       return;
     }
@@ -136,11 +138,11 @@ export class FollowupsPage {
           const updated = { ...followup, next_action_at: nextActionAt };
           this.followups.update((items) => items.map((item) => (item.id === followup.id ? updated : item)));
           this.selectFollowUp(updated);
-          this.success.set('Seguimiento reprogramado correctamente.');
+          this.success.set(this.i18n.t('followups.rescheduled'));
           this.saving.set(false);
         },
         error: () => {
-          this.error.set('No fue posible reprogramar el seguimiento.');
+          this.error.set(this.i18n.t('followups.rescheduleError'));
           this.saving.set(false);
         },
       });
@@ -149,7 +151,7 @@ export class FollowupsPage {
   generateMessage(): void {
     const followup = this.selectedFollowUp();
     if (!followup || !followup.service_id) {
-      this.error.set('Selecciona un seguimiento con servicio para generar mensaje.');
+      this.error.set(this.i18n.t('followups.noServiceForMessage'));
       return;
     }
 
@@ -169,7 +171,7 @@ export class FollowupsPage {
           this.generating.set(false);
         },
         error: () => {
-          this.error.set('No fue posible generar el mensaje de seguimiento.');
+          this.error.set(this.i18n.t('followups.messageError'));
           this.generating.set(false);
         },
       });
@@ -185,13 +187,13 @@ export class FollowupsPage {
 
   formatDate(value: string | null | undefined): string {
     if (!value) {
-      return 'Sin fecha';
+      return this.i18n.t('followups.noDate');
     }
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-      return 'Sin fecha';
+      return this.i18n.t('followups.noDate');
     }
-    return date.toLocaleString('es-CO', {
+    return date.toLocaleString(this.i18n.language() === 'en' ? 'en-US' : 'es-CO', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -237,10 +239,14 @@ export class FollowupsPage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('No fue posible cargar los seguimientos. Verifica el backend y la sesion.');
+        this.error.set(this.i18n.t('followups.loadError'));
         this.loading.set(false);
       },
     });
+  }
+
+  statusLabel(status: LeadStatus): string {
+    return this.i18n.t(`lead.status.${status}`);
   }
 
   private clearMessages(): void {

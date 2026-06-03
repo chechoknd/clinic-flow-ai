@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { AppLanguage, I18nService } from '../../core/i18n/i18n.service';
 
 @Component({
   selector: 'app-login-page',
@@ -14,6 +15,7 @@ export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  readonly i18n = inject(I18nService);
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -35,9 +37,13 @@ export class LoginPage {
     this.auth.login(email, password).subscribe({
       next: () => void this.router.navigate(['/dashboard']),
       error: () => {
-        this.error.set('No fue posible iniciar sesion. Revisa las credenciales o el backend.');
+        this.error.set(this.i18n.t('login.error'));
         this.loading.set(false);
       },
     });
+  }
+
+  setLanguage(language: AppLanguage): void {
+    this.i18n.setLanguage(language);
   }
 }

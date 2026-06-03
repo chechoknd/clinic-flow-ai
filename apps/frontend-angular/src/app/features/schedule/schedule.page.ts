@@ -9,6 +9,7 @@ import {
   Professional,
   TimeSlot,
 } from '../../core/services/api.models';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -21,6 +22,7 @@ export class SchedulePage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
+  readonly i18n = inject(I18nService);
 
   // Core State
   readonly professionals = signal<Professional[]>([]);
@@ -76,19 +78,19 @@ export class SchedulePage {
   });
 
   readonly statusLabels: Record<AppointmentStatus, string> = {
-    scheduled: 'Programada',
-    confirmed: 'Confirmada',
-    pending_confirmation: 'Pendiente',
-    rescheduled: 'Reprogramada',
-    no_show: 'No asistio',
-    cancelled: 'Cancelada',
-    completed: 'Completada',
-    converted_from_lead: 'Desde lead',
+    scheduled: 'appointment.status.scheduled',
+    confirmed: 'appointment.status.confirmed',
+    pending_confirmation: 'appointment.status.pending_confirmation',
+    rescheduled: 'appointment.status.rescheduled',
+    no_show: 'appointment.status.no_show',
+    cancelled: 'appointment.status.cancelled',
+    completed: 'appointment.status.completed',
+    converted_from_lead: 'appointment.status.converted_from_lead',
   };
 
   readonly selectedDateLabel = computed(() => {
     const date = new Date(this.selectedDate() + 'T00:00:00');
-    return date.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
+    return date.toLocaleDateString(this.locale(), { weekday: 'long', day: 'numeric', month: 'long' });
   });
 
   readonly selectedDateAppointments = computed(() =>
@@ -130,16 +132,14 @@ export class SchedulePage {
     const sundayOffset = day === 0 ? -6 : 1 - day; // Align Lunes as start of week
 
     const dates: { dateStr: string; label: string; dayLabel: string }[] = [];
-    const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
     for (let i = 0; i < 7; i++) {
       const d = new Date(baseDate);
       d.setDate(baseDate.getDate() + sundayOffset + i);
       const dateStr = d.toISOString().split('T')[0];
       dates.push({
         dateStr,
-        label: `${d.getDate()} ${d.toLocaleString('es-ES', { month: 'short' })}`,
-        dayLabel: weekdays[d.getDay()],
+        label: `${d.getDate()} ${d.toLocaleString(this.locale(), { month: 'short' })}`,
+        dayLabel: this.i18n.t(`weekday.short.${d.getDay()}`),
       });
     }
     return dates;
@@ -207,7 +207,7 @@ export class SchedulePage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('No se pudieron cargar las citas de la agenda.');
+        this.error.set(this.i18n.t('schedule.loadError'));
         this.loading.set(false);
       },
     });
@@ -249,19 +249,19 @@ export class SchedulePage {
   }
 
   statusLabel(status: AppointmentStatus): string {
-    return this.statusLabels[status] ?? status;
+    return this.i18n.t(this.statusLabels[status] ?? status);
   }
 
   sourceLabel(source: string): string {
     const labels: Record<string, string> = {
-      manual: 'Manual',
-      whatsapp: 'WhatsApp',
-      instagram: 'Instagram',
-      facebook: 'Facebook',
-      web: 'Web',
-      llamada: 'Llamada',
-      otro: 'Otro',
-      lead_conversion: 'Conversion de lead',
+      manual: this.i18n.t('source.manual'),
+      whatsapp: this.i18n.t('source.whatsapp'),
+      instagram: this.i18n.t('source.instagram'),
+      facebook: this.i18n.t('source.facebook'),
+      web: this.i18n.t('source.web'),
+      llamada: this.i18n.t('source.llamada'),
+      otro: this.i18n.t('source.otro'),
+      lead_conversion: this.i18n.t('source.lead_conversion'),
     };
     return labels[source] ?? source;
   }
@@ -404,13 +404,13 @@ export class SchedulePage {
 
     this.api.createAppointment(payload).subscribe({
       next: () => {
-        this.success.set('Cita agendada correctamente.');
+        this.success.set(this.i18n.t('schedule.created'));
         this.loadAppointments();
         setTimeout(() => this.closeCreateDialog(), 1000);
         this.saving.set(false);
       },
       error: (err) => {
-        const errMsg = err.error?.error?.message || 'Error al agendar la cita. Verifica que no haya cruces.';
+        const errMsg = err.error?.error?.message || this.i18n.t('schedule.createError');
         this.error.set(errMsg);
         this.saving.set(false);
       },
@@ -428,13 +428,13 @@ export class SchedulePage {
     const value = this.statusForm.getRawValue();
     this.api.updateAppointmentStatus(appt.id, value.status, value.admin_notes || undefined).subscribe({
       next: (updated) => {
-        this.success.set('Estado de cita actualizado.');
+        this.success.set(this.i18n.t('schedule.statusUpdated'));
         this.appointments.update((items) => items.map((item) => item.id === updated.id ? updated : item));
         this.selectedAppointment.set(updated);
         this.saving.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error?.message || 'No fue posible actualizar el estado.');
+        this.error.set(err.error?.error?.message || this.i18n.t('schedule.statusError'));
         this.saving.set(false);
       },
     });
@@ -459,7 +459,7 @@ export class SchedulePage {
 
     this.api.rescheduleAppointment(appt.id, payload).subscribe({
       next: (updated) => {
-        this.success.set('Cita reprogramada correctamente.');
+        this.success.set(this.i18n.t('schedule.rescheduled'));
         this.appointments.update((items) => items.map((item) => item.id === updated.id ? updated : item));
         this.selectedAppointment.set(updated);
 
@@ -475,7 +475,7 @@ export class SchedulePage {
         this.saving.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error?.message || 'Error al reprogramar. Revisa la disponibilidad.');
+        this.error.set(err.error?.error?.message || this.i18n.t('schedule.rescheduleError'));
         this.saving.set(false);
       },
     });
@@ -483,7 +483,7 @@ export class SchedulePage {
 
   // Quick confirm status action
   quickConfirm(appt: Appointment): void {
-    this.api.updateAppointmentStatus(appt.id, 'confirmed', 'Confirmada por el personal.').subscribe({
+    this.api.updateAppointmentStatus(appt.id, 'confirmed', this.i18n.t('schedule.quickConfirmNote')).subscribe({
       next: (updated) => {
         this.appointments.update((items) => items.map((item) => item.id === updated.id ? updated : item));
       },
@@ -500,8 +500,8 @@ export class SchedulePage {
 
     const payload = {
       patient_message: type === 'confirmation'
-        ? `Hola, confirmo mi cita para el servicio de ${appt.service.name}`
-        : `Hola, no podre asistir a mi cita de ${appt.service.name}`,
+        ? this.i18n.t('schedule.aiConfirmationSeed').replace('{{service}}', appt.service.name)
+        : this.i18n.t('schedule.aiNoShowSeed').replace('{{service}}', appt.service.name),
       service_id: appt.service.id,
       lead_id: appt.lead?.id || undefined,
     };
@@ -509,8 +509,8 @@ export class SchedulePage {
     this.api.replySuggestion(payload).subscribe({
       next: (res) => {
         const dateObj = new Date(appt.starts_at);
-        const dayStr = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-        const hrStr = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const dayStr = dateObj.toLocaleDateString(this.locale(), { weekday: 'long', day: 'numeric', month: 'long' });
+        const hrStr = dateObj.toLocaleTimeString(this.locale(), { hour: '2-digit', minute: '2-digit' });
 
         let msg = res.suggested_reply || res.suggested_message || res.message || '';
 
@@ -526,7 +526,7 @@ export class SchedulePage {
         this.loadingAiMessage.set(false);
       },
       error: () => {
-        this.aiSuggestedMessage.set('Lo sentimos, no fue posible generar la sugerencia de mensaje por IA.');
+        this.aiSuggestedMessage.set(this.i18n.t('schedule.aiError'));
         this.loadingAiMessage.set(false);
       },
     });
@@ -541,8 +541,12 @@ export class SchedulePage {
 
   copyToClipboard(text: string): void {
     void navigator.clipboard.writeText(text);
-    this.success.set('Mensaje copiado al portapapeles. ¡Listo para pegar en WhatsApp!');
+    this.success.set(this.i18n.t('schedule.copied'));
     setTimeout(() => this.success.set(null), 3000);
+  }
+
+  private locale(): string {
+    return this.i18n.language() === 'en' ? 'en-US' : 'es-CO';
   }
 
   private clearMessages(): void {

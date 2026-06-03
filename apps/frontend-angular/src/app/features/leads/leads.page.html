@@ -2,11 +2,11 @@
   <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
     <div>
       <h1 class="text-2xl font-semibold text-slate-950">Leads</h1>
-      <p class="mt-1 text-sm text-slate-600">Pipeline comercial enfocado en acciones rápidas.</p>
+      <p class="mt-1 text-sm text-slate-600">{{ i18n.t('leads.subtitle') }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <a data-testid="leads-ai-assistant-link" routerLink="/ai-assistant" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-        Asistente AI
+        {{ i18n.t('leads.aiAssistant') }}
       </a>
       <button
         type="button"
@@ -14,7 +14,7 @@
         class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700"
         (click)="openCreateModal()"
       >
-        Nuevo lead
+        {{ i18n.t('leads.newLead') }}
       </button>
     </div>
   </div>
@@ -43,7 +43,7 @@
             [class.text-slate-700]="selectedStatus() !== status"
             (click)="selectStatus(status)"
           >
-            <span>{{ status }}</span>
+            <span>{{ statusLabel(status) }}</span>
             <span
               class="rounded-full px-2 py-0.5 text-xs"
               [class.bg-white]="selectedStatus() === status"
@@ -62,20 +62,20 @@
       <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div class="flex flex-col justify-between gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center">
           <div>
-            <h2 class="text-sm font-semibold text-slate-950">{{ selectedStatus() }}</h2>
-            <p class="text-xs text-slate-500">{{ selectedStatusCount() }} leads en este estado</p>
+            <h2 class="text-sm font-semibold text-slate-950">{{ statusLabel(selectedStatus()) }}</h2>
+            <p class="text-xs text-slate-500">{{ selectedStatusCount() }} {{ i18n.t('leads.inStatus') }}</p>
           </div>
           <button
             type="button"
             class="w-fit rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             (click)="openCreateModal()"
           >
-            Agregar
+            {{ i18n.t('common.add') }}
           </button>
         </div>
 
         @if (loading()) {
-          <div data-testid="leads-loading-state" class="px-4 py-10 text-center text-sm text-slate-500">Cargando leads...</div>
+          <div data-testid="leads-loading-state" class="px-4 py-10 text-center text-sm text-slate-500">{{ i18n.t('leads.loading') }}</div>
         } @else {
           <div class="divide-y divide-slate-100">
             @for (lead of filteredLeads(); track lead.id) {
@@ -90,7 +90,7 @@
                 </button>
 
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-medium text-slate-700">{{ lead.service_name || 'Sin servicio' }}</p>
+                  <p class="truncate text-sm font-medium text-slate-700">{{ lead.service_name || i18n.t('leads.noService') }}</p>
                   <p class="mt-1 text-xs text-slate-500">{{ formatDate(lead.next_action_at) }}</p>
                 </div>
 
@@ -101,7 +101,7 @@
                     class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                     (click)="selectLead(lead)"
                   >
-                    Gestionar
+                    {{ i18n.t('leads.manage') }}
                   </button>
                   <a
                     [attr.data-testid]="'leads-schedule-button-' + lead.id"
@@ -114,19 +114,19 @@
                     }"
                     class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
                   >
-                    Agendar
+                    {{ i18n.t('leads.schedule') }}
                   </a>
                 </div>
               </article>
             } @empty {
               <div class="px-4 py-12 text-center">
-                <p class="text-sm font-medium text-slate-700">No hay leads para este estado.</p>
+                <p class="text-sm font-medium text-slate-700">{{ i18n.t('leads.empty') }}</p>
                 <button
                   type="button"
                   class="mt-4 rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700"
                   (click)="openCreateModal()"
                 >
-                  Crear lead
+                  {{ i18n.t('leads.createLead') }}
                 </button>
               </div>
             }
@@ -138,7 +138,7 @@
         <aside class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:sticky xl:top-24 xl:self-start">
           <form data-testid="leads-update-form" class="grid gap-4" [formGroup]="updateForm" (ngSubmit)="updateLead()">
             <div>
-              <p class="text-xs font-semibold uppercase text-slate-500">Seguimiento</p>
+              <p class="text-xs font-semibold uppercase text-slate-500">{{ i18n.t('leads.followup') }}</p>
               <h2 class="mt-1 text-base font-semibold text-slate-950">{{ lead.full_name }}</h2>
               <p class="text-sm text-slate-500">{{ lead.phone }}</p>
             </div>
@@ -150,7 +150,7 @@
                 [queryParams]="{ lead_id: lead.id, service_id: lead.service_id }"
                 class="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
               >
-                Responder
+                {{ i18n.t('leads.reply') }}
               </a>
               <a
                 data-testid="leads-selected-schedule-link"
@@ -163,21 +163,21 @@
                 }"
                 class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
               >
-                Agendar
+                {{ i18n.t('leads.schedule') }}
               </a>
             </div>
 
             <label class="grid gap-2 text-sm font-medium text-slate-700">
-              Estado
+              {{ i18n.t('leads.status') }}
               <select data-testid="leads-update-status-select" formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
                 @for (status of statuses; track status) {
-                  <option [value]="status">{{ status }}</option>
+                  <option [value]="status">{{ statusLabel(status) }}</option>
                 }
               </select>
             </label>
 
             <label class="grid gap-2 text-sm font-medium text-slate-700">
-              Proxima accion
+              {{ i18n.t('leads.nextAction') }}
               <input
                 type="datetime-local"
                 data-testid="leads-update-next-action-input"
@@ -187,7 +187,7 @@
             </label>
 
             <label class="grid gap-2 text-sm font-medium text-slate-700">
-              Nota
+              {{ i18n.t('leads.note') }}
               <textarea
                 formControlName="note"
                 data-testid="leads-update-note-textarea"
@@ -202,7 +202,7 @@
               class="h-11 rounded-md bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
               [disabled]="updateForm.invalid || saving()"
             >
-              {{ saving() ? 'Actualizando...' : 'Guardar' }}
+              {{ saving() ? i18n.t('leads.updating') : i18n.t('common.save') }}
             </button>
           </form>
         </aside>
@@ -215,21 +215,21 @@
       <form data-testid="leads-create-form" class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-5 shadow-xl" [formGroup]="createForm" (ngSubmit)="createLead()">
         <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
           <div>
-            <h2 class="text-lg font-semibold text-slate-950">Nuevo lead</h2>
-            <p class="mt-1 text-sm text-slate-500">Registra una consulta comercial para seguimiento.</p>
+            <h2 class="text-lg font-semibold text-slate-950">{{ i18n.t('leads.newLead') }}</h2>
+            <p class="mt-1 text-sm text-slate-500">{{ i18n.t('leads.createSubtitle') }}</p>
           </div>
           <button
             type="button"
             class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             (click)="closeCreateModal()"
           >
-            Cerrar
+            {{ i18n.t('common.close') }}
           </button>
         </div>
 
         <div class="mt-5 grid gap-4 md:grid-cols-2">
           <label class="grid gap-2 text-sm font-medium text-slate-700 md:col-span-2">
-            Nombre completo
+            {{ i18n.t('leads.fullName') }}
             <input
               type="text"
               data-testid="leads-create-full-name-input"
@@ -237,7 +237,7 @@
               class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
             />
             @if (createForm.controls.full_name.touched && createForm.controls.full_name.invalid) {
-              <span class="text-xs text-red-600">Ingresa el nombre del lead.</span>
+              <span class="text-xs text-red-600">{{ i18n.t('leads.invalidName') }}</span>
             }
           </label>
 
@@ -251,14 +251,14 @@
               class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
             />
             @if (createForm.controls.phone.touched && createForm.controls.phone.invalid) {
-              <span class="text-xs text-red-600">Usa formato internacional, por ejemplo +573001234567.</span>
+              <span class="text-xs text-red-600">{{ i18n.t('leads.invalidPhone') }}</span>
             }
           </label>
 
           <label class="grid gap-2 text-sm font-medium text-slate-700">
-            Servicio
+            {{ i18n.t('leads.service') }}
             <select data-testid="leads-create-service-select" formControlName="service_id" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
-              <option value="">Sin servicio definido</option>
+              <option value="">{{ i18n.t('leads.noServiceDefined') }}</option>
               @for (service of services(); track service.id) {
                 <option [value]="service.id">{{ service.name }}</option>
               }
@@ -266,28 +266,28 @@
           </label>
 
           <label class="grid gap-2 text-sm font-medium text-slate-700">
-            Estado
+            {{ i18n.t('leads.status') }}
             <select data-testid="leads-create-status-select" formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
               @for (status of statuses; track status) {
-                <option [value]="status">{{ status }}</option>
+                <option [value]="status">{{ statusLabel(status) }}</option>
               }
             </select>
           </label>
 
           <label class="grid gap-2 text-sm font-medium text-slate-700">
-            Origen
+            {{ i18n.t('leads.source') }}
             <select data-testid="leads-create-source-select" formControlName="source" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
-              <option value="whatsapp">WhatsApp</option>
-              <option value="instagram">Instagram</option>
-              <option value="facebook">Facebook</option>
-              <option value="web">Web</option>
-              <option value="llamada">Llamada</option>
-              <option value="otro">Otro</option>
+              <option value="whatsapp">{{ i18n.t('source.whatsapp') }}</option>
+              <option value="instagram">{{ i18n.t('source.instagram') }}</option>
+              <option value="facebook">{{ i18n.t('source.facebook') }}</option>
+              <option value="web">{{ i18n.t('source.web') }}</option>
+              <option value="llamada">{{ i18n.t('source.llamada') }}</option>
+              <option value="otro">{{ i18n.t('source.otro') }}</option>
             </select>
           </label>
 
           <label class="grid gap-2 text-sm font-medium text-slate-700 md:col-span-2">
-            Proxima accion
+            {{ i18n.t('leads.nextAction') }}
             <input
               type="datetime-local"
               data-testid="leads-create-next-action-input"
@@ -297,7 +297,7 @@
           </label>
 
           <label class="grid gap-2 text-sm font-medium text-slate-700 md:col-span-2">
-            Nota inicial
+            {{ i18n.t('leads.initialNote') }}
             <textarea
               formControlName="notes"
               data-testid="leads-create-notes-textarea"
@@ -313,7 +313,7 @@
             class="h-11 rounded-md border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             (click)="closeCreateModal()"
           >
-            Cancelar
+            {{ i18n.t('common.cancel') }}
           </button>
           <button
             type="submit"
@@ -321,7 +321,7 @@
             class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
             [disabled]="createForm.invalid || saving()"
           >
-            {{ saving() ? 'Guardando...' : 'Crear lead' }}
+            {{ saving() ? i18n.t('common.saving') : i18n.t('leads.createLead') }}
           </button>
         </div>
       </form>

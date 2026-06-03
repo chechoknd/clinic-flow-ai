@@ -1,7 +1,7 @@
 <section class="grid gap-6">
   <div>
-    <h1 class="text-2xl font-semibold text-slate-950">Seguimientos</h1>
-    <p class="mt-1 text-sm text-slate-600">Recordatorios manuales ordenados por urgencia comercial.</p>
+    <h1 class="text-2xl font-semibold text-slate-950">{{ i18n.t('followups.title') }}</h1>
+    <p class="mt-1 text-sm text-slate-600">{{ i18n.t('followups.subtitle') }}</p>
   </div>
 
   @if (error()) {
@@ -16,7 +16,7 @@
     <div class="grid gap-5">
       @if (loading()) {
         <div data-testid="followups-loading-state" class="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
-          Cargando seguimientos...
+          {{ i18n.t('followups.loading') }}
         </div>
       } @else {
         @for (group of followupGroups(); track group.label) {
@@ -48,9 +48,9 @@
                       <h3 class="font-semibold text-slate-950">{{ followup.full_name }}</h3>
                       <p class="text-sm text-slate-500">{{ followup.phone }}</p>
                     </div>
-                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">{{ followup.status }}</span>
+                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">{{ statusLabel(followup.status) }}</span>
                   </div>
-                  <p class="mt-4 text-sm text-slate-600">{{ followup.service_name || 'Servicio por confirmar' }}</p>
+                  <p class="mt-4 text-sm text-slate-600">{{ followup.service_name || i18n.t('followups.servicePending') }}</p>
                   <p class="mt-2 text-sm font-medium text-slate-800">{{ formatDate(followup.next_action_at) }}</p>
                   <div class="mt-5 flex flex-wrap gap-2">
                     <button
@@ -59,7 +59,7 @@
                       class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                       (click)="selectFollowUp(followup)"
                     >
-                      Gestionar
+                      {{ i18n.t('followups.manage') }}
                     </button>
                     <a
                       [attr.data-testid]="'followups-ai-assistant-link-' + followup.id"
@@ -67,7 +67,7 @@
                       [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
                       class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700"
                     >
-                      Responder con AI
+                      {{ i18n.t('followups.replyAi') }}
                     </a>
                     <a
                       [attr.data-testid]="'followups-lead-detail-link-' + followup.id"
@@ -75,13 +75,13 @@
                       [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
                       class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                     >
-                      Ver detalle
+                      {{ i18n.t('followups.viewDetail') }}
                     </a>
                   </div>
                 </article>
               } @empty {
                 <div class="rounded-md bg-slate-50 p-6 text-center text-sm text-slate-500 lg:col-span-2">
-                  Sin seguimientos en esta categoria.
+                  {{ i18n.t('followups.emptyGroup') }}
                 </div>
               }
             </div>
@@ -92,12 +92,12 @@
 
     <aside class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24 xl:self-start">
       <div>
-        <h2 class="text-base font-semibold text-slate-950">Accion de seguimiento</h2>
+        <h2 class="text-base font-semibold text-slate-950">{{ i18n.t('followups.actionTitle') }}</h2>
         <p class="mt-1 text-sm text-slate-500">
           @if (selectedFollowUp(); as followup) {
             {{ followup.full_name }} - {{ followup.phone }}
           } @else {
-            Selecciona un seguimiento para gestionarlo.
+            {{ i18n.t('followups.selectPrompt') }}
           }
         </p>
       </div>
@@ -109,22 +109,22 @@
           [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
           class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
-          Ver detalle comercial
+          {{ i18n.t('followups.viewCommercialDetail') }}
         </a>
       }
 
       <form data-testid="followups-action-form" class="grid gap-4" [formGroup]="actionForm">
         <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Estado al completar
+          {{ i18n.t('followups.completeStatus') }}
           <select data-testid="followups-status-select" formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
             @for (status of statuses; track status) {
-              <option [value]="status">{{ status }}</option>
+              <option [value]="status">{{ statusLabel(status) }}</option>
             }
           </select>
         </label>
 
         <div class="grid gap-2 text-sm font-medium text-slate-700">
-          Nueva proxima accion (Fecha y Hora)
+          {{ i18n.t('followups.nextAction') }}
           <div class="grid grid-cols-[1.2fr_0.8fr] gap-3">
             <input
               type="date"
@@ -144,12 +144,12 @@
             />
           </div>
           @if (actionForm.controls.next_action_at.touched && actionForm.controls.next_action_at.invalid) {
-            <span class="text-xs text-red-600">Selecciona fecha y hora para reprogramar.</span>
+            <span class="text-xs text-red-600">{{ i18n.t('followups.invalidNextAction') }}</span>
           }
         </div>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Nota
+          {{ i18n.t('followups.note') }}
           <textarea
             formControlName="note"
             data-testid="followups-note-textarea"
@@ -166,7 +166,7 @@
             [disabled]="!selectedFollowUp() || saving()"
             (click)="completeSelected()"
           >
-            {{ saving() ? 'Completando...' : 'Completar' }}
+            {{ saving() ? i18n.t('followups.completing') : i18n.t('followups.complete') }}
           </button>
           <button
             type="button"
@@ -175,7 +175,7 @@
             [disabled]="!selectedFollowUp() || saving()"
             (click)="rescheduleSelected()"
           >
-            {{ saving() ? 'Reprogramando...' : 'Reprogramar' }}
+            {{ saving() ? i18n.t('followups.rescheduling') : i18n.t('followups.reschedule') }}
           </button>
         </div>
 
@@ -186,7 +186,7 @@
           [disabled]="!selectedFollowUp() || !canGenerateMessage() || generating()"
           (click)="generateMessage()"
         >
-          {{ generating() ? 'Generando...' : 'Generar mensaje AI' }}
+          {{ generating() ? i18n.t('followups.generating') : i18n.t('followups.generateAi') }}
         </button>
       </form>
 
@@ -199,10 +199,10 @@
             class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white"
             (click)="copyGeneratedMessage()"
           >
-            Copiar
+            {{ i18n.t('common.copy') }}
           </button>
           @if (copied()) {
-            <p data-testid="followups-copied-message" class="text-sm font-medium text-teal-700">Mensaje copiado.</p>
+            <p data-testid="followups-copied-message" class="text-sm font-medium text-teal-700">{{ i18n.t('followups.copied') }}</p>
           }
         </div>
       }

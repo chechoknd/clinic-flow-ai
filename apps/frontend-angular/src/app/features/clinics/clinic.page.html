@@ -1,7 +1,7 @@
 <section class="grid gap-6">
   <div>
-    <h1 class="text-2xl font-semibold text-slate-950">Perfil de la clinica</h1>
-    <p class="mt-1 text-sm text-slate-600">Datos comerciales usados en respuestas asistidas.</p>
+    <h1 class="text-2xl font-semibold text-slate-950">{{ i18n.t('clinic.title') }}</h1>
+    <p class="mt-1 text-sm text-slate-600">{{ i18n.t('clinic.subtitle') }}</p>
   </div>
 
   @if (error()) {
@@ -15,56 +15,56 @@
   <div class="grid gap-6 xl:grid-cols-[1fr_420px]">
     <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       @if (loading()) {
-        <p data-testid="clinic-loading-state" class="text-sm text-slate-500">Cargando perfil...</p>
+        <p data-testid="clinic-loading-state" class="text-sm text-slate-500">{{ i18n.t('clinic.loading') }}</p>
       } @else if (clinic(); as item) {
         <div data-testid="clinic-profile-summary" class="grid gap-5 md:grid-cols-2">
           <div>
-            <p class="text-sm text-slate-500">Nombre</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('common.name') }}</p>
             <p class="font-semibold text-slate-950">{{ item.name }}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Tipo</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('clinic.type') }}</p>
             <p class="font-semibold text-slate-950">{{ item.clinic_type }}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Ciudad</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('common.city') }}</p>
             <p class="font-semibold text-slate-950">{{ item.city }}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Pais</p>
-            <p class="font-semibold text-slate-950">{{ item.country_code }}</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('common.country') }}</p>
+            <p class="font-semibold text-slate-950">{{ i18n.t('country.' + item.country_code) }}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Moneda</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('common.currency') }}</p>
             <p class="font-semibold text-slate-950">{{ item.currency_code }} - {{ item.currency.symbol }}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">WhatsApp</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('clinic.whatsapp') }}</p>
             <p class="font-semibold text-slate-950">{{ item.whatsapp }}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Telefono</p>
-            <p class="font-semibold text-slate-950">{{ item.phone || 'Sin telefono' }}</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('common.phone') }}</p>
+            <p class="font-semibold text-slate-950">{{ item.phone || i18n.t('clinic.noPhone') }}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Tono</p>
-            <p class="font-semibold text-slate-950">{{ item.communication_tone }}</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('clinic.tone') }}</p>
+            <p class="font-semibold text-slate-950">{{ toneLabel(item.communication_tone) }}</p>
           </div>
           <div class="md:col-span-2">
-            <p class="text-sm text-slate-500">Direccion</p>
-            <p class="font-semibold text-slate-950">{{ item.address || 'Sin direccion' }}</p>
+            <p class="text-sm text-slate-500">{{ i18n.t('common.address') }}</p>
+            <p class="font-semibold text-slate-950">{{ item.address || i18n.t('clinic.noAddress') }}</p>
           </div>
         </div>
       } @else {
-        <p class="text-sm text-slate-500">No se pudo cargar la clinica. Verifica el backend y la sesion.</p>
+        <p class="text-sm text-slate-500">{{ i18n.t('clinic.loadInlineError') }}</p>
       }
     </div>
 
     <aside class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 class="text-base font-semibold text-slate-950">Editar datos comerciales</h2>
+      <h2 class="text-base font-semibold text-slate-950">{{ i18n.t('clinic.editTitle') }}</h2>
       <form data-testid="clinic-form" class="mt-4 grid gap-4" [formGroup]="clinicForm" (ngSubmit)="saveClinic()">
         <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Nombre
+          {{ i18n.t('common.name') }}
           <input
             type="text"
             data-testid="clinic-name-input"
@@ -72,12 +72,12 @@
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
           @if (clinicForm.controls.name.touched && clinicForm.controls.name.invalid) {
-            <span class="text-xs text-red-600">Ingresa un nombre de al menos 3 caracteres.</span>
+            <span class="text-xs text-red-600">{{ i18n.t('clinic.invalidName') }}</span>
           }
         </label>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Ciudad
+          {{ i18n.t('common.city') }}
           <input
             type="text"
             data-testid="clinic-city-input"
@@ -85,13 +85,13 @@
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
           @if (clinicForm.controls.city.touched && clinicForm.controls.city.invalid) {
-            <span class="text-xs text-red-600">Ingresa la ciudad de la clinica.</span>
+            <span class="text-xs text-red-600">{{ i18n.t('clinic.invalidCity') }}</span>
           }
         </label>
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
           <label class="grid gap-2 text-sm font-medium text-slate-700">
-            Pais
+            {{ i18n.t('common.country') }}
             <select
               formControlName="country_code"
               data-testid="clinic-country-select"
@@ -99,13 +99,13 @@
               (change)="onCountryChange($any($event.target).value)"
             >
               @for (item of countryCurrencies; track item.country_code) {
-                <option [value]="item.country_code">{{ item.country_label }}</option>
+                <option [value]="item.country_code">{{ i18n.t(item.country_label) }}</option>
               }
             </select>
           </label>
 
           <label class="grid gap-2 text-sm font-medium text-slate-700">
-            Moneda
+            {{ i18n.t('common.currency') }}
             <select
               formControlName="currency_code"
               data-testid="clinic-currency-select"
@@ -113,7 +113,7 @@
               (change)="onCurrencyChange($any($event.target).value)"
             >
               @for (item of countryCurrencies; track item.currency_code) {
-                <option [value]="item.currency_code">{{ item.currency_label }}</option>
+                <option [value]="item.currency_code">{{ i18n.t(item.currency_label) }}</option>
               }
             </select>
           </label>
@@ -128,12 +128,12 @@
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
           @if (clinicForm.controls.whatsapp.touched && clinicForm.controls.whatsapp.invalid) {
-            <span class="text-xs text-red-600">Usa formato internacional, por ejemplo +573001234567.</span>
+          <span class="text-xs text-red-600">{{ i18n.t('clinic.invalidWhatsapp') }}</span>
           }
         </label>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Telefono
+          {{ i18n.t('common.phone') }}
           <input
             type="tel"
             data-testid="clinic-phone-input"
@@ -141,12 +141,12 @@
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           />
           @if (clinicForm.controls.phone.touched && clinicForm.controls.phone.invalid) {
-            <span class="text-xs text-red-600">Usa formato internacional o deja el campo vacio.</span>
+            <span class="text-xs text-red-600">{{ i18n.t('clinic.invalidPhone') }}</span>
           }
         </label>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Direccion
+          {{ i18n.t('common.address') }}
           <textarea
             formControlName="address"
             data-testid="clinic-address-textarea"
@@ -156,14 +156,14 @@
         </label>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Tono de comunicacion
+          {{ i18n.t('clinic.communicationTone') }}
           <select
             formControlName="communication_tone"
             data-testid="clinic-tone-select"
             class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
           >
             @for (tone of tones; track tone.value) {
-              <option [value]="tone.value">{{ tone.label }}</option>
+              <option [value]="tone.value">{{ i18n.t(tone.label) }}</option>
             }
           </select>
         </label>
@@ -174,7 +174,7 @@
           class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
           [disabled]="saving() || loading()"
         >
-          {{ saving() ? 'Guardando...' : 'Guardar perfil' }}
+          {{ saving() ? i18n.t('common.saving') : i18n.t('clinic.saveProfile') }}
         </button>
       </form>
     </aside>

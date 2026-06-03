@@ -54,6 +54,8 @@ Phase B — Smart Schedule First Slice Validation and Documentation Alignment
 - Angular Smart Schedule, professionals, and schedule-first dashboard screens exist and are wired to API service methods.
 - Clinic profile now includes country/currency configuration for CO/COP, PE/PEN, AR/ARS, and CL/CLP.
 - Angular follow-ups screen groups pending actions by overdue, today, and upcoming urgency while keeping manual human action.
+- Angular frontend now has an initial lightweight ES/EN internationalization service, persisted language selection, and translated login/layout shell.
+- Angular Dashboard, Smart Schedule, Leads, Follow-ups, Clinic, Professionals, and Services screens now use the initial ES/EN dictionary for primary labels, actions, status names, empty states, and operational messages.
 
 ## In-Progress Items
 
@@ -72,6 +74,7 @@ Phase B — Smart Schedule First Slice Validation and Documentation Alignment
 - Add automated seed runner if seed usage grows beyond local/demo data.
 - Apply JWT middleware to any future protected endpoints as new modules are added.
 - Add broader integration coverage for backend workflows and frontend tests when frontend code exists.
+- Continue migrating the remaining feature screens to the ES/EN translation dictionary in small batches.
 
 ## Known Risks
 
@@ -108,6 +111,8 @@ Validate the Smart Schedule flow end-to-end locally, then harden the Angular sch
 - Added Angular clinic country/currency controls and updated frontend API models/specs.
 - Improved the Angular follow-ups screen with urgency groups, readable date formatting, lead detail links, and split date/time rescheduling inputs.
 - Validated backend tests, frontend build, frontend tests, backend vet, and local `/api/clinics/current` currency response.
+- Started frontend internationalization with a reusable Signals-based ES/EN service, language persistence, translated login page, translated navigation labels, and tests.
+- Extended the initial frontend internationalization pass to Dashboard, Leads, Smart Schedule, Follow-ups, Clinic, Professionals, and Services primary workflows.
 
 ### 2026-06-02
 

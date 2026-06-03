@@ -14,6 +14,20 @@ Add country/currency fields to clinic configuration with a small supported mappi
 
 The app can show the clinic's country and currency without expanding into payments or billing. Future price formatting can reuse the same metadata, but any payment or invoicing feature remains out of MVP scope.
 
+## 2026-06-03 — Start frontend i18n with a lightweight dictionary
+
+### Context
+
+ClinicFlow AI needs English support, but the app already has many hardcoded Spanish strings across feature screens. A full one-shot translation would be risky and noisy while Smart Schedule and commercial workflows are still evolving.
+
+### Decision
+
+Start with a lightweight Angular Signals-based i18n service, localStorage language persistence, and ES/EN dictionaries. Translate the login page and authenticated layout first, then migrate feature screens in small batches.
+
+### Consequences
+
+The app can switch between Spanish and English at the shell level immediately. Feature modules can adopt the same translation service progressively without adding external dependencies or changing backend contracts.
+
 ## 2026-05-20 — Use monorepo
 
 ### Context

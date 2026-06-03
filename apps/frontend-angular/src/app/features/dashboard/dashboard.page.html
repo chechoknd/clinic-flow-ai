@@ -2,15 +2,15 @@
   <!-- Header -->
   <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
     <div>
-      <h1 class="text-2xl font-bold text-slate-950 tracking-tight">Centro de Control Inteligente</h1>
-      <p class="mt-1 text-sm text-slate-600">Prioridades operativas, agenda de citas y conversión comercial de leads.</p>
+      <h1 class="text-2xl font-bold text-slate-950 tracking-tight">{{ i18n.t('dashboard.title') }}</h1>
+      <p class="mt-1 text-sm text-slate-600">{{ i18n.t('dashboard.subtitle') }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
       <a data-testid="dashboard-inbox-ai-link" routerLink="/inbox-ai" class="rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-700 shadow-sm transition duration-150 flex items-center gap-1.5">
-        <span>✨ Analizar Conversación</span>
+        <span>{{ i18n.t('dashboard.analyzeConversation') }}</span>
       </a>
       <a data-testid="dashboard-leads-link" routerLink="/leads" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition duration-150">
-        Ver Leads
+        {{ i18n.t('dashboard.viewLeads') }}
       </a>
     </div>
   </div>
@@ -45,7 +45,7 @@
       [class.hover:text-slate-700]="activeTab() !== 'schedule'"
       (click)="changeTab('schedule')"
     >
-      📆 Agenda Inteligente (Prioridades)
+      {{ i18n.t('dashboard.scheduleTab') }}
     </button>
     <button
       type="button"
@@ -57,7 +57,7 @@
       [class.hover:text-slate-700]="activeTab() !== 'crm'"
       (click)="changeTab('crm')"
     >
-      🎯 Embudo de Ventas (CRM)
+      {{ i18n.t('dashboard.crmTab') }}
     </button>
   </div>
 
@@ -67,8 +67,8 @@
       <!-- Prioridades de Atención -->
       <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col">
         <div>
-          <h2 class="text-lg font-bold text-slate-950">Prioridades Operativas de Hoy</h2>
-          <p class="mt-1 text-xs text-slate-500">Tareas sugeridas asistidas por inteligencia para maximizar la conversión en agenda.</p>
+          <h2 class="text-lg font-bold text-slate-950">{{ i18n.t('dashboard.todayPriorities') }}</h2>
+          <p class="mt-1 text-xs text-slate-500">{{ i18n.t('dashboard.todayPrioritiesDescription') }}</p>
           
           <div class="mt-6 grid gap-4">
             <!-- Priority 1: Agenda del Día -->
@@ -77,10 +77,10 @@
                 📅
               </div>
               <div class="grid gap-1">
-                <h3 class="font-bold text-slate-900 text-sm">Agenda del Día</h3>
-                <p class="text-xs text-slate-600">Tienes <strong class="text-blue-700 font-semibold">{{ schedSummary()?.todays_appointments ?? 0 }} citas</strong> programadas para hoy.</p>
+                <h3 class="font-bold text-slate-900 text-sm">{{ i18n.t('dashboard.todaySchedule') }}</h3>
+                <p class="text-xs text-slate-600">{{ interpolate('dashboard.todayAppointmentsText', schedSummary()?.todays_appointments ?? 0) }}</p>
                 <a routerLink="/schedule" class="mt-1 text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1">
-                  Ver agenda del día &rarr;
+                  {{ i18n.t('dashboard.viewTodaySchedule') }} &rarr;
                 </a>
               </div>
             </div>
@@ -91,10 +91,10 @@
                 🔔
               </div>
               <div class="grid gap-1">
-                <h3 class="font-bold text-slate-900 text-sm">Citas Pendientes de Confirmar</h3>
-                <p class="text-xs text-slate-600">Tienes <strong class="text-amber-700 font-semibold">{{ schedSummary()?.appointments_pending_confirmation ?? 0 }} citas</strong> esperando confirmación.</p>
+                <h3 class="font-bold text-slate-900 text-sm">{{ i18n.t('dashboard.pendingAppointments') }}</h3>
+                <p class="text-xs text-slate-600">{{ interpolate('dashboard.pendingAppointmentsText', schedSummary()?.appointments_pending_confirmation ?? 0) }}</p>
                 <a routerLink="/schedule" class="mt-1 text-xs font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1">
-                  Enviar mensajes de confirmación AI &rarr;
+                  {{ i18n.t('dashboard.sendConfirmations') }} &rarr;
                 </a>
               </div>
             </div>
@@ -105,10 +105,10 @@
                 🔥
               </div>
               <div class="grid gap-1">
-                <h3 class="font-bold text-slate-900 text-sm">Leads Calientes sin Cita</h3>
-                <p class="text-xs text-slate-600">Hay <strong class="text-rose-700 font-semibold">{{ schedSummary()?.hot_leads_without_appointment ?? 0 }} pacientes interesados</strong> listos para agendar.</p>
+                <h3 class="font-bold text-slate-900 text-sm">{{ i18n.t('dashboard.hotLeads') }}</h3>
+                <p class="text-xs text-slate-600">{{ interpolate('dashboard.hotLeadsText', schedSummary()?.hot_leads_without_appointment ?? 0) }}</p>
                 <a routerLink="/leads" class="mt-1 text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1">
-                  Ver leads interesados para agendar cita &rarr;
+                  {{ i18n.t('dashboard.viewInterestedLeads') }} &rarr;
                 </a>
               </div>
             </div>
@@ -119,10 +119,10 @@
                 ⚠️
               </div>
               <div class="grid gap-1">
-                <h3 class="font-bold text-slate-900 text-sm">Seguimientos Comerciales Vencidos</h3>
-                <p class="text-xs text-slate-600">Tienes <strong class="text-purple-700 font-semibold">{{ schedSummary()?.overdue_followups ?? 0 }} contactos</strong> con seguimiento atrasado hoy.</p>
+                <h3 class="font-bold text-slate-900 text-sm">{{ i18n.t('dashboard.overdueFollowups') }}</h3>
+                <p class="text-xs text-slate-600">{{ interpolate('dashboard.overdueFollowupsText', schedSummary()?.overdue_followups ?? 0) }}</p>
                 <a routerLink="/leads" class="mt-1 text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1">
-                  Iniciar seguimiento manual por WhatsApp &rarr;
+                  {{ i18n.t('dashboard.startManualFollowup') }} &rarr;
                 </a>
               </div>
             </div>
@@ -134,39 +134,39 @@
       <div class="grid gap-6">
         <!-- Agenda por Profesional -->
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 class="text-base font-bold text-slate-950">Agenda por Profesional</h2>
-          <p class="text-xs text-slate-500 mt-1">Distribución de citas agendadas para hoy.</p>
+          <h2 class="text-base font-bold text-slate-950">{{ i18n.t('dashboard.professionalSchedule') }}</h2>
+          <p class="text-xs text-slate-500 mt-1">{{ i18n.t('dashboard.professionalScheduleDescription') }}</p>
           
           <div class="mt-6 grid gap-4">
             @for (prof of professionalRows(); track prof.name) {
               <div [attr.data-testid]="'dashboard-professional-demand-' + prof.name">
                 <div class="mb-1 flex justify-between text-xs font-semibold">
                   <span class="text-slate-700">{{ prof.name }}</span>
-                  <span class="text-slate-900">{{ prof.count }} {{ prof.count === 1 ? 'cita' : 'citas' }}</span>
+                  <span class="text-slate-900">{{ prof.count }} {{ appointmentCountLabel(prof.count) }}</span>
                 </div>
                 <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
                   <div class="h-full rounded-full bg-teal-600 transition-all duration-500" [style.width.%]="prof.width"></div>
                 </div>
               </div>
             } @empty {
-              <p class="text-xs text-slate-500 py-6 text-center">No hay profesionales registrados o con citas para hoy.</p>
+              <p class="text-xs text-slate-500 py-6 text-center">{{ i18n.t('dashboard.noProfessionalsToday') }}</p>
             }
           </div>
         </section>
 
         <!-- Demanda por Servicio -->
         <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 class="text-base font-bold text-slate-950">Demanda por Tratamiento / Servicio</h2>
-          <p class="text-xs text-slate-500 mt-1">Especialidades con mayor volumen de citas agendadas.</p>
+          <h2 class="text-base font-bold text-slate-950">{{ i18n.t('dashboard.serviceDemand') }}</h2>
+          <p class="text-xs text-slate-500 mt-1">{{ i18n.t('dashboard.serviceDemandDescription') }}</p>
           
           <div class="mt-4 grid gap-3">
             @for (service of topServicesByDemand(); track service.service_id) {
               <div [attr.data-testid]="'dashboard-schedule-service-row-' + service.service_name" class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3.5 text-xs font-bold">
                 <span class="text-slate-700">{{ service.service_name }}</span>
-                <span class="rounded-full bg-teal-100 px-3 py-1 text-teal-800">{{ service.appointment_count }} citas</span>
+                <span class="rounded-full bg-teal-100 px-3 py-1 text-teal-800">{{ service.appointment_count }} {{ appointmentCountLabel(service.appointment_count) }}</span>
               </div>
             } @empty {
-              <p class="text-xs text-slate-500 py-6 text-center font-medium">Aún no hay citas registradas para servicios.</p>
+              <p class="text-xs text-slate-500 py-6 text-center font-medium">{{ i18n.t('dashboard.noScheduledServices') }}</p>
             }
           </div>
         </section>
@@ -178,15 +178,15 @@
     <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       <!-- Pipeline -->
       <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-base font-bold text-slate-950">Pipeline del Embudo</h2>
-        <p class="text-xs text-slate-500 mt-1">Distribución de leads en sus respectivos estados comerciales.</p>
+        <h2 class="text-base font-bold text-slate-950">{{ i18n.t('dashboard.pipeline') }}</h2>
+        <p class="text-xs text-slate-500 mt-1">{{ i18n.t('dashboard.pipelineDescription') }}</p>
         
         <div class="mt-6 grid gap-4">
           @for (item of statusRows(); track item.status) {
             <div [attr.data-testid]="'dashboard-pipeline-row-' + item.status">
               <div class="mb-1 flex justify-between text-xs font-semibold">
-                <span class="text-slate-700">{{ item.status }}</span>
-                <span class="text-slate-900">{{ item.count }} leads</span>
+                <span class="text-slate-700">{{ statusLabel(item.status) }}</span>
+                <span class="text-slate-900">{{ item.count }} {{ i18n.t('dashboard.leads') }}</span>
               </div>
               <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden">
                 <div class="h-full rounded-full bg-teal-600 transition-all duration-500" [style.width.%]="item.width"></div>
@@ -198,17 +198,17 @@
 
       <!-- Servicios consultados -->
       <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-base font-bold text-slate-950">Servicios más Consultados (Leads)</h2>
-        <p class="text-xs text-slate-500 mt-1">Interés comercial expresado en las consultas analizadas.</p>
+        <h2 class="text-base font-bold text-slate-950">{{ i18n.t('dashboard.topLeadServices') }}</h2>
+        <p class="text-xs text-slate-500 mt-1">{{ i18n.t('dashboard.topLeadServicesDescription') }}</p>
         
         <div class="mt-4 grid gap-3">
           @for (service of summary()?.top_services ?? []; track service.service_name) {
             <div [attr.data-testid]="'dashboard-top-service-row-' + service.service_name" class="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3.5 text-xs font-bold">
               <span class="text-slate-700">{{ service.service_name }}</span>
-              <span class="rounded-full bg-teal-100 px-3 py-1 text-teal-800">{{ service.total }} consultas</span>
+              <span class="rounded-full bg-teal-100 px-3 py-1 text-teal-800">{{ service.total }} {{ i18n.t('dashboard.consultations') }}</span>
             </div>
           } @empty {
-            <p class="text-xs text-slate-500 py-6 text-center font-medium">Aún no hay datos de servicios.</p>
+            <p class="text-xs text-slate-500 py-6 text-center font-medium">{{ i18n.t('dashboard.noServiceData') }}</p>
           }
         </div>
       </section>

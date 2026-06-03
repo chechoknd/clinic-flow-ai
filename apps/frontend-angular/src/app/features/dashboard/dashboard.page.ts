@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
 import { DashboardSummary, ScheduleSummary } from '../../core/services/api.models';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -12,6 +13,7 @@ import { DashboardSummary, ScheduleSummary } from '../../core/services/api.model
 })
 export class DashboardPage {
   private readonly api = inject(ApiService);
+  readonly i18n = inject(I18nService);
 
   readonly summary = signal<DashboardSummary | null>(null);
   readonly schedSummary = signal<ScheduleSummary | null>(null);
@@ -37,30 +39,30 @@ export class DashboardPage {
     const sched = this.schedSummary();
     return [
       {
-        label: 'Citas de Hoy',
+        label: this.i18n.t('dashboard.metric.todayAppointments'),
         value: sched?.todays_appointments ?? 0,
-        desc: 'Agendadas para hoy',
+        desc: this.i18n.t('dashboard.metric.todayAppointmentsDesc'),
         color: 'from-blue-500 to-indigo-600',
         route: '/schedule'
       },
       {
-        label: 'Por Confirmar',
+        label: this.i18n.t('dashboard.metric.pendingConfirmation'),
         value: sched?.appointments_pending_confirmation ?? 0,
-        desc: 'Citas pendientes de confirmación',
+        desc: this.i18n.t('dashboard.metric.pendingConfirmationDesc'),
         color: 'from-amber-500 to-orange-600',
         route: '/schedule'
       },
       {
-        label: 'Leads sin Cita',
+        label: this.i18n.t('dashboard.metric.hotLeads'),
         value: sched?.hot_leads_without_appointment ?? 0,
-        desc: 'Interesados listos para agendar',
+        desc: this.i18n.t('dashboard.metric.hotLeadsDesc'),
         color: 'from-rose-500 to-pink-600',
         route: '/leads'
       },
       {
-        label: 'Seguimientos Vencidos',
+        label: this.i18n.t('dashboard.metric.overdueFollowups'),
         value: sched?.overdue_followups ?? data?.overdue_followups ?? 0,
-        desc: 'Vencidos o atrasados hoy',
+        desc: this.i18n.t('dashboard.metric.overdueFollowupsDesc'),
         color: 'from-purple-500 to-violet-600',
         route: '/leads'
       },
@@ -89,5 +91,17 @@ export class DashboardPage {
 
   topServicesByDemand() {
     return this.schedSummary()?.top_services_by_schedule_demand ?? [];
+  }
+
+  statusLabel(status: string): string {
+    return this.i18n.t(`lead.status.${status}`);
+  }
+
+  interpolate(key: string, count: number): string {
+    return this.i18n.t(key).replace('{{count}}', String(count));
+  }
+
+  appointmentCountLabel(count: number): string {
+    return count === 1 ? this.i18n.t('dashboard.appointmentsSingular') : this.i18n.t('dashboard.appointmentsPlural');
   }
 }

@@ -2,7 +2,7 @@
   <!-- Top Toolbar / Navigation -->
   <header class="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:flex-row lg:items-center">
     <div class="min-w-0">
-      <h1 class="text-lg font-bold text-slate-950">Agenda</h1>
+      <h1 class="text-lg font-bold text-slate-950">{{ i18n.t('schedule.title') }}</h1>
       <p class="mt-1 text-xs font-medium capitalize text-slate-500">{{ selectedDateLabel() }}</p>
     </div>
 
@@ -18,7 +18,7 @@
           [class.text-slate-900]="selectedView() === 'day'"
           [class.text-slate-500]="selectedView() !== 'day'"
         >
-          Día
+          {{ i18n.t('schedule.day') }}
         </button>
         <button
           type="button"
@@ -29,7 +29,7 @@
           [class.text-slate-900]="selectedView() === 'week'"
           [class.text-slate-500]="selectedView() !== 'week'"
         >
-          Semana
+          {{ i18n.t('schedule.week') }}
         </button>
       </div>
 
@@ -38,7 +38,7 @@
         <button
           type="button"
           (click)="changeDate(-1)"
-          aria-label="Fecha anterior"
+          aria-label="{{ i18n.t('schedule.previousDate') }}"
           class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
         >
           ‹
@@ -48,12 +48,12 @@
           (click)="goToToday()"
           class="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
         >
-          Hoy
+          {{ i18n.t('schedule.today') }}
         </button>
         <button
           type="button"
           (click)="changeDate(1)"
-          aria-label="Fecha siguiente"
+          aria-label="{{ i18n.t('schedule.nextDate') }}"
           class="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
         >
           ›
@@ -75,26 +75,26 @@
         (click)="openCreateDialog()"
         class="rounded-md bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700 transition"
       >
-        + Nueva cita
+        {{ i18n.t('schedule.newAppointment') }}
       </button>
     </div>
   </header>
 
   <section class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
     <div class="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Citas del día</p>
+      <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ i18n.t('schedule.dayAppointments') }}</p>
       <p class="mt-1 text-2xl font-bold text-slate-950">{{ dailyStats().total }}</p>
     </div>
     <div class="rounded-lg border border-amber-200 bg-amber-50/70 px-4 py-3 shadow-sm">
-      <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Por confirmar</p>
+      <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">{{ i18n.t('schedule.pendingConfirmation') }}</p>
       <p class="mt-1 text-2xl font-bold text-amber-800">{{ dailyStats().pending }}</p>
     </div>
     <div class="rounded-lg border border-emerald-200 bg-emerald-50/70 px-4 py-3 shadow-sm">
-      <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Confirmadas</p>
+      <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">{{ i18n.t('schedule.confirmed') }}</p>
       <p class="mt-1 text-2xl font-bold text-emerald-800">{{ dailyStats().confirmed }}</p>
     </div>
     <div class="rounded-lg border border-teal-200 bg-teal-50/70 px-4 py-3 shadow-sm">
-      <p class="text-[10px] font-bold uppercase tracking-wider text-teal-700">Horarios consultados</p>
+      <p class="text-[10px] font-bold uppercase tracking-wider text-teal-700">{{ i18n.t('schedule.checkedSlots') }}</p>
       <p class="mt-1 text-2xl font-bold text-teal-800">{{ dailyStats().availableSlots }}</p>
     </div>
   </section>
@@ -113,20 +113,20 @@
 
   @if (!loading() && professionals().length === 0) {
     <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs font-medium text-amber-800 shadow-sm">
-      Configura al menos un profesional activo para empezar a usar la agenda.
+      {{ i18n.t('schedule.noProfessionals') }}
     </div>
   }
 
   @if (!loading() && selectedView() === 'day' && professionals().length > 0 && selectedDateAppointments().length === 0) {
     <div class="rounded-lg border border-slate-200 bg-white p-4 text-xs font-medium text-slate-600 shadow-sm">
-      No hay citas para esta fecha. Usa Nueva cita o revisa disponibilidad desde el formulario.
+      {{ i18n.t('schedule.emptyDay') }}
     </div>
   }
 
   <!-- Professional Selection tab for Weekly View only -->
   @if (selectedView() === 'week') {
     <div class="flex items-center gap-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 shrink-0">Dentista:</span>
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 shrink-0">{{ i18n.t('schedule.dentist') }}:</span>
       @for (p of professionals(); track p.id) {
         <button
           type="button"
@@ -164,11 +164,11 @@
                   <span class="h-4 w-4 rounded-full border border-black/10 shrink-0" [style.backgroundColor]="p.calendar_color || '#2563EB'"></span>
                   <div>
                     <h3 class="text-xs font-semibold text-slate-900 truncate">{{ p.full_name }}</h3>
-                    <p class="text-[10px] text-slate-500 truncate">{{ p.role_or_specialty || 'General' }}</p>
+                    <p class="text-[10px] text-slate-500 truncate">{{ p.role_or_specialty || i18n.t('schedule.general') }}</p>
                   </div>
                 </div>
               } @empty {
-                <div class="p-4 text-center text-xs text-slate-500 col-span-full">Aún no hay profesionales configurados en esta clínica.</div>
+                <div class="p-4 text-center text-xs text-slate-500 col-span-full">{{ i18n.t('schedule.noProfessionalsConfigured') }}</div>
               }
             } @else {
               <!-- Weekly Days Headers -->
@@ -237,11 +237,11 @@
                           </div>
                           @if (appt.confirmation_status === 'confirmed') {
                             <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-white/70 px-1.5 py-0.5 rounded-full border border-current mt-1">
-                              Confirmada
+                              {{ i18n.t('schedule.confirmed') }}
                             </span>
                           } @else if (appt.status === 'pending_confirmation') {
                             <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-amber-100/90 text-amber-900 px-1.5 py-0.5 rounded-full border border-amber-300 mt-1">
-                              Por confirmar
+                              {{ i18n.t('schedule.pendingConfirmation') }}
                             </span>
                           }
                         </div>
@@ -276,7 +276,7 @@
                           </div>
                           @if (appt.confirmation_status === 'confirmed') {
                             <span class="inline-flex self-start items-center gap-1 text-[9px] font-bold bg-white/70 px-1.5 py-0.5 rounded-full border border-current mt-1">
-                              Confirmada
+                              {{ i18n.t('schedule.confirmed') }}
                             </span>
                           }
                         </div>
@@ -301,7 +301,7 @@
     <div class="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
       <!-- Header -->
       <header class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
-        <h3 class="text-base font-semibold text-slate-950">Nueva cita</h3>
+        <h3 class="text-base font-semibold text-slate-950">{{ i18n.t('schedule.newAppointment') }}</h3>
         <button type="button" (click)="closeCreateDialog()" class="text-slate-400 hover:text-slate-600 text-lg">×</button>
       </header>
 
@@ -318,14 +318,14 @@
         <div class="grid gap-3 sm:grid-cols-2">
           <div>
             <label for="contact_name" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Nombre de Contacto *
+              {{ i18n.t('schedule.contactName') }} *
             </label>
             <input
               type="text"
               id="contact_name"
               data-testid="appointment-name-input"
               formControlName="contact_name"
-              placeholder="Ej. Carlos Torres"
+              [placeholder]="i18n.t('schedule.contactNamePlaceholder')"
               class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none"
               [class.border-red-500]="appointmentForm.controls.contact_name.touched && appointmentForm.controls.contact_name.invalid"
             />
@@ -333,14 +333,14 @@
 
           <div>
             <label for="contact_phone" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Teléfono (WhatsApp) *
+              {{ i18n.t('schedule.phone') }} *
             </label>
             <input
               type="tel"
               id="contact_phone"
               data-testid="appointment-phone-input"
               formControlName="contact_phone"
-              placeholder="Ej. +573123456789"
+              [placeholder]="i18n.t('schedule.phonePlaceholder')"
               class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none"
               [class.border-red-500]="appointmentForm.controls.contact_phone.touched && appointmentForm.controls.contact_phone.invalid"
             />
@@ -351,7 +351,7 @@
         <div class="grid gap-3 sm:grid-cols-2">
           <div>
             <label for="professional_id" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Dentista / Profesional *
+              {{ i18n.t('schedule.professional') }} *
             </label>
             <select
               id="professional_id"
@@ -360,7 +360,7 @@
               (change)="checkAvailability()"
               class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none bg-white"
             >
-              <option value="">Seleccionar...</option>
+              <option value="">{{ i18n.t('schedule.select') }}</option>
               @for (p of professionals(); track p.id) {
                 <option [value]="p.id">{{ p.full_name }}</option>
               }
@@ -369,7 +369,7 @@
 
           <div>
             <label for="service_id" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Servicio Requerido *
+              {{ i18n.t('schedule.requiredService') }} *
             </label>
             <select
               id="service_id"
@@ -378,7 +378,7 @@
               (change)="onServiceChange()"
               class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 focus:border-teal-500 focus:outline-none bg-white"
             >
-              <option value="">Seleccionar...</option>
+              <option value="">{{ i18n.t('schedule.select') }}</option>
               @for (s of services(); track s.id) {
                 <option [value]="s.id">{{ s.name }} ({{ s.duration_minutes }} min)</option>
               }
@@ -390,7 +390,7 @@
         <div class="grid gap-3 sm:grid-cols-3">
           <div>
             <label for="starts_at_date" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Fecha *
+              {{ i18n.t('schedule.date') }} *
             </label>
             <input
               type="date"
@@ -403,7 +403,7 @@
 
           <div>
             <label for="starts_at_time" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Hora Inicio *
+              {{ i18n.t('schedule.startTime') }} *
             </label>
             <input
               type="time"
@@ -416,7 +416,7 @@
 
           <div>
             <label for="duration_mins" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Duración (min) *
+              {{ i18n.t('schedule.duration') }} *
             </label>
             <input
               type="number"
@@ -432,7 +432,7 @@
         <div class="rounded-md border border-slate-100 bg-slate-50 p-3">
           <div class="flex justify-between items-center gap-2 mb-2">
             <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-              Horarios disponibles
+              {{ i18n.t('schedule.availableSlots') }}
             </span>
             <button
               type="button"
@@ -440,7 +440,7 @@
               [disabled]="checkingAvailability()"
               class="text-[10px] text-teal-600 hover:text-teal-700 font-semibold focus:outline-none"
             >
-              {{ checkingAvailability() ? 'Consultando...' : 'Actualizar horarios' }}
+              {{ checkingAvailability() ? i18n.t('schedule.checkingSlots') : i18n.t('schedule.refreshSlots') }}
             </button>
           </div>
 
@@ -456,7 +456,7 @@
               </button>
             } @empty {
               <p class="text-[10px] text-slate-400 italic py-1">
-                {{ appointmentForm.controls.professional_id.value ? 'No hay horarios disponibles o haz clic en "Actualizar horarios"' : 'Selecciona un dentista y fecha para ver opciones libres.' }}
+                {{ appointmentForm.controls.professional_id.value ? i18n.t('schedule.noSlots') : i18n.t('schedule.selectDentistDate') }}
               </p>
             }
           </div>
@@ -465,12 +465,12 @@
         <!-- Admin Commercial notes -->
         <div>
           <label for="admin_notes" class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-            Notas de agenda (solo comerciales/admin)
+            {{ i18n.t('schedule.adminNotes') }}
           </label>
           <textarea
             id="admin_notes"
             formControlName="admin_notes"
-            placeholder="Ej. Prefiere horario en la tarde. Confirmar asistencia por WhatsApp."
+            [placeholder]="i18n.t('schedule.adminNotesPlaceholder')"
             rows="2"
             class="w-full rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-950 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none resize-none"
           ></textarea>
@@ -483,7 +483,7 @@
             (click)="closeCreateDialog()"
             class="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Cancelar
+            {{ i18n.t('common.cancel') }}
           </button>
           <button
             type="submit"
@@ -491,7 +491,7 @@
             [disabled]="saving()"
             class="rounded-md bg-teal-600 px-5 py-2 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
           >
-            {{ saving() ? 'Guardando...' : 'Guardar cita' }}
+            {{ saving() ? i18n.t('schedule.savingAppointment') : i18n.t('schedule.saveAppointment') }}
           </button>
         </div>
       </form>
@@ -525,7 +525,7 @@
               <div>
                 <h3 class="text-lg font-bold text-slate-950">{{ selectedAppointment()?.contact_name }}</h3>
                 <p class="text-xs font-semibold text-teal-600 mt-1">
-                  {{ selectedAppointment()?.contact_phone || 'Sin teléfono registrado' }}
+                  {{ selectedAppointment()?.contact_phone || i18n.t('schedule.noPhone') }}
                 </p>
               </div>
               <span
@@ -540,27 +540,27 @@
           <!-- Core details table -->
           <section class="grid gap-3 text-xs bg-slate-50 p-4 rounded-lg border border-slate-100">
             <div class="flex justify-between gap-2">
-              <span class="font-semibold text-slate-500">Servicio:</span>
+              <span class="font-semibold text-slate-500">{{ i18n.t('schedule.service') }}:</span>
               <span class="font-bold text-slate-950">{{ selectedAppointment()?.service?.name }}</span>
             </div>
             <div class="flex justify-between gap-2">
-              <span class="font-semibold text-slate-500">Dentista:</span>
+              <span class="font-semibold text-slate-500">{{ i18n.t('schedule.dentist') }}:</span>
               <span class="font-bold text-slate-950">{{ selectedAppointment()?.professional?.full_name }}</span>
             </div>
             <div class="flex justify-between gap-2">
-              <span class="font-semibold text-slate-500">Horario:</span>
+              <span class="font-semibold text-slate-500">{{ i18n.t('schedule.time') }}:</span>
               <span class="font-bold text-slate-950 text-right">
                 {{ selectedAppointment()?.starts_at | date:'EEEE d MMMM, h:mm a' }}
               </span>
             </div>
             <div class="flex justify-between gap-2">
-              <span class="font-semibold text-slate-500">Canal Origen:</span>
+              <span class="font-semibold text-slate-500">{{ i18n.t('schedule.source') }}:</span>
               <span class="font-bold text-slate-800 capitalize">{{ sourceLabel(selectedAppointment()!.source) }}</span>
             </div>
             <div class="flex justify-between gap-2 border-t border-slate-200/60 pt-2 mt-1">
-              <span class="font-semibold text-slate-500">Notas de Agenda:</span>
+              <span class="font-semibold text-slate-500">{{ i18n.t('schedule.notes') }}:</span>
               <span class="font-medium text-slate-700 italic max-w-[200px] break-words text-right">
-                {{ selectedAppointment()?.admin_notes || 'Ninguna nota ingresada' }}
+                {{ selectedAppointment()?.admin_notes || i18n.t('schedule.noNotes') }}
               </span>
             </div>
           </section>
@@ -568,7 +568,7 @@
           <!-- AI reply assistant widget (Crucial for CRM value) -->
           <section class="rounded-xl border border-teal-100 bg-teal-50/20 p-4">
             <h4 class="text-xs font-bold text-teal-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-              Asistente de comunicación AI
+              {{ i18n.t('schedule.aiCommunication') }}
             </h4>
             
             <div class="flex flex-wrap gap-1.5 mb-3">
@@ -578,7 +578,7 @@
                 [disabled]="loadingAiMessage()"
                 class="rounded bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white px-2.5 py-1 text-[10px] font-semibold transition focus:outline-none"
               >
-                Sugerir Confirmación
+                {{ i18n.t('schedule.suggestConfirmation') }}
               </button>
               <button
                 type="button"
@@ -586,14 +586,14 @@
                 [disabled]="loadingAiMessage()"
                 class="rounded border border-teal-600 text-teal-700 hover:bg-teal-50 disabled:opacity-50 px-2.5 py-1 text-[10px] font-semibold transition focus:outline-none"
               >
-                Sugerir reactivación
+                {{ i18n.t('schedule.suggestReactivation') }}
               </button>
             </div>
 
             <!-- AI Suggested Box -->
             @if (loadingAiMessage()) {
               <div class="p-4 text-center text-xs text-slate-400 italic animate-pulse">
-                IA redactando sugerencia...
+                {{ i18n.t('schedule.aiDrafting') }}
               </div>
             } @else if (aiSuggestedMessage()) {
               <div class="grid gap-2">
@@ -608,12 +608,12 @@
                   (click)="copyToClipboard(aiSuggestedMessage()!)"
                   class="rounded bg-teal-100 hover:bg-teal-200 text-teal-800 text-[10px] font-bold py-1.5 px-3 transition flex items-center justify-center gap-1"
                 >
-                  Copiar mensaje
+                  {{ i18n.t('schedule.copyMessage') }}
                 </button>
               </div>
             } @else {
               <p class="text-[10px] text-slate-500 leading-normal">
-                Genera mensajes de WhatsApp basados en el servicio, el horario y las notas administrativas.
+                {{ i18n.t('schedule.aiHelper') }}
               </p>
             }
           </section>
@@ -628,33 +628,33 @@
                 (click)="quickConfirm(selectedAppointment()!)"
                 class="w-full rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 transition"
               >
-                Confirmar asistencia ahora
+                {{ i18n.t('schedule.confirmNow') }}
               </button>
             }
 
             <!-- 1. Form state transition -->
             <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="rounded-lg border border-slate-200 p-3 bg-white shadow-sm">
               <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                Actualizar estado de la cita
+                {{ i18n.t('schedule.updateStatus') }}
               </span>
               <div class="grid gap-2">
                 <select
                   formControlName="status"
                   class="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-900 focus:outline-none"
                 >
-                  <option value="scheduled">Programada</option>
-                  <option value="confirmed">Confirmada</option>
-                  <option value="pending_confirmation">Pendiente de Confirmación</option>
-                  <option value="rescheduled">Reprogramada</option>
-                  <option value="no_show">No Asistió</option>
-                  <option value="cancelled">Cancelada</option>
-                  <option value="completed">Completada</option>
+                  <option value="scheduled">{{ i18n.t('schedule.statusScheduled') }}</option>
+                  <option value="confirmed">{{ i18n.t('schedule.statusConfirmed') }}</option>
+                  <option value="pending_confirmation">{{ i18n.t('schedule.statusPendingConfirmation') }}</option>
+                  <option value="rescheduled">{{ i18n.t('schedule.statusRescheduled') }}</option>
+                  <option value="no_show">{{ i18n.t('schedule.statusNoShow') }}</option>
+                  <option value="cancelled">{{ i18n.t('schedule.statusCancelled') }}</option>
+                  <option value="completed">{{ i18n.t('schedule.statusCompleted') }}</option>
                 </select>
 
                 <input
                   type="text"
                   formControlName="admin_notes"
-                  placeholder="Agregar nota de actualización"
+                  [placeholder]="i18n.t('schedule.updateNotePlaceholder')"
                   class="w-full rounded border border-slate-300 px-2.5 py-1 text-xs text-slate-900 focus:outline-none"
                 />
 
@@ -663,7 +663,7 @@
                   [disabled]="saving()"
                   class="rounded bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold py-1.5 mt-1 transition"
                 >
-                  Guardar estado
+                  {{ i18n.t('schedule.saveStatus') }}
                 </button>
               </div>
             </form>
@@ -671,7 +671,7 @@
             <!-- 2. Reprogramar time block -->
             <form [formGroup]="rescheduleForm" (ngSubmit)="reschedule()" class="rounded-lg border border-slate-200 p-3 bg-white shadow-sm">
               <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                Reprogramar horario
+                {{ i18n.t('schedule.rescheduleTime') }}
               </span>
               <div class="grid gap-2">
                 <div class="grid grid-cols-2 gap-2">
@@ -690,7 +690,7 @@
                 <input
                   type="text"
                   formControlName="admin_note"
-                  placeholder="Nota de reprogramación (Ej. Disponibilidad paciente)"
+                  [placeholder]="i18n.t('schedule.rescheduleNotePlaceholder')"
                   class="w-full rounded border border-slate-300 px-2.5 py-1 text-xs text-slate-900 focus:outline-none"
                 />
 
@@ -699,7 +699,7 @@
                   [disabled]="saving()"
                   class="rounded border border-teal-600 text-teal-700 hover:bg-teal-50/50 disabled:opacity-50 text-xs font-bold py-1.5 mt-1 transition"
                 >
-                  Reprogramar cita
+                  {{ i18n.t('schedule.rescheduleAppointment') }}
                 </button>
               </div>
             </form>

@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ClinicServiceItem } from '../../core/services/api.models';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { ApiService } from '../../core/services/api.service';
 export class ServicesPage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
 
   readonly services = signal<ClinicServiceItem[]>([]);
   readonly selectedService = signal<ClinicServiceItem | null>(null);
@@ -21,7 +23,9 @@ export class ServicesPage {
   readonly deleting = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
-  readonly formTitle = computed(() => (this.selectedService() ? 'Editar servicio' : 'Nuevo servicio'));
+  readonly formTitle = computed(() =>
+    this.selectedService() ? this.i18n.t('services.editTitle') : this.i18n.t('services.newTitle'),
+  );
 
   readonly serviceForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
@@ -91,11 +95,11 @@ export class ServicesPage {
         next: (service) => {
           this.services.update((items) => items.map((item) => (item.id === service.id ? service : item)));
           this.selectService(service);
-          this.success.set('Servicio actualizado correctamente.');
+          this.success.set(this.i18n.t('services.updated'));
           this.saving.set(false);
         },
         error: () => {
-          this.error.set('No fue posible actualizar el servicio.');
+          this.error.set(this.i18n.t('services.updateError'));
           this.saving.set(false);
         },
       });
@@ -106,11 +110,11 @@ export class ServicesPage {
       next: (service) => {
         this.services.update((items) => [service, ...items]);
         this.selectService(service);
-        this.success.set('Servicio creado correctamente.');
+        this.success.set(this.i18n.t('services.created'));
         this.saving.set(false);
       },
       error: () => {
-        this.error.set('No fue posible crear el servicio. Revisa los datos e intenta de nuevo.');
+        this.error.set(this.i18n.t('services.createError'));
         this.saving.set(false);
       },
     });
@@ -128,11 +132,11 @@ export class ServicesPage {
       next: () => {
         this.services.update((items) => items.filter((item) => item.id !== selected.id));
         this.startCreate();
-        this.success.set('Servicio eliminado correctamente.');
+        this.success.set(this.i18n.t('services.deleted'));
         this.deleting.set(false);
       },
       error: () => {
-        this.error.set('No fue posible eliminar el servicio.');
+        this.error.set(this.i18n.t('services.deleteError'));
         this.deleting.set(false);
       },
     });
@@ -146,7 +150,7 @@ export class ServicesPage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('No fue posible cargar el catalogo de servicios.');
+        this.error.set(this.i18n.t('services.loadError'));
         this.loading.set(false);
       },
     });

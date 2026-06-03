@@ -17,21 +17,35 @@
         class="inline-flex h-10 items-center justify-center rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-700 sm:hidden"
         (click)="menuOpen.update(toggleOpen)"
       >
-        Menu
+        {{ i18n.t('common.menu') }}
       </button>
 
       <nav class="hidden items-center gap-1 sm:flex">
         @for (item of navItems; track item.path) {
           <a
             [routerLink]="item.path"
-            [attr.data-testid]="'app-layout-nav-link-' + item.label"
+            [attr.data-testid]="'app-layout-nav-link-' + item.labelKey"
             routerLinkActive="bg-slate-900 text-white"
             class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
           >
-            {{ item.label }}
+            {{ i18n.t(item.labelKey) }}
           </a>
         }
       </nav>
+
+      <label class="hidden items-center gap-2 text-sm font-medium text-slate-600 lg:flex">
+        <span>{{ i18n.t('common.language') }}</span>
+        <select
+          data-testid="app-layout-language-select"
+          class="h-10 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+          [value]="i18n.language()"
+          (change)="setLanguage($any($event.target).value)"
+        >
+          @for (language of i18n.languages; track language.code) {
+            <option [value]="language.code">{{ language.label }}</option>
+          }
+        </select>
+      </label>
 
       <button
         type="button"
@@ -39,7 +53,7 @@
         class="hidden rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 sm:inline-flex"
         (click)="logout()"
       >
-        Salir
+        {{ i18n.t('common.logout') }}
       </button>
     </div>
 
@@ -53,16 +67,29 @@
               class="rounded-md px-3 py-2 text-sm font-medium text-slate-700"
               (click)="menuOpen.set(false)"
             >
-              {{ item.label }}
+              {{ i18n.t(item.labelKey) }}
             </a>
           }
+          <label class="grid gap-2 px-3 py-2 text-sm font-medium text-slate-700">
+            {{ i18n.t('common.language') }}
+            <select
+              data-testid="app-layout-mobile-language-select"
+              class="h-10 rounded-md border border-slate-300 bg-white px-2 text-sm text-slate-700"
+              [value]="i18n.language()"
+              (change)="setLanguage($any($event.target).value)"
+            >
+              @for (language of i18n.languages; track language.code) {
+                <option [value]="language.code">{{ language.label }}</option>
+              }
+            </select>
+          </label>
           <button
             type="button"
             data-testid="app-layout-mobile-logout-button"
             class="rounded-md border border-slate-300 px-3 py-2 text-left text-sm font-medium text-slate-700"
             (click)="logout()"
           >
-            Salir
+            {{ i18n.t('common.logout') }}
           </button>
         </div>
       </nav>

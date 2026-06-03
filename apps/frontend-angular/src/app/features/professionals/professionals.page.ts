@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ClinicServiceItem, Professional, WorkingHoursConfig } from '../../core/services/api.models';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ApiService } from '../../core/services/api.service';
 
 interface WeekdayState {
@@ -20,6 +21,7 @@ interface WeekdayState {
 export class ProfessionalsPage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
 
   readonly professionals = signal<Professional[]>([]);
   readonly services = signal<ClinicServiceItem[]>([]);
@@ -30,7 +32,9 @@ export class ProfessionalsPage {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
   
-  readonly formTitle = computed(() => (this.selectedProfessional() ? 'Editar Profesional' : 'Nuevo Profesional'));
+  readonly formTitle = computed(() =>
+    this.selectedProfessional() ? this.i18n.t('professionals.editTitle') : this.i18n.t('professionals.newTitle'),
+  );
 
   readonly colorPresets = [
     '#2563EB', // Royal Blue
@@ -42,13 +46,13 @@ export class ProfessionalsPage {
   ];
 
   readonly daysList: { key: keyof WorkingHoursConfig; label: string }[] = [
-    { key: 'monday', label: 'Lunes' },
-    { key: 'tuesday', label: 'Martes' },
-    { key: 'wednesday', label: 'Miércoles' },
-    { key: 'thursday', label: 'Jueves' },
-    { key: 'friday', label: 'Viernes' },
-    { key: 'saturday', label: 'Sábado' },
-    { key: 'sunday', label: 'Domingo' }
+    { key: 'monday', label: 'weekday.monday' },
+    { key: 'tuesday', label: 'weekday.tuesday' },
+    { key: 'wednesday', label: 'weekday.wednesday' },
+    { key: 'thursday', label: 'weekday.thursday' },
+    { key: 'friday', label: 'weekday.friday' },
+    { key: 'saturday', label: 'weekday.saturday' },
+    { key: 'sunday', label: 'weekday.sunday' }
   ];
 
   // Flat state to bind weekly working hours inputs easily
@@ -84,7 +88,7 @@ export class ProfessionalsPage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('No se pudieron cargar los profesionales.');
+        this.error.set(this.i18n.t('professionals.loadError'));
         this.loading.set(false);
       }
     });
@@ -232,11 +236,11 @@ export class ProfessionalsPage {
         next: (prof) => {
           this.professionals.update((items) => items.map((item) => (item.id === prof.id ? prof : item)));
           this.selectProfessional(prof);
-          this.success.set('Dentista/profesional actualizado correctamente.');
+          this.success.set(this.i18n.t('professionals.updated'));
           this.saving.set(false);
         },
         error: (err) => {
-          const errMsg = err.error?.error?.message || 'No fue posible actualizar el profesional.';
+          const errMsg = err.error?.error?.message || this.i18n.t('professionals.updateError');
           this.error.set(errMsg);
           this.saving.set(false);
         }
@@ -246,11 +250,11 @@ export class ProfessionalsPage {
         next: (prof) => {
           this.professionals.update((items) => [prof, ...items]);
           this.selectProfessional(prof);
-          this.success.set('Dentista/profesional registrado correctamente.');
+          this.success.set(this.i18n.t('professionals.created'));
           this.saving.set(false);
         },
         error: (err) => {
-          const errMsg = err.error?.error?.message || 'No fue posible crear el profesional.';
+          const errMsg = err.error?.error?.message || this.i18n.t('professionals.createError');
           this.error.set(errMsg);
           this.saving.set(false);
         }
@@ -265,6 +269,10 @@ export class ProfessionalsPage {
 
   getServiceIDs(p: Professional): string[] {
     return p.service_ids || [];
+  }
+
+  dayLabel(day: { label: string }): string {
+    return this.i18n.t(day.label);
   }
 
   private clearMessages(): void {

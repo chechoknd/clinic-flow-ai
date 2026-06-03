@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ClinicProfile, CommunicationTone, CountryCode, CurrencyCode } from '../../core/services/api.models';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -13,13 +14,14 @@ import { ApiService } from '../../core/services/api.service';
 export class ClinicPage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
 
   readonly tones: Array<{ value: CommunicationTone; label: string }> = [
-    { value: 'amable', label: 'Amable' },
-    { value: 'profesional', label: 'Profesional' },
-    { value: 'cercano', label: 'Cercano' },
-    { value: 'juvenil', label: 'Juvenil' },
-    { value: 'elegante', label: 'Elegante' },
+    { value: 'amable', label: 'tone.amable' },
+    { value: 'profesional', label: 'tone.profesional' },
+    { value: 'cercano', label: 'tone.cercano' },
+    { value: 'juvenil', label: 'tone.juvenil' },
+    { value: 'elegante', label: 'tone.elegante' },
   ];
   readonly countryCurrencies: Array<{
     country_code: CountryCode;
@@ -27,10 +29,10 @@ export class ClinicPage {
     currency_code: CurrencyCode;
     currency_label: string;
   }> = [
-    { country_code: 'CO', country_label: 'Colombia', currency_code: 'COP', currency_label: 'COP - Peso colombiano' },
-    { country_code: 'PE', country_label: 'Peru', currency_code: 'PEN', currency_label: 'PEN - Sol peruano' },
-    { country_code: 'AR', country_label: 'Argentina', currency_code: 'ARS', currency_label: 'ARS - Peso argentino' },
-    { country_code: 'CL', country_label: 'Chile', currency_code: 'CLP', currency_label: 'CLP - Peso chileno' },
+    { country_code: 'CO', country_label: 'country.CO', currency_code: 'COP', currency_label: 'currency.COP' },
+    { country_code: 'PE', country_label: 'country.PE', currency_code: 'PEN', currency_label: 'currency.PEN' },
+    { country_code: 'AR', country_label: 'country.AR', currency_code: 'ARS', currency_label: 'currency.ARS' },
+    { country_code: 'CL', country_label: 'country.CL', currency_code: 'CLP', currency_label: 'currency.CLP' },
   ];
   readonly clinic = signal<ClinicProfile | null>(null);
   readonly loading = signal(false);
@@ -95,11 +97,11 @@ export class ClinicPage {
         next: (profile) => {
           this.clinic.set(profile);
           this.hydrateForm(profile);
-          this.success.set('Perfil de clinica actualizado correctamente.');
+          this.success.set(this.i18n.t('clinic.updated'));
           this.saving.set(false);
         },
         error: () => {
-          this.error.set('No fue posible actualizar el perfil. Revisa los datos e intenta de nuevo.');
+          this.error.set(this.i18n.t('clinic.updateError'));
           this.saving.set(false);
         },
       });
@@ -114,7 +116,7 @@ export class ClinicPage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('No se pudo cargar la clinica. Verifica el backend y la sesion.');
+        this.error.set(this.i18n.t('clinic.loadError'));
         this.loading.set(false);
       },
     });
@@ -136,5 +138,9 @@ export class ClinicPage {
   private clearMessages(): void {
     this.error.set(null);
     this.success.set(null);
+  }
+
+  toneLabel(tone: CommunicationTone): string {
+    return this.i18n.t(`tone.${tone}`);
   }
 }

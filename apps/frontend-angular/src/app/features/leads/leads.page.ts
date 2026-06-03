@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
+import { I18nService } from '../../core/i18n/i18n.service';
 import { ClinicServiceItem, Lead, LeadStatus } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 
@@ -14,6 +15,7 @@ import { ApiService } from '../../core/services/api.service';
 export class LeadsPage {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
 
   readonly statuses: LeadStatus[] = [
     'Nuevo',
@@ -137,11 +139,11 @@ export class LeadsPage {
             notes: '',
           });
           this.createModalOpen.set(false);
-          this.success.set('Lead creado correctamente.');
+          this.success.set(this.i18n.t('leads.created'));
           this.saving.set(false);
         },
         error: () => {
-          this.error.set('No fue posible crear el lead. Revisa los datos e intenta de nuevo.');
+          this.error.set(this.i18n.t('leads.createError'));
           this.saving.set(false);
         },
       });
@@ -178,25 +180,29 @@ export class LeadsPage {
           this.leads.update((items) => items.map((item) => (item.id === lead.id ? updated : item)));
           this.selectedStatus.set(value.status);
           this.selectLead(updated);
-          this.success.set('Lead actualizado correctamente.');
+          this.success.set(this.i18n.t('leads.updated'));
           this.saving.set(false);
         },
         error: () => {
-          this.error.set('No fue posible actualizar el lead. Intenta de nuevo.');
+          this.error.set(this.i18n.t('leads.updateError'));
           this.saving.set(false);
         },
       });
   }
 
+  statusLabel(status: LeadStatus): string {
+    return this.i18n.t(`lead.status.${status}`);
+  }
+
   formatDate(value: string | undefined): string {
     if (!value) {
-      return 'Sin accion';
+      return this.i18n.t('leads.noAction');
     }
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-      return 'Sin accion';
+      return this.i18n.t('leads.noAction');
     }
-    return date.toLocaleString('es-CO', {
+    return date.toLocaleString(this.i18n.language() === 'en' ? 'en-US' : 'es-CO', {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
@@ -209,7 +215,7 @@ export class LeadsPage {
     this.loading.set(true);
     this.api.services().subscribe({
       next: (response) => this.services.set(response.data),
-      error: () => this.error.set('No fue posible cargar el catalogo de servicios.'),
+      error: () => this.error.set(this.i18n.t('leads.servicesError')),
     });
 
     this.api.leads().subscribe({
@@ -218,7 +224,7 @@ export class LeadsPage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('No fue posible cargar los leads. Verifica el backend y la sesion.');
+        this.error.set(this.i18n.t('leads.loadError'));
         this.loading.set(false);
       },
     });
