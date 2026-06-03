@@ -79,6 +79,8 @@ describe('ApiService', () => {
     const payload = {
       name: 'Sonrisa Viva',
       city: 'Bogota',
+      country_code: 'CO' as const,
+      currency_code: 'COP' as const,
       phone: '+5710000000',
       whatsapp: '+573001234567',
       address: 'Calle 1',
@@ -93,7 +95,20 @@ describe('ApiService', () => {
 
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual(payload);
-    request.flush({ id: 'clinic-1', clinic_type: 'dental', ...payload });
+    request.flush({
+      id: 'clinic-1',
+      clinic_type: 'dental',
+      currency: {
+        code: 'COP',
+        symbol: '$',
+        locale: 'es-CO',
+        decimal_digits: 0,
+        thousand_separator: '.',
+        decimal_separator: ',',
+        symbol_position: 'before',
+      },
+      ...payload,
+    });
   });
 
   it('requests list endpoints for services, leads, and followups', () => {

@@ -52,6 +52,8 @@ Phase B — Smart Schedule First Slice Validation and Documentation Alignment
 - Backend schedule availability endpoint implemented through `GET /api/schedule/availability`.
 - Backend schedule-centered dashboard summary endpoint implemented through `GET /api/dashboard/schedule-summary`.
 - Angular Smart Schedule, professionals, and schedule-first dashboard screens exist and are wired to API service methods.
+- Clinic profile now includes country/currency configuration for CO/COP, PE/PEN, AR/ARS, and CL/CLP.
+- Angular follow-ups screen groups pending actions by overdue, today, and upcoming urgency while keeping manual human action.
 
 ## In-Progress Items
 
@@ -99,6 +101,13 @@ Phase B — Smart Schedule First Slice Validation and Documentation Alignment
 Validate the Smart Schedule flow end-to-end locally, then harden the Angular schedule UX and Inbox AI schedule handoff.
 
 ## Change Log
+
+### 2026-06-03
+
+- Added clinic country/currency fields to backend clinic DTOs, repository, service validation, and SQL migration.
+- Added Angular clinic country/currency controls and updated frontend API models/specs.
+- Improved the Angular follow-ups screen with urgency groups, readable date formatting, lead detail links, and split date/time rescheduling inputs.
+- Validated backend tests, frontend build, frontend tests, backend vet, and local `/api/clinics/current` currency response.
 
 ### 2026-06-02
 

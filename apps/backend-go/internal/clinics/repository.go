@@ -28,6 +28,8 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID string) (Cli
 			name,
 			clinic_type,
 			city,
+			country_code,
+			currency_code,
 			phone,
 			whatsapp,
 			address,
@@ -45,6 +47,8 @@ func (r *PostgresRepository) FindByID(ctx context.Context, clinicID string) (Cli
 		&clinic.Name,
 		&clinic.ClinicType,
 		&clinic.City,
+		&clinic.CountryCode,
+		&clinic.CurrencyCode,
 		&clinic.Phone,
 		&clinic.WhatsApp,
 		&clinic.Address,
@@ -68,12 +72,14 @@ func (r *PostgresRepository) Update(ctx context.Context, clinic Clinic) error {
 		SET
 			name = $2,
 			city = $3,
-			phone = $4,
-			whatsapp = $5,
-			address = $6,
-			opening_hours = $7,
-			general_faq = $8,
-			communication_tone = $9
+			country_code = $4,
+			currency_code = $5,
+			phone = $6,
+			whatsapp = $7,
+			address = $8,
+			opening_hours = $9,
+			general_faq = $10,
+			communication_tone = $11
 		WHERE id = $1
 	`
 
@@ -83,6 +89,8 @@ func (r *PostgresRepository) Update(ctx context.Context, clinic Clinic) error {
 		clinic.ID,
 		clinic.Name,
 		clinic.City,
+		clinic.CountryCode,
+		clinic.CurrencyCode,
 		clinic.Phone,
 		clinic.WhatsApp,
 		clinic.Address,

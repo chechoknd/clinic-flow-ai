@@ -206,6 +206,17 @@ Response:
   "name": "Sonrisa Viva Demo",
   "clinic_type": "odontologia",
   "city": "Bogota",
+  "country_code": "CO",
+  "currency_code": "COP",
+  "currency": {
+    "code": "COP",
+    "symbol": "$",
+    "locale": "es-CO",
+    "decimal_digits": 0,
+    "thousand_separator": ".",
+    "decimal_separator": ",",
+    "symbol_position": "before"
+  },
   "phone": "+573001112233",
   "whatsapp": "+573001112233",
   "address": "Calle 123 #45-67",
@@ -237,12 +248,23 @@ juvenil
 elegante
 ```
 
+Allowed country/currency pairs:
+
+```txt
+CO/COP
+PE/PEN
+AR/ARS
+CL/CLP
+```
+
 Request:
 
 ```json
 {
   "name": "Sonrisa Viva Demo",
   "city": "Bogota",
+  "country_code": "CO",
+  "currency_code": "COP",
   "phone": "+573001112233",
   "whatsapp": "+573001112233",
   "address": "Calle 123 #45-67",

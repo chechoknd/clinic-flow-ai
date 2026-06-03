@@ -1,5 +1,19 @@
 # Decisions Log
 
+## 2026-06-03 — Keep clinic currency as configuration, not billing
+
+### Context
+
+Clinics need country/currency configuration so commercial screens can present prices and clinic settings in the local market context. This must not introduce payment gateways, invoicing, or accounting workflows into the MVP.
+
+### Decision
+
+Add country/currency fields to clinic configuration with a small supported mapping for CO/COP, PE/PEN, AR/ARS, and CL/CLP. Treat currency as commercial display/configuration data owned by the clinic profile.
+
+### Consequences
+
+The app can show the clinic's country and currency without expanding into payments or billing. Future price formatting can reuse the same metadata, but any payment or invoicing feature remains out of MVP scope.
+
 ## 2026-05-20 — Use monorepo
 
 ### Context
@@ -266,4 +280,3 @@ Treat Smart Schedule as partially implemented. The first slice includes operatio
 ### Consequences
 
 Documentation and smoke coverage must track the implemented state. Remaining work should focus on local end-to-end validation, Angular workflow polish, Inbox AI scheduling suggestions with human review, and schedule action prioritization.
-

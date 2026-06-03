@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { ClinicProfile, CommunicationTone } from '../../core/services/api.models';
+import { ClinicProfile, CommunicationTone, CountryCode, CurrencyCode } from '../../core/services/api.models';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -21,6 +21,17 @@ export class ClinicPage {
     { value: 'juvenil', label: 'Juvenil' },
     { value: 'elegante', label: 'Elegante' },
   ];
+  readonly countryCurrencies: Array<{
+    country_code: CountryCode;
+    country_label: string;
+    currency_code: CurrencyCode;
+    currency_label: string;
+  }> = [
+    { country_code: 'CO', country_label: 'Colombia', currency_code: 'COP', currency_label: 'COP - Peso colombiano' },
+    { country_code: 'PE', country_label: 'Peru', currency_code: 'PEN', currency_label: 'PEN - Sol peruano' },
+    { country_code: 'AR', country_label: 'Argentina', currency_code: 'ARS', currency_label: 'ARS - Peso argentino' },
+    { country_code: 'CL', country_label: 'Chile', currency_code: 'CLP', currency_label: 'CLP - Peso chileno' },
+  ];
   readonly clinic = signal<ClinicProfile | null>(null);
   readonly loading = signal(false);
   readonly saving = signal(false);
@@ -30,6 +41,8 @@ export class ClinicPage {
   readonly clinicForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     city: ['', Validators.required],
+    country_code: ['CO' as CountryCode, Validators.required],
+    currency_code: ['COP' as CurrencyCode, Validators.required],
     phone: ['', Validators.pattern(/^$|^\+[1-9]\d{7,14}$/)],
     whatsapp: ['', [Validators.required, Validators.pattern(/^\+[1-9]\d{7,14}$/)]],
     address: [''],
@@ -38,6 +51,20 @@ export class ClinicPage {
 
   constructor() {
     this.loadClinic();
+  }
+
+  onCountryChange(countryCode: CountryCode): void {
+    const selected = this.countryCurrencies.find((item) => item.country_code === countryCode);
+    if (selected) {
+      this.clinicForm.patchValue({ currency_code: selected.currency_code });
+    }
+  }
+
+  onCurrencyChange(currencyCode: CurrencyCode): void {
+    const selected = this.countryCurrencies.find((item) => item.currency_code === currencyCode);
+    if (selected) {
+      this.clinicForm.patchValue({ country_code: selected.country_code });
+    }
   }
 
   saveClinic(): void {
@@ -55,6 +82,8 @@ export class ClinicPage {
       .updateClinicCurrent({
         name: value.name.trim(),
         city: value.city.trim(),
+        country_code: value.country_code,
+        currency_code: value.currency_code,
         phone: value.phone.trim() || undefined,
         whatsapp: value.whatsapp.trim(),
         address: value.address.trim() || undefined,
@@ -95,6 +124,8 @@ export class ClinicPage {
     this.clinicForm.reset({
       name: profile.name,
       city: profile.city,
+      country_code: profile.country_code,
+      currency_code: profile.currency_code,
       phone: profile.phone ?? '',
       whatsapp: profile.whatsapp,
       address: profile.address ?? '',

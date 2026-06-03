@@ -1,7 +1,7 @@
 <section class="grid gap-6">
   <div>
     <h1 class="text-2xl font-semibold text-slate-950">Seguimientos</h1>
-    <p class="mt-1 text-sm text-slate-600">Recordatorios manuales para recuperar conversaciones activas.</p>
+    <p class="mt-1 text-sm text-slate-600">Recordatorios manuales ordenados por urgencia comercial.</p>
   </div>
 
   @if (error()) {
@@ -13,51 +13,84 @@
   }
 
   <div class="grid gap-6 xl:grid-cols-[1fr_420px]">
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid gap-5">
       @if (loading()) {
-        <div data-testid="followups-loading-state" class="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 lg:col-span-2">
+        <div data-testid="followups-loading-state" class="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
           Cargando seguimientos...
         </div>
       } @else {
-        @for (followup of followups(); track followup.id) {
-          <article [attr.data-testid]="'followups-card-' + followup.id" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-start justify-between gap-3">
+        @for (group of followupGroups(); track group.label) {
+          <section class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <div
+              class="flex flex-col justify-between gap-2 rounded-md border px-4 py-3 sm:flex-row sm:items-center"
+              [class.border-red-200]="group.tone === 'urgent'"
+              [class.bg-red-50]="group.tone === 'urgent'"
+              [class.text-red-800]="group.tone === 'urgent'"
+              [class.border-amber-200]="group.tone === 'today'"
+              [class.bg-amber-50]="group.tone === 'today'"
+              [class.text-amber-800]="group.tone === 'today'"
+              [class.border-slate-200]="group.tone === 'upcoming'"
+              [class.bg-slate-50]="group.tone === 'upcoming'"
+              [class.text-slate-700]="group.tone === 'upcoming'"
+            >
               <div>
-                <h2 class="font-semibold text-slate-950">{{ followup.full_name }}</h2>
-                <p class="text-sm text-slate-500">{{ followup.phone }}</p>
+                <h2 class="text-sm font-semibold uppercase">{{ group.label }}</h2>
+                <p class="mt-1 text-sm">{{ group.description }}</p>
               </div>
-              <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">{{ followup.status }}</span>
+              <span class="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">{{ group.items.length }}</span>
             </div>
-            <p class="mt-4 text-sm text-slate-600">{{ followup.service_name || 'Servicio por confirmar' }}</p>
-            <p class="mt-2 text-sm font-medium text-slate-800">{{ followup.next_action_at }}</p>
-            <div class="mt-5 flex flex-wrap gap-2">
-              <button
-                type="button"
-                [attr.data-testid]="'followups-manage-button-' + followup.id"
-                class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                (click)="selectFollowUp(followup)"
-              >
-                Gestionar
-              </button>
-              <a
-                [attr.data-testid]="'followups-ai-assistant-link-' + followup.id"
-                routerLink="/ai-assistant"
-                [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
-                class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700"
-              >
-                Asistente AI
-              </a>
+
+            <div class="mt-4 grid gap-4 lg:grid-cols-2">
+              @for (followup of group.items; track followup.id) {
+                <article [attr.data-testid]="'followups-card-' + followup.id" class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 class="font-semibold text-slate-950">{{ followup.full_name }}</h3>
+                      <p class="text-sm text-slate-500">{{ followup.phone }}</p>
+                    </div>
+                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">{{ followup.status }}</span>
+                  </div>
+                  <p class="mt-4 text-sm text-slate-600">{{ followup.service_name || 'Servicio por confirmar' }}</p>
+                  <p class="mt-2 text-sm font-medium text-slate-800">{{ formatDate(followup.next_action_at) }}</p>
+                  <div class="mt-5 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      [attr.data-testid]="'followups-manage-button-' + followup.id"
+                      class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                      (click)="selectFollowUp(followup)"
+                    >
+                      Gestionar
+                    </button>
+                    <a
+                      [attr.data-testid]="'followups-ai-assistant-link-' + followup.id"
+                      routerLink="/ai-assistant"
+                      [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
+                      class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700"
+                    >
+                      Responder con AI
+                    </a>
+                    <a
+                      [attr.data-testid]="'followups-lead-detail-link-' + followup.id"
+                      routerLink="/leads"
+                      [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
+                      class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Ver detalle
+                    </a>
+                  </div>
+                </article>
+              } @empty {
+                <div class="rounded-md bg-slate-50 p-6 text-center text-sm text-slate-500 lg:col-span-2">
+                  Sin seguimientos en esta categoria.
+                </div>
+              }
             </div>
-          </article>
-        } @empty {
-          <div class="rounded-lg border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 lg:col-span-2">
-            No hay seguimientos pendientes o el backend no esta disponible.
-          </div>
+          </section>
         }
       }
     </div>
 
-    <aside class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <aside class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24 xl:self-start">
       <div>
         <h2 class="text-base font-semibold text-slate-950">Accion de seguimiento</h2>
         <p class="mt-1 text-sm text-slate-500">
@@ -69,6 +102,17 @@
         </p>
       </div>
 
+      @if (selectedFollowUp(); as followup) {
+        <a
+          data-testid="followups-selected-lead-detail-link"
+          routerLink="/leads"
+          [queryParams]="{ lead_id: followup.id, service_id: followup.service_id }"
+          class="w-fit rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+        >
+          Ver detalle comercial
+        </a>
+      }
+
       <form data-testid="followups-action-form" class="grid gap-4" [formGroup]="actionForm">
         <label class="grid gap-2 text-sm font-medium text-slate-700">
           Estado al completar
@@ -79,18 +123,30 @@
           </select>
         </label>
 
-        <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Nueva proxima accion
-          <input
-            type="datetime-local"
-            data-testid="followups-next-action-input"
-            formControlName="next_action_at"
-            class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-          />
+        <div class="grid gap-2 text-sm font-medium text-slate-700">
+          Nueva proxima accion (Fecha y Hora)
+          <div class="grid grid-cols-[1.2fr_0.8fr] gap-3">
+            <input
+              type="date"
+              #followupDateInput
+              data-testid="followups-next-action-date"
+              [value]="getDatePart(actionForm.controls.next_action_at.value)"
+              (input)="updateNextActionAt(actionForm.controls.next_action_at, followupDateInput.value, followupTimeInput.value)"
+              class="h-11 w-full rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+            />
+            <input
+              type="time"
+              #followupTimeInput
+              data-testid="followups-next-action-time"
+              [value]="getTimePart(actionForm.controls.next_action_at.value)"
+              (input)="updateNextActionAt(actionForm.controls.next_action_at, followupDateInput.value, followupTimeInput.value)"
+              class="h-11 w-full rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+            />
+          </div>
           @if (actionForm.controls.next_action_at.touched && actionForm.controls.next_action_at.invalid) {
             <span class="text-xs text-red-600">Selecciona fecha y hora para reprogramar.</span>
           }
-        </label>
+        </div>
 
         <label class="grid gap-2 text-sm font-medium text-slate-700">
           Nota
@@ -110,7 +166,7 @@
             [disabled]="!selectedFollowUp() || saving()"
             (click)="completeSelected()"
           >
-            Completar
+            {{ saving() ? 'Completando...' : 'Completar' }}
           </button>
           <button
             type="button"
@@ -119,7 +175,7 @@
             [disabled]="!selectedFollowUp() || saving()"
             (click)="rescheduleSelected()"
           >
-            Reprogramar
+            {{ saving() ? 'Reprogramando...' : 'Reprogramar' }}
           </button>
         </div>
 
