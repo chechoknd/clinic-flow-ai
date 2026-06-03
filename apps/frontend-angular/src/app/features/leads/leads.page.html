@@ -1,12 +1,22 @@
 <section class="grid gap-6">
-  <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+  <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
     <div>
       <h1 class="text-2xl font-semibold text-slate-950">Leads</h1>
-      <p class="mt-1 text-sm text-slate-600">Pipeline comercial para seguimiento manual por WhatsApp.</p>
+      <p class="mt-1 text-sm text-slate-600">Pipeline comercial enfocado en acciones rápidas.</p>
     </div>
-    <a data-testid="leads-ai-assistant-link" routerLink="/ai-assistant" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-      Asistente AI
-    </a>
+    <div class="flex flex-wrap gap-2">
+      <a data-testid="leads-ai-assistant-link" routerLink="/ai-assistant" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+        Asistente AI
+      </a>
+      <button
+        type="button"
+        data-testid="leads-open-create-modal-button"
+        class="rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700"
+        (click)="openCreateModal()"
+      >
+        Nuevo lead
+      </button>
+    </div>
   </div>
 
   @if (error()) {
@@ -17,110 +27,14 @@
     <p data-testid="leads-success-message" class="rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-700">{{ success() }}</p>
   }
 
-  <div class="grid gap-6 xl:grid-cols-[380px_1fr]">
-    <form data-testid="leads-create-form" class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="createForm" (ngSubmit)="createLead()">
-      <div>
-        <h2 class="text-base font-semibold text-slate-950">Nuevo lead</h2>
-        <p class="mt-1 text-sm text-slate-500">Registra consultas comerciales para seguimiento manual.</p>
-      </div>
-
-      <label class="grid gap-2 text-sm font-medium text-slate-700">
-        Nombre completo
-        <input
-          type="text"
-          data-testid="leads-create-full-name-input"
-          formControlName="full_name"
-          class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-        />
-        @if (createForm.controls.full_name.touched && createForm.controls.full_name.invalid) {
-          <span class="text-xs text-red-600">Ingresa el nombre del lead.</span>
-        }
-      </label>
-
-      <label class="grid gap-2 text-sm font-medium text-slate-700">
-        WhatsApp
-        <input
-          type="tel"
-          data-testid="leads-create-phone-input"
-          formControlName="phone"
-          placeholder="+573001234567"
-          class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-        />
-        @if (createForm.controls.phone.touched && createForm.controls.phone.invalid) {
-          <span class="text-xs text-red-600">Usa formato internacional, por ejemplo +573001234567.</span>
-        }
-      </label>
-
-      <label class="grid gap-2 text-sm font-medium text-slate-700">
-        Servicio
-        <select data-testid="leads-create-service-select" formControlName="service_id" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
-          <option value="">Sin servicio definido</option>
-          @for (service of services(); track service.id) {
-            <option [value]="service.id">{{ service.name }}</option>
-          }
-        </select>
-      </label>
-
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-        <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Estado
-          <select data-testid="leads-create-status-select" formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
-            @for (status of statuses; track status) {
-              <option [value]="status">{{ status }}</option>
-            }
-          </select>
-        </label>
-
-        <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Origen
-          <select data-testid="leads-create-source-select" formControlName="source" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
-            <option value="whatsapp">WhatsApp</option>
-            <option value="instagram">Instagram</option>
-            <option value="facebook">Facebook</option>
-            <option value="web">Web</option>
-            <option value="llamada">Llamada</option>
-            <option value="otro">Otro</option>
-          </select>
-        </label>
-      </div>
-
-      <label class="grid gap-2 text-sm font-medium text-slate-700">
-        Proxima accion
-        <input
-          type="datetime-local"
-          data-testid="leads-create-next-action-input"
-          formControlName="next_action_at"
-          class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-        />
-      </label>
-
-      <label class="grid gap-2 text-sm font-medium text-slate-700">
-        Nota inicial
-        <textarea
-          formControlName="notes"
-          data-testid="leads-create-notes-textarea"
-          rows="4"
-          class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-        ></textarea>
-      </label>
-
-      <button
-        type="submit"
-        data-testid="leads-create-submit-button"
-        class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
-        [disabled]="createForm.invalid || saving()"
-      >
-        {{ saving() ? 'Guardando...' : 'Crear lead' }}
-      </button>
-    </form>
-
-    <div class="grid gap-6">
-      <div class="grid gap-3 md:grid-cols-7">
+  <div class="grid gap-4">
+    <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
+      <div class="flex min-w-max gap-2">
         @for (status of statuses; track status) {
           <button
             type="button"
             [attr.data-testid]="'leads-status-filter-' + status"
-            class="rounded-md border px-3 py-2 text-sm font-medium"
+            class="inline-flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-medium transition"
             [class.border-slate-900]="selectedStatus() === status"
             [class.bg-slate-900]="selectedStatus() === status"
             [class.text-white]="selectedStatus() === status"
@@ -129,83 +43,112 @@
             [class.text-slate-700]="selectedStatus() !== status"
             (click)="selectStatus(status)"
           >
-            {{ status }}
+            <span>{{ status }}</span>
+            <span
+              class="rounded-full px-2 py-0.5 text-xs"
+              [class.bg-white]="selectedStatus() === status"
+              [class.text-slate-900]="selectedStatus() === status"
+              [class.bg-slate-100]="selectedStatus() !== status"
+              [class.text-slate-600]="selectedStatus() !== status"
+            >
+              {{ statusCounts()[status] }}
+            </span>
           </button>
         }
       </div>
+    </div>
 
+    <div class="leads-workspace" [class.leads-workspace--with-panel]="selectedLead()">
       <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div class="hidden grid-cols-[1.2fr_1fr_1fr_1fr_220px] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase text-slate-500 md:grid">
-          <span>Paciente</span>
-          <span>Servicio</span>
-          <span>Estado</span>
-          <span>Proxima accion</span>
-          <span>Acciones</span>
+        <div class="flex flex-col justify-between gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center">
+          <div>
+            <h2 class="text-sm font-semibold text-slate-950">{{ selectedStatus() }}</h2>
+            <p class="text-xs text-slate-500">{{ selectedStatusCount() }} leads en este estado</p>
+          </div>
+          <button
+            type="button"
+            class="w-fit rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            (click)="openCreateModal()"
+          >
+            Agregar
+          </button>
         </div>
 
         @if (loading()) {
           <div data-testid="leads-loading-state" class="px-4 py-10 text-center text-sm text-slate-500">Cargando leads...</div>
         } @else {
-          @for (lead of filteredLeads(); track lead.id) {
-            <article [attr.data-testid]="'leads-row-' + lead.id" class="grid gap-3 border-b border-slate-100 px-4 py-4 last:border-0 md:grid-cols-[1.2fr_1fr_1fr_1fr_220px] md:items-center">
-              <div>
-                <h2 class="font-semibold text-slate-950">{{ lead.full_name }}</h2>
-                <p class="text-sm text-slate-500">{{ lead.phone }}</p>
-              </div>
-              <p class="text-sm text-slate-700">{{ lead.service_name || 'Sin servicio' }}</p>
-              <span class="w-fit rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold text-teal-700">{{ lead.status }}</span>
-              <p class="text-sm text-slate-600">{{ lead.next_action_at || 'Sin fecha' }}</p>
-              <div class="flex items-center gap-2">
+          <div class="divide-y divide-slate-100">
+            @for (lead of filteredLeads(); track lead.id) {
+              <article [attr.data-testid]="'leads-row-' + lead.id" class="grid gap-3 px-4 py-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
                 <button
                   type="button"
-                  [attr.data-testid]="'leads-edit-button-' + lead.id"
-                  class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+                  class="min-w-0 text-left"
                   (click)="selectLead(lead)"
                 >
-                  Editar
+                  <h3 class="truncate font-semibold text-slate-950">{{ lead.full_name }}</h3>
+                  <p class="mt-1 text-sm text-slate-500">{{ lead.phone }}</p>
                 </button>
-                <a
-                  [attr.data-testid]="'leads-schedule-button-' + lead.id"
-                  routerLink="/schedule"
-                  [queryParams]="{
-                    contact_name: lead.full_name,
-                    contact_phone: lead.phone,
-                    service_id: lead.service_id || '',
-                    lead_id: lead.id
-                  }"
-                  class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700 text-center transition whitespace-nowrap"
+
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium text-slate-700">{{ lead.service_name || 'Sin servicio' }}</p>
+                  <p class="mt-1 text-xs text-slate-500">{{ formatDate(lead.next_action_at) }}</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                  <button
+                    type="button"
+                    [attr.data-testid]="'leads-edit-button-' + lead.id"
+                    class="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    (click)="selectLead(lead)"
+                  >
+                    Gestionar
+                  </button>
+                  <a
+                    [attr.data-testid]="'leads-schedule-button-' + lead.id"
+                    routerLink="/schedule"
+                    [queryParams]="{
+                      contact_name: lead.full_name,
+                      contact_phone: lead.phone,
+                      service_id: lead.service_id || '',
+                      lead_id: lead.id
+                    }"
+                    class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
+                  >
+                    Agendar
+                  </a>
+                </div>
+              </article>
+            } @empty {
+              <div class="px-4 py-12 text-center">
+                <p class="text-sm font-medium text-slate-700">No hay leads para este estado.</p>
+                <button
+                  type="button"
+                  class="mt-4 rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700"
+                  (click)="openCreateModal()"
                 >
-                  Agendar
-                </a>
+                  Crear lead
+                </button>
               </div>
-            </article>
-          } @empty {
-            <div class="px-4 py-10 text-center text-sm text-slate-500">
-              No hay leads para este estado.
-            </div>
-          }
+            }
+          </div>
         }
       </div>
 
-      <form data-testid="leads-update-form" class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="updateForm" (ngSubmit)="updateLead()">
-        <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-          <div>
-            <h2 class="text-base font-semibold text-slate-950">Actualizar seguimiento</h2>
-            <p class="mt-1 text-sm text-slate-500">
-              @if (selectedLead(); as lead) {
-                {{ lead.full_name }} - {{ lead.phone }}
-              } @else {
-                Selecciona un lead para cambiar estado, nota o proxima accion.
-              }
-            </p>
-          </div>
-          @if (selectedLead(); as lead) {
-            <div class="flex items-center gap-2">
+      @if (selectedLead(); as lead) {
+        <aside class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:sticky xl:top-24 xl:self-start">
+          <form data-testid="leads-update-form" class="grid gap-4" [formGroup]="updateForm" (ngSubmit)="updateLead()">
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-500">Seguimiento</p>
+              <h2 class="mt-1 text-base font-semibold text-slate-950">{{ lead.full_name }}</h2>
+              <p class="text-sm text-slate-500">{{ lead.phone }}</p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
               <a
                 data-testid="leads-selected-ai-reply-link"
                 routerLink="/ai-assistant"
                 [queryParams]="{ lead_id: lead.id, service_id: lead.service_id }"
-                class="w-fit rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                class="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
               >
                 Responder
               </a>
@@ -218,18 +161,113 @@
                   service_id: lead.service_id || '',
                   lead_id: lead.id
                 }"
-                class="w-fit rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition"
+                class="rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
               >
-                Agendar Cita
+                Agendar
               </a>
             </div>
-          }
+
+            <label class="grid gap-2 text-sm font-medium text-slate-700">
+              Estado
+              <select data-testid="leads-update-status-select" formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+                @for (status of statuses; track status) {
+                  <option [value]="status">{{ status }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="grid gap-2 text-sm font-medium text-slate-700">
+              Proxima accion
+              <input
+                type="datetime-local"
+                data-testid="leads-update-next-action-input"
+                formControlName="next_action_at"
+                class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              />
+            </label>
+
+            <label class="grid gap-2 text-sm font-medium text-slate-700">
+              Nota
+              <textarea
+                formControlName="note"
+                data-testid="leads-update-note-textarea"
+                rows="3"
+                class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              ></textarea>
+            </label>
+
+            <button
+              type="submit"
+              data-testid="leads-update-submit-button"
+              class="h-11 rounded-md bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="updateForm.invalid || saving()"
+            >
+              {{ saving() ? 'Actualizando...' : 'Guardar' }}
+            </button>
+          </form>
+        </aside>
+      }
+    </div>
+  </div>
+
+  @if (createModalOpen()) {
+    <div class="fixed inset-0 z-50 grid place-items-center bg-slate-950/40 p-4">
+      <form data-testid="leads-create-form" class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-5 shadow-xl" [formGroup]="createForm" (ngSubmit)="createLead()">
+        <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-950">Nuevo lead</h2>
+            <p class="mt-1 text-sm text-slate-500">Registra una consulta comercial para seguimiento.</p>
+          </div>
+          <button
+            type="button"
+            class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            (click)="closeCreateModal()"
+          >
+            Cerrar
+          </button>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="mt-5 grid gap-4 md:grid-cols-2">
+          <label class="grid gap-2 text-sm font-medium text-slate-700 md:col-span-2">
+            Nombre completo
+            <input
+              type="text"
+              data-testid="leads-create-full-name-input"
+              formControlName="full_name"
+              class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+            />
+            @if (createForm.controls.full_name.touched && createForm.controls.full_name.invalid) {
+              <span class="text-xs text-red-600">Ingresa el nombre del lead.</span>
+            }
+          </label>
+
+          <label class="grid gap-2 text-sm font-medium text-slate-700">
+            WhatsApp
+            <input
+              type="tel"
+              data-testid="leads-create-phone-input"
+              formControlName="phone"
+              placeholder="+573001234567"
+              class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+            />
+            @if (createForm.controls.phone.touched && createForm.controls.phone.invalid) {
+              <span class="text-xs text-red-600">Usa formato internacional, por ejemplo +573001234567.</span>
+            }
+          </label>
+
+          <label class="grid gap-2 text-sm font-medium text-slate-700">
+            Servicio
+            <select data-testid="leads-create-service-select" formControlName="service_id" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+              <option value="">Sin servicio definido</option>
+              @for (service of services(); track service.id) {
+                <option [value]="service.id">{{ service.name }}</option>
+              }
+            </select>
+          </label>
+
           <label class="grid gap-2 text-sm font-medium text-slate-700">
             Estado
-            <select data-testid="leads-update-status-select" formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+            <select data-testid="leads-create-status-select" formControlName="status" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
               @for (status of statuses; track status) {
                 <option [value]="status">{{ status }}</option>
               }
@@ -237,35 +275,56 @@
           </label>
 
           <label class="grid gap-2 text-sm font-medium text-slate-700">
+            Origen
+            <select data-testid="leads-create-source-select" formControlName="source" class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100">
+              <option value="whatsapp">WhatsApp</option>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+              <option value="web">Web</option>
+              <option value="llamada">Llamada</option>
+              <option value="otro">Otro</option>
+            </select>
+          </label>
+
+          <label class="grid gap-2 text-sm font-medium text-slate-700 md:col-span-2">
             Proxima accion
             <input
               type="datetime-local"
-              data-testid="leads-update-next-action-input"
+              data-testid="leads-create-next-action-input"
               formControlName="next_action_at"
               class="h-11 rounded-md border border-slate-300 px-3 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
             />
           </label>
+
+          <label class="grid gap-2 text-sm font-medium text-slate-700 md:col-span-2">
+            Nota inicial
+            <textarea
+              formControlName="notes"
+              data-testid="leads-create-notes-textarea"
+              rows="3"
+              class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+            ></textarea>
+          </label>
         </div>
 
-        <label class="grid gap-2 text-sm font-medium text-slate-700">
-          Nota de seguimiento
-          <textarea
-            formControlName="note"
-            data-testid="leads-update-note-textarea"
-            rows="3"
-            class="rounded-md border border-slate-300 px-3 py-2 text-slate-950 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
-          ></textarea>
-        </label>
-
-        <button
-          type="submit"
-          data-testid="leads-update-submit-button"
-          class="h-11 rounded-md bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          [disabled]="!selectedLead() || updateForm.invalid || saving()"
-        >
-          {{ saving() ? 'Actualizando...' : 'Guardar seguimiento' }}
-        </button>
+        <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            class="h-11 rounded-md border border-slate-300 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            (click)="closeCreateModal()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            data-testid="leads-create-submit-button"
+            class="h-11 rounded-md bg-teal-600 px-4 text-sm font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="createForm.invalid || saving()"
+          >
+            {{ saving() ? 'Guardando...' : 'Crear lead' }}
+          </button>
+        </div>
       </form>
     </div>
-  </div>
+  }
 </section>

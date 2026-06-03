@@ -28,11 +28,23 @@ export class LeadsPage {
   readonly leads = signal<Lead[]>([]);
   readonly services = signal<ClinicServiceItem[]>([]);
   readonly selectedLead = signal<Lead | null>(null);
+  readonly createModalOpen = signal(false);
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
 
+  readonly statusCounts = computed(() => {
+    const counts = this.statuses.reduce(
+      (acc, status) => ({ ...acc, [status]: 0 }),
+      {} as Record<LeadStatus, number>,
+    );
+    this.leads().forEach((lead) => {
+      counts[lead.status] = (counts[lead.status] ?? 0) + 1;
+    });
+    return counts;
+  });
+  readonly selectedStatusCount = computed(() => this.statusCounts()[this.selectedStatus()] ?? 0);
   readonly filteredLeads = computed(() =>
     this.leads().filter((lead) => lead.status === this.selectedStatus()),
   );
@@ -55,6 +67,19 @@ export class LeadsPage {
 
   constructor() {
     this.loadInitialData();
+  }
+
+  openCreateModal(): void {
+    this.createModalOpen.set(true);
+    this.success.set(null);
+    this.error.set(null);
+  }
+
+  closeCreateModal(): void {
+    if (this.saving()) {
+      return;
+    }
+    this.createModalOpen.set(false);
   }
 
   selectStatus(status: LeadStatus): void {
@@ -111,6 +136,7 @@ export class LeadsPage {
             next_action_at: '',
             notes: '',
           });
+          this.createModalOpen.set(false);
           this.success.set('Lead creado correctamente.');
           this.saving.set(false);
         },
@@ -160,6 +186,23 @@ export class LeadsPage {
           this.saving.set(false);
         },
       });
+  }
+
+  formatDate(value: string | undefined): string {
+    if (!value) {
+      return 'Sin accion';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return 'Sin accion';
+    }
+    return date.toLocaleString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
   }
 
   private loadInitialData(): void {
